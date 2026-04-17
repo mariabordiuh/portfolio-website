@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "hosting:preview": "npm run build && npx --yes firebase-tools hosting:channel:deploy preview",
+    "hosting:deploy": "npm run build && npx --yes firebase-tools deploy --only hosting"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
