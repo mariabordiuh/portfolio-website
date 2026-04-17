@@ -1,63 +1,127 @@
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { startTransition, useEffect, useState } from 'react';
 import { labItems as fallbackLabItems, projects as fallbackProjects, videos as fallbackVideos } from './data';
 import { GalleryImage, LabItem, Project, Video } from './types';
 
+type LiveStatus = 'fallback' | 'connecting' | 'live';
+
+type LivePortfolioState = {
+  projects: Project[];
+  videos: Video[];
+  labItems: LabItem[];
+  galleryImages: GalleryImage[];
+  status: LiveStatus;
+  errorMessage: string | null;
+};
+
+const initialState: LivePortfolioState = {
+  projects: fallbackProjects,
+  videos: fallbackVideos,
+  labItems: fallbackLabItems,
+  galleryImages: [],
+  status: 'connecting',
+  errorMessage: null,
+};
+
 export function useLivePortfolioData() {
-  const [projects, setProjects] = useState<Project[]>(fallbackProjects);
-  const [videos, setVideos] = useState<Video[]>(fallbackVideos);
-  const [labItems, setLabItems] = useState<LabItem[]>(fallbackLabItems);
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [state, setState] = useState<LivePortfolioState>(initialState);
 
   useEffect(() => {
-    const unsubProjects = onSnapshot(
-      collection(db, 'projects'),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setProjects(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Project)));
-        }
-      },
-      () => {},
-    );
+    let isActive = true;
+    let cleanup = () => {};
 
-    const unsubVideos = onSnapshot(
-      collection(db, 'videos'),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setVideos(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video)));
+    import('./live-data-client')
+      .then(({ subscribeToLivePortfolioData }) => {
+        if (!isActive) {
+          return;
         }
-      },
-      () => {},
-    );
 
-    const unsubLabItems = onSnapshot(
-      collection(db, 'labItems'),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setLabItems(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem)));
-        }
-      },
-      () => {},
-    );
+        cleanup = subscribeToLivePortfolioData({
+          onProjects: (projects) => {
+            startTransition(() => {
+              if (!isActive) {
+                return;
+              }
 
-    const unsubGallery = onSnapshot(
-      collection(db, 'gallery'),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          setGalleryImages(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage)));
+              setState((current) => ({
+                ...current,
+                projects: projects.length ? projects : current.projects,
+                status: 'live',
+                errorMessage: null,
+              }));
+            });
+          },
+          onVideos: (videos) => {
+            startTransition(() => {
+              if (!isActive) {
+                return;
+              }
+
+              setState((current) => ({
+                ...current,
+                videos: videos.length ? videos : current.videos,
+                status: 'live',
+                errorMessage: null,
+              }));
+            });
+          },
+          onLabItems: (labItems) => {
+            startTransition(() => {
+              if (!isActive) {
+                return;
+              }
+
+              setState((current) => ({
+                ...current,
+                labItems: labItems.length ? labItems : current.labItems,
+                status: 'live',
+                errorMessage: null,
+              }));
+            });
+          },
+          onGalleryImages: (galleryImages) => {
+            startTransition(() => {
+              if (!isActive) {
+                return;
+              }
+
+              setState((current) => ({
+                ...current,
+                galleryImages,
+                status: 'live',
+                errorMessage: null,
+              }));
+            });
+          },
+          onError: (message) => {
+            if (!isActive) {
+              return;
+            }
+
+            setState((current) => ({
+              ...current,
+              status: current.status === 'live' ? 'live' : 'fallback',
+              errorMessage: message,
+            }));
+          },
+        });
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
         }
-      },
-      () => {},
-    );
+
+        setState((current) => ({
+          ...current,
+          status: 'fallback',
+          errorMessage: 'Live Firebase sync is unavailable right now. Showing the saved portfolio snapshot instead.',
+        }));
+      });
 
     return () => {
-      unsubProjects();
-      unsubVideos();
-      unsubLabItems();
-      unsubGallery();
+      isActive = false;
+      cleanup();
     };
   }, []);
 
-  return { projects, videos, labItems, galleryImages };
+  return state;
 }
