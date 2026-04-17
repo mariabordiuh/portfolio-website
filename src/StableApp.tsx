@@ -17,7 +17,7 @@ import { useLivePortfolioData } from './live-data';
 import { cn } from '@/src/lib/utils';
 import type { LabItem, Project, Video } from './types';
 
-const AdminPanel = lazy(() => import('./admin-panel'));
+const AdminPanel = lazy(() => import('./admin-shell'));
 const CONTACT_EMAIL = 'helloveo333@gmail.com';
 const GITHUB_URL = 'https://github.com/mariabordiuh';
 
