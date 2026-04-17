@@ -12,11 +12,14 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, BrowserRouter as Router, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { labItems, projects, videos } from './data';
+import AdminPanel from './admin-panel';
+import { useLivePortfolioData } from './live-data';
 import { cn } from '@/src/lib/utils';
+import type { LabItem, Project, Video } from './types';
 
 function AppChrome() {
   const location = useLocation();
+  const { projects, videos, labItems } = useLivePortfolioData();
   const nav = [
     { label: 'Home', href: '/' },
     { label: 'Work', href: '/work' },
@@ -51,12 +54,12 @@ function AppChrome() {
       <main>
         <AnimatePresence mode="wait">
           <Routes>
-            <Route path="/" element={<PageShell><HomePage /></PageShell>} />
-            <Route path="/work" element={<PageShell><WorkPage /></PageShell>} />
-            <Route path="/work/:id" element={<PageShell><ProjectPage /></PageShell>} />
-            <Route path="/lab" element={<PageShell><LabPage /></PageShell>} />
+            <Route path="/" element={<PageShell><HomePage projects={projects} videos={videos} labItems={labItems} /></PageShell>} />
+            <Route path="/work" element={<PageShell><WorkPage projects={projects} /></PageShell>} />
+            <Route path="/work/:id" element={<PageShell><ProjectPage projects={projects} /></PageShell>} />
+            <Route path="/lab" element={<PageShell><LabPage labItems={labItems} /></PageShell>} />
             <Route path="/about" element={<PageShell><AboutPage /></PageShell>} />
-            <Route path="/admin" element={<PageShell><AdminPlaceholder /></PageShell>} />
+            <Route path="/admin" element={<PageShell><AdminPanel /></PageShell>} />
           </Routes>
         </AnimatePresence>
       </main>
@@ -126,7 +129,15 @@ function PageShell({ children }: { children: ReactNode }) {
   );
 }
 
-function HomePage() {
+function HomePage({
+  projects,
+  videos,
+  labItems,
+}: {
+  projects: Project[];
+  videos: Video[];
+  labItems: LabItem[];
+}) {
   return (
     <>
       <section className="section-shell grid gap-12 py-20 md:grid-cols-[1.2fr_0.8fr] md:py-24">
@@ -137,8 +148,8 @@ function HomePage() {
               Art direction, motion, and AI-led image systems with a steadier foundation.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-brand-muted">
-              This public shell keeps your work visible and reliable while the heavier admin and live
-              content tooling get rebuilt more safely.
+              This public shell keeps your work visible and reliable while a dedicated Firebase admin
+              workspace handles live content edits.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">
@@ -211,7 +222,7 @@ function HomePage() {
   );
 }
 
-function WorkPage() {
+function WorkPage({ projects }: { projects: Project[] }) {
   return (
     <section className="section-shell space-y-10 py-16 md:py-20">
       <div className="space-y-4">
@@ -258,7 +269,7 @@ function WorkPage() {
   );
 }
 
-function ProjectPage() {
+function ProjectPage({ projects }: { projects: Project[] }) {
   const { id } = useParams();
   const project = useMemo(() => projects.find((item) => item.id === id), [id]);
 
@@ -334,7 +345,7 @@ function ProjectPage() {
   );
 }
 
-function LabPage() {
+function LabPage({ labItems }: { labItems: LabItem[] }) {
   return (
     <section className="section-shell space-y-10 py-16 md:py-20">
       <div className="space-y-4">
@@ -391,26 +402,10 @@ function AboutPage() {
             </li>
             <li className="flex items-center gap-3">
               <Mail size={16} className="text-brand-accent" />
-              Admin tools move to a safer follow-up pass.
+              Firebase admin now runs separately from the public shell.
             </li>
           </ul>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function AdminPlaceholder() {
-  return (
-    <section className="section-shell py-20">
-      <div className="glass rounded-[2rem] p-8 md:p-10">
-        <span className="pill">Admin paused</span>
-        <h1 className="mt-5 text-4xl font-semibold">Public site first, admin next.</h1>
-        <p className="mt-4 max-w-2xl leading-8 text-brand-muted">
-          The previous admin surface was tightly coupled to the large app component and Firebase listeners.
-          This stabilization pass deliberately leaves admin out of the hot path so the public portfolio stays
-          up while we rebuild content management more safely.
-        </p>
       </div>
     </section>
   );
@@ -423,7 +418,7 @@ function Footer() {
         <div>
           <p className="text-sm uppercase tracking-[0.25em] text-brand-muted">Maria Bordiuh</p>
           <p className="mt-2 max-w-xl text-sm leading-7 text-brand-muted">
-            Public portfolio shell rebuilt for stability on April 17, 2026.
+            Public portfolio shell and Firebase admin refreshed on April 17, 2026.
           </p>
         </div>
         <div className="flex gap-3">
