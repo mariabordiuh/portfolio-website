@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project entry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Project title" },
+        "pillar": { "type": "string", "enum": ["AI Generated", "Animations & Motion", "Illustration & Design", "Art Direction"] },
+        "category": { "type": "string" },
+        "subCategory": { "type": "string" },
+        "description": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "videoUrl": { "type": "string" },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "client": { "type": "string" },
+        "globalContext": { "type": "string" },
+        "creativeTension": { "type": "string" },
+        "mariaRole": { "type": "array", "items": { "type": "string" } },
+        "moodboardImages": { "type": "array", "items": { "type": "string" } },
+        "explorationType": { "type": "string", "enum": ["masonry", "slot-machine"] },
+        "explorationImages": { "type": "array", "items": { "type": "string" } },
+        "explorationVideos": { "type": "array", "items": { "type": "string" } },
+        "explorationCaption": { "type": "string" },
+        "decisionMomentCopy": { "type": "string" },
+        "colorSystem": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "hex": { "type": "string" },
+              "emotion": { "type": "string" }
+            }
+          } 
+        },
+        "animaticVideoUrl": { "type": "string" },
+        "animaticCaption": { "type": "string" },
+        "hybridizationImages": { "type": "array", "items": { "type": "string" } },
+        "hybridizationCaption": { "type": "string" },
+        "outcomeVisuals": { "type": "array", "items": { "type": "string" } },
+        "outcomeResultCopy": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "pillar", "category"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "A featured video entry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["title", "url"]
+    },
+    "LabItem": {
+      "title": "Lab Item",
+      "description": "An experiment or learning entry in the Lab",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["Experiment", "Learning", "AI", "Vibe"] },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "code": { "type": "string" },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "date": { "type": "string" }
+      },
+      "required": ["title", "type", "content"]
+    }
+  },
+  "firestore": {
+    "projects": {
+      "schema": "Project",
+      "description": "Main collection for portfolio case studies"
+    },
+    "videos": {
+      "schema": "Video",
+      "description": "Featured video collection"
+    },
+    "labItems": {
+      "schema": "LabItem",
+      "description": "Lab experiments and learnings"
+    }
+  }
+}

@@ -1,0 +1,116 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: projects
+// Fields:
+//   - title: string (required)
+//   - pillar: string (required) - one of ['AI Generated', 'Animations & Motion', 'Illustration & Design', 'Art Direction']
+//   - category: string (required)
+//   - subCategory: string
+//   - description: string
+//   - thumbnail: string
+//   - images: list[string]
+//   - videoUrl: string
+//   - tools: list[string]
+//   - client: string
+//   - globalContext: string
+//   - creativeTension: string
+//   - mariaRole: list[string]
+//   - moodboardImages: list[string]
+//   - explorationType: string
+//   - explorationImages: list[string]
+//   - explorationVideos: list[string]
+//   - explorationCaption: string
+//   - decisionMomentCopy: string
+//   - colorSystem: list[map]
+//   - animaticVideoUrl: string
+//   - animaticCaption: string
+//   - hybridizationImages: list[string]
+//   - hybridizationCaption: string
+//   - outcomeVisuals: list[string]
+//   - outcomeResultCopy: string
+//   - updatedAt: timestamp
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "helloveo333@gmail.com" && request.auth.token.email_verified == true)); 
+    }
+
+    function isValidProject(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.pillar in ['AI Generated', 'Animations & Motion', 'Illustration & Design', 'Art Direction'] &&
+             data.category is string && data.category.size() < 100 &&
+             (!('description' in data) || (data.description is string && data.description.size() < 5000)) &&
+             (!('thumbnail' in data) || (data.thumbnail is string && data.thumbnail.size() < 1000));
+    }
+
+    function isValidVideo(data) {
+      return data.title is string && data.title.size() > 0 &&
+             data.url is string && data.url.size() > 0;
+    }
+
+    function isValidLabItem(data) {
+      return data.title is string && data.title.size() > 0 &&
+             data.type in ['Experiment', 'Learning', 'AI', 'Vibe'] &&
+             data.content is string && data.content.size() > 0;
+    }
+
+    function isValidGalleryImage(data) {
+      return data.url is string && data.url.size() > 0 &&
+             data.tags is list;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProject(request.resource.data);
+      allow update: if isAdmin() && isValidProject(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /videos/{videoId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidVideo(request.resource.data);
+      allow update: if isAdmin() && isValidVideo(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /labItems/{itemId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidLabItem(request.resource.data);
+      allow update: if isAdmin() && isValidLabItem(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidGalleryImage(request.resource.data);
+      allow update: if isAdmin() && isValidGalleryImage(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+  }
+}
