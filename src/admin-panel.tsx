@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   addDoc,
   collection,
@@ -18,7 +18,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { Check, ImagePlus, LoaderCircle, LogOut, Plus, Save, Shield, Trash2 } from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, ImagePlus, LoaderCircle, LogOut, Plus, Save, Shield, Trash2 } from 'lucide-react';
 import { auth, db, storage } from './firebase';
 import { cn } from '@/src/lib/utils';
 import { GalleryImage, LabItem, Project, ProjectPillar, Video } from './types';
@@ -77,6 +77,11 @@ type GalleryDraft = {
   info: string;
 };
 
+type EditorNotice = {
+  tone: 'success' | 'error';
+  message: string;
+};
+
 const defaultProjectDraft = (): ProjectDraft => ({
   title: '',
   pillar: 'Art Direction',
@@ -128,6 +133,36 @@ const splitList = (value: string) =>
     .filter(Boolean);
 
 const joinList = (values?: string[]) => (values ?? []).join('\n');
+
+const toReadableError = (fallback: string, error: unknown) => {
+  if (error instanceof Error && error.message) {
+    return `${fallback} ${error.message}`;
+  }
+
+  return fallback;
+};
+
+const keepSelectedId = <T extends { id: string }>(items: T[], currentId: string | null) => {
+  if (currentId && items.some((item) => item.id === currentId)) {
+    return currentId;
+  }
+
+  return items[0]?.id ?? null;
+};
+
+function useEditorNotice() {
+  const [notice, setNotice] = useState<EditorNotice | null>(null);
+  const clear = useCallback(() => setNotice(null), []);
+  const setError = useCallback((message: string) => setNotice({ tone: 'error', message }), []);
+  const setSuccess = useCallback((message: string) => setNotice({ tone: 'success', message }), []);
+
+  return {
+    notice,
+    clear,
+    setError,
+    setSuccess,
+  };
+}
 
 function toProjectDraft(project?: Project): ProjectDraft {
   if (!project) {
@@ -200,11 +235,13 @@ export default function AdminPanel() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [tab, setTab] = useState<AdminTab>('projects');
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setAuthLoading(false);
+      setAuthError(null);
     });
   }, []);
 
@@ -218,12 +255,17 @@ export default function AdminPanel() {
     return (
       <CenteredCard
         title="Firebase Admin"
-        body="Sign in with Google to open your content dashboard."
+        body={authError ?? 'Sign in with Google to open your content dashboard.'}
         action={
           <button
             type="button"
             onClick={async () => {
-              await signInWithPopup(auth, new GoogleAuthProvider());
+              try {
+                setAuthError(null);
+                await signInWithPopup(auth, new GoogleAuthProvider());
+              } catch (error) {
+                setAuthError(toReadableError('Google sign-in failed.', error));
+              }
             }}
             className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-6 py-3 text-sm font-semibold text-brand-bg"
           >
@@ -244,7 +286,11 @@ export default function AdminPanel() {
           <button
             type="button"
             onClick={async () => {
-              await signOut(auth);
+              try {
+                await signOut(auth);
+              } catch (error) {
+                setAuthError(toReadableError('Could not sign out.', error));
+              }
             }}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-white"
           >
@@ -272,7 +318,11 @@ export default function AdminPanel() {
         <button
           type="button"
           onClick={async () => {
-            await signOut(auth);
+            try {
+              await signOut(auth);
+            } catch (error) {
+              setAuthError(toReadableError('Could not sign out.', error));
+            }
           }}
           className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white"
         >
@@ -280,6 +330,8 @@ export default function AdminPanel() {
           Sign out
         </button>
       </div>
+
+      {authError ? <NoticeBanner notice={{ tone: 'error', message: authError }} /> : null}
 
       <div className="flex flex-wrap gap-3">
         {[
@@ -317,18 +369,23 @@ function ProjectsAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ProjectDraft>(defaultProjectDraft);
   const [busy, setBusy] = useState(false);
+  const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'projects'), (snapshot) => {
-      const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Project));
-      setItems(nextItems);
-      if (!selectedId && nextItems[0]) {
-        setSelectedId(nextItems[0].id);
-      }
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, 'projects'),
+      (snapshot) => {
+        const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Project));
+        setItems(nextItems);
+        setSelectedId((currentId) => keepSelectedId(nextItems, currentId));
+      },
+      (error) => {
+        setError(toReadableError('Could not load projects.', error));
+      },
+    );
 
     return unsubscribe;
-  }, [selectedId]);
+  }, [setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
 
@@ -364,7 +421,9 @@ function ProjectsAdmin() {
       onCreate={() => {
         setSelectedId(null);
         setDraft(defaultProjectDraft());
+        clear();
       }}
+      notice={notice}
       form={
         <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Title" value={draft.title} onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))} />
@@ -382,6 +441,7 @@ function ProjectsAdmin() {
             pathPrefix="projects/thumbnails"
             value={draft.thumbnail}
             onChange={(value) => setDraft((prev) => ({ ...prev, thumbnail: value }))}
+            onError={setError}
           />
           <LongField
             label="Description"
@@ -437,10 +497,14 @@ function ProjectsAdmin() {
             try {
               if (selectedId) {
                 await updateDoc(doc(db, 'projects', selectedId), payload);
+                setSuccess('Project changes saved.');
               } else {
                 const reference = await addDoc(collection(db, 'projects'), payload);
                 setSelectedId(reference.id);
+                setSuccess('Project created.');
               }
+            } catch (error) {
+              setError(toReadableError('Could not save the project.', error));
             } finally {
               setBusy(false);
             }
@@ -453,6 +517,9 @@ function ProjectsAdmin() {
                     await deleteDoc(doc(db, 'projects', selectedId));
                     setSelectedId(null);
                     setDraft(defaultProjectDraft());
+                    setSuccess('Project deleted.');
+                  } catch (error) {
+                    setError(toReadableError('Could not delete the project.', error));
                   } finally {
                     setBusy(false);
                   }
@@ -470,18 +537,23 @@ function VideosAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<VideoDraft>(defaultVideoDraft);
   const [busy, setBusy] = useState(false);
+  const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'videos'), (snapshot) => {
-      const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video));
-      setItems(nextItems);
-      if (!selectedId && nextItems[0]) {
-        setSelectedId(nextItems[0].id);
-      }
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, 'videos'),
+      (snapshot) => {
+        const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video));
+        setItems(nextItems);
+        setSelectedId((currentId) => keepSelectedId(nextItems, currentId));
+      },
+      (error) => {
+        setError(toReadableError('Could not load videos.', error));
+      },
+    );
 
     return unsubscribe;
-  }, [selectedId]);
+  }, [setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
 
@@ -499,7 +571,9 @@ function VideosAdmin() {
       onCreate={() => {
         setSelectedId(null);
         setDraft(defaultVideoDraft());
+        clear();
       }}
+      notice={notice}
       form={
         <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Title" value={draft.title} onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))} />
@@ -515,6 +589,7 @@ function VideosAdmin() {
             pathPrefix="videos/thumbnails"
             value={draft.thumbnail}
             onChange={(value) => setDraft((prev) => ({ ...prev, thumbnail: value }))}
+            onError={setError}
           />
           <LongField
             label="Description"
@@ -538,10 +613,14 @@ function VideosAdmin() {
             try {
               if (selectedId) {
                 await updateDoc(doc(db, 'videos', selectedId), payload);
+                setSuccess('Video changes saved.');
               } else {
                 const reference = await addDoc(collection(db, 'videos'), payload);
                 setSelectedId(reference.id);
+                setSuccess('Video created.');
               }
+            } catch (error) {
+              setError(toReadableError('Could not save the video.', error));
             } finally {
               setBusy(false);
             }
@@ -554,6 +633,9 @@ function VideosAdmin() {
                     await deleteDoc(doc(db, 'videos', selectedId));
                     setSelectedId(null);
                     setDraft(defaultVideoDraft());
+                    setSuccess('Video deleted.');
+                  } catch (error) {
+                    setError(toReadableError('Could not delete the video.', error));
                   } finally {
                     setBusy(false);
                   }
@@ -571,18 +653,23 @@ function LabAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<LabDraft>(defaultLabDraft);
   const [busy, setBusy] = useState(false);
+  const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(query(collection(db, 'labItems'), orderBy('date', 'desc')), (snapshot) => {
-      const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem));
-      setItems(nextItems);
-      if (!selectedId && nextItems[0]) {
-        setSelectedId(nextItems[0].id);
-      }
-    });
+    const unsubscribe = onSnapshot(
+      query(collection(db, 'labItems'), orderBy('date', 'desc')),
+      (snapshot) => {
+        const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem));
+        setItems(nextItems);
+        setSelectedId((currentId) => keepSelectedId(nextItems, currentId));
+      },
+      (error) => {
+        setError(toReadableError('Could not load lab notes.', error));
+      },
+    );
 
     return unsubscribe;
-  }, [selectedId]);
+  }, [setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
 
@@ -600,7 +687,9 @@ function LabAdmin() {
       onCreate={() => {
         setSelectedId(null);
         setDraft(defaultLabDraft());
+        clear();
       }}
+      notice={notice}
       form={
         <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Title" value={draft.title} onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))} />
@@ -616,6 +705,7 @@ function LabAdmin() {
             pathPrefix="lab/images"
             value={draft.image}
             onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
+            onError={setError}
           />
           <LongField
             label="Content"
@@ -648,10 +738,14 @@ function LabAdmin() {
             try {
               if (selectedId) {
                 await updateDoc(doc(db, 'labItems', selectedId), payload);
+                setSuccess('Lab note changes saved.');
               } else {
                 const reference = await addDoc(collection(db, 'labItems'), payload);
                 setSelectedId(reference.id);
+                setSuccess('Lab note created.');
               }
+            } catch (error) {
+              setError(toReadableError('Could not save the lab note.', error));
             } finally {
               setBusy(false);
             }
@@ -664,6 +758,9 @@ function LabAdmin() {
                     await deleteDoc(doc(db, 'labItems', selectedId));
                     setSelectedId(null);
                     setDraft(defaultLabDraft());
+                    setSuccess('Lab note deleted.');
+                  } catch (error) {
+                    setError(toReadableError('Could not delete the lab note.', error));
                   } finally {
                     setBusy(false);
                   }
@@ -681,18 +778,23 @@ function GalleryAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<GalleryDraft>(defaultGalleryDraft);
   const [busy, setBusy] = useState(false);
+  const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'gallery'), (snapshot) => {
-      const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage));
-      setItems(nextItems);
-      if (!selectedId && nextItems[0]) {
-        setSelectedId(nextItems[0].id);
-      }
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, 'gallery'),
+      (snapshot) => {
+        const nextItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage));
+        setItems(nextItems);
+        setSelectedId((currentId) => keepSelectedId(nextItems, currentId));
+      },
+      (error) => {
+        setError(toReadableError('Could not load gallery items.', error));
+      },
+    );
 
     return unsubscribe;
-  }, [selectedId]);
+  }, [setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
 
@@ -710,7 +812,9 @@ function GalleryAdmin() {
       onCreate={() => {
         setSelectedId(null);
         setDraft(defaultGalleryDraft());
+        clear();
       }}
+      notice={notice}
       form={
         <div className="grid gap-4 md:grid-cols-2">
           <StorageImageField
@@ -718,6 +822,7 @@ function GalleryAdmin() {
             pathPrefix="gallery/images"
             value={draft.url}
             onChange={(value) => setDraft((prev) => ({ ...prev, url: value }))}
+            onError={setError}
           />
           <SelectField
             label="Pillar"
@@ -754,13 +859,17 @@ function GalleryAdmin() {
             try {
               if (selectedId) {
                 await updateDoc(doc(db, 'gallery', selectedId), payload);
+                setSuccess('Gallery item changes saved.');
               } else {
                 const reference = await addDoc(collection(db, 'gallery'), {
                   ...payload,
                   createdAt: serverTimestamp(),
                 });
                 setSelectedId(reference.id);
+                setSuccess('Gallery item created.');
               }
+            } catch (error) {
+              setError(toReadableError('Could not save the gallery item.', error));
             } finally {
               setBusy(false);
             }
@@ -773,6 +882,9 @@ function GalleryAdmin() {
                     await deleteDoc(doc(db, 'gallery', selectedId));
                     setSelectedId(null);
                     setDraft(defaultGalleryDraft());
+                    setSuccess('Gallery item deleted.');
+                  } catch (error) {
+                    setError(toReadableError('Could not delete the gallery item.', error));
                   } finally {
                     setBusy(false);
                   }
@@ -792,6 +904,7 @@ function EditorLayout<T extends { id: string }>({
   onSelect,
   onCreate,
   getLabel,
+  notice,
   form,
   actions,
 }: {
@@ -801,6 +914,7 @@ function EditorLayout<T extends { id: string }>({
   onSelect: (id: string | null) => void;
   onCreate: () => void;
   getLabel: (item: T) => string;
+  notice?: EditorNotice | null;
   form: ReactNode;
   actions: ReactNode;
 }) {
@@ -822,25 +936,32 @@ function EditorLayout<T extends { id: string }>({
           </button>
         </div>
         <div className="mt-4 space-y-2">
-          {list.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.id)}
-              className={cn(
-                'w-full rounded-2xl border px-4 py-3 text-left text-sm',
-                selectedId === item.id
-                  ? 'border-brand-accent bg-brand-accent/10'
-                  : 'border-white/10 bg-white/5 hover:bg-white/10',
-              )}
-            >
-              <span className="line-clamp-2">{getLabel(item)}</span>
-            </button>
-          ))}
+          {list.length ? (
+            list.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item.id)}
+                className={cn(
+                  'w-full rounded-2xl border px-4 py-3 text-left text-sm',
+                  selectedId === item.id
+                    ? 'border-brand-accent bg-brand-accent/10'
+                    : 'border-white/10 bg-white/5 hover:bg-white/10',
+                )}
+              >
+                <span className="line-clamp-2">{getLabel(item) || 'Untitled item'}</span>
+              </button>
+            ))
+          ) : (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-brand-muted">
+              This collection is empty. Create a new entry to get started.
+            </div>
+          )}
         </div>
       </aside>
       <div className="glass rounded-[2rem] p-6 md:p-8">
         <div className="space-y-6">
+          {notice ? <NoticeBanner notice={notice} /> : null}
           {form}
           {actions}
         </div>
@@ -963,13 +1084,16 @@ function StorageImageField({
   pathPrefix,
   value,
   onChange,
+  onError,
 }: {
   label: string;
   pathPrefix: string;
   value: string;
   onChange: (value: string) => void;
+  onError?: (message: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -979,10 +1103,15 @@ function StorageImageField({
 
     setUploading(true);
     try {
+      setUploadError(null);
       const storageRef = ref(storage, `${pathPrefix}/${Date.now()}-${file.name}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       onChange(url);
+    } catch (error) {
+      const message = toReadableError('Upload failed.', error);
+      setUploadError(message);
+      onError?.(message);
     } finally {
       setUploading(false);
       event.target.value = '';
@@ -995,7 +1124,10 @@ function StorageImageField({
       <div className="flex flex-wrap gap-3">
         <input
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => {
+            setUploadError(null);
+            onChange(event.target.value);
+          }}
           className="min-w-[240px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-brand-accent"
           placeholder="Paste a URL or upload a file"
         />
@@ -1010,7 +1142,24 @@ function StorageImageField({
           <img src={value} alt="" className="aspect-[16/9] w-full max-w-sm object-cover" />
         </div>
       ) : null}
+      {uploadError ? <p className="text-xs text-red-300">{uploadError}</p> : null}
     </label>
+  );
+}
+
+function NoticeBanner({ notice }: { notice: EditorNotice }) {
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-[1.25rem] border px-4 py-3 text-sm',
+        notice.tone === 'error'
+          ? 'border-red-500/20 bg-red-500/10 text-red-100'
+          : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100',
+      )}
+    >
+      {notice.tone === 'error' ? <AlertCircle size={16} className="mt-0.5 shrink-0" /> : <CheckCircle2 size={16} className="mt-0.5 shrink-0" />}
+      <p>{notice.message}</p>
+    </div>
   );
 }
 
