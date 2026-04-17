@@ -1,10 +1,11 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { lazy, Suspense, type ReactNode, useMemo, useState } from 'react';
 import {
+  AlertCircle,
   ArrowRight,
   Briefcase,
   ExternalLink,
   FlaskConical,
-  Linkedin,
+  Github,
   Mail,
   Menu,
   Sparkles,
@@ -12,14 +13,17 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, BrowserRouter as Router, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import AdminPanel from './admin-panel';
 import { useLivePortfolioData } from './live-data';
 import { cn } from '@/src/lib/utils';
 import type { LabItem, Project, Video } from './types';
 
+const AdminPanel = lazy(() => import('./admin-panel'));
+const CONTACT_EMAIL = 'helloveo333@gmail.com';
+const GITHUB_URL = 'https://github.com/mariabordiuh';
+
 function AppChrome() {
   const location = useLocation();
-  const { projects, videos, labItems } = useLivePortfolioData();
+  const { projects, videos, labItems, errorMessage } = useLivePortfolioData();
   const nav = [
     { label: 'Home', href: '/' },
     { label: 'Work', href: '/work' },
@@ -51,6 +55,7 @@ function AppChrome() {
           <MobileNav items={nav} />
         </div>
       </header>
+      {errorMessage ? <ContentSyncNotice message={errorMessage} /> : null}
       <main>
         <AnimatePresence mode="wait">
           <Routes>
@@ -59,7 +64,16 @@ function AppChrome() {
             <Route path="/work/:id" element={<PageShell><ProjectPage projects={projects} /></PageShell>} />
             <Route path="/lab" element={<PageShell><LabPage labItems={labItems} /></PageShell>} />
             <Route path="/about" element={<PageShell><AboutPage /></PageShell>} />
-            <Route path="/admin" element={<PageShell><AdminPanel /></PageShell>} />
+            <Route
+              path="/admin"
+              element={
+                <PageShell>
+                  <Suspense fallback={<AdminLoadingState />}>
+                    <AdminPanel />
+                  </Suspense>
+                </PageShell>
+              }
+            />
           </Routes>
         </AnimatePresence>
       </main>
@@ -148,8 +162,8 @@ function HomePage({
               Art direction, motion, and AI-led image systems with a steadier foundation.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-brand-muted">
-              This public shell keeps your work visible and reliable while a dedicated Firebase admin
-              workspace handles live content edits.
+              The public site stays lightweight and resilient, while a separate Firebase workspace handles
+              authenticated content edits behind the scenes.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">
@@ -191,18 +205,14 @@ function HomePage({
           <h2 className="text-2xl font-semibold">Selected work</h2>
         </div>
         <div className="grid gap-6 md:grid-cols-2">
-          {projects.map((project) => (
+          {projects.length ? projects.map((project) => (
             <Link
               key={project.id}
               to={`/work/${project.id}`}
               className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5"
             >
               <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={project.thumbnail}
-                  alt={project.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
+                <ProjectMedia src={project.thumbnail} alt={project.title} />
               </div>
               <div className="space-y-4 p-6">
                 <div className="flex items-center justify-between gap-4">
@@ -215,7 +225,7 @@ function HomePage({
                 </div>
               </div>
             </Link>
-          ))}
+          )) : <EmptyState title="No projects yet" body="Publish a project from the Firebase admin panel and it will appear here." />}
         </div>
       </section>
     </>
@@ -234,17 +244,13 @@ function WorkPage({ projects }: { projects: Project[] }) {
         </p>
       </div>
       <div className="grid gap-6">
-        {projects.map((project) => (
+        {projects.length ? projects.map((project) => (
           <Link
             key={project.id}
             to={`/work/${project.id}`}
             className="glass grid gap-6 rounded-[2rem] p-5 md:grid-cols-[220px_1fr]"
           >
-            <img
-              src={project.thumbnail}
-              alt={project.title}
-              className="aspect-[4/3] h-full w-full rounded-[1.5rem] object-cover"
-            />
+            <ProjectMedia src={project.thumbnail} alt={project.title} className="aspect-[4/3] h-full w-full rounded-[1.5rem]" />
             <div className="space-y-5">
               <div className="flex flex-wrap gap-2">
                 <span className="pill">{project.pillar}</span>
@@ -254,16 +260,10 @@ function WorkPage({ projects }: { projects: Project[] }) {
                 <h2 className="text-3xl font-semibold">{project.title}</h2>
                 <p className="max-w-3xl leading-7 text-brand-muted">{project.description}</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {project.tools.map((tool) => (
-                  <span key={tool} className="rounded-full bg-white/5 px-3 py-1 text-xs text-brand-muted">
-                    {tool}
-                  </span>
-                ))}
-              </div>
+              <TagList items={project.tools} />
             </div>
           </Link>
-        ))}
+        )) : <EmptyState title="No projects yet" body="Use the admin panel to publish work items into Firestore." />}
       </div>
     </section>
   );
@@ -271,7 +271,7 @@ function WorkPage({ projects }: { projects: Project[] }) {
 
 function ProjectPage({ projects }: { projects: Project[] }) {
   const { id } = useParams();
-  const project = useMemo(() => projects.find((item) => item.id === id), [id]);
+  const project = useMemo(() => projects.find((item) => item.id === id), [projects, id]);
 
   if (!project) {
     return (
@@ -322,15 +322,15 @@ function ProjectPage({ projects }: { projects: Project[] }) {
       </div>
 
       <div className="overflow-hidden rounded-[2rem] border border-white/10">
-        <img src={project.thumbnail} alt={project.title} className="aspect-[16/9] w-full object-cover" />
+        <ProjectMedia src={project.thumbnail} alt={project.title} className="aspect-[16/9] w-full" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {(project.outcomeVisuals?.length ? project.outcomeVisuals : project.moodboardImages ?? []).map((image) => (
+        {(project.outcomeVisuals?.length ? project.outcomeVisuals : project.moodboardImages ?? []).length ? (project.outcomeVisuals?.length ? project.outcomeVisuals : project.moodboardImages ?? []).map((image) => (
           <div key={image} className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/5">
-            <img src={image} alt="" className="aspect-[4/3] w-full object-cover" />
+            <ProjectMedia src={image} alt="" className="aspect-[4/3] w-full" />
           </div>
-        ))}
+        )) : <EmptyState title="No visuals yet" body="Add moodboard or outcome images from the admin panel to fill this case study." />}
       </div>
 
       <div className="glass rounded-[2rem] p-8">
@@ -353,7 +353,7 @@ function LabPage({ labItems }: { labItems: LabItem[] }) {
         <h1 className="text-4xl font-semibold md:text-5xl">Notes, tests, and experiments.</h1>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        {labItems.map((item) => (
+        {labItems.length ? labItems.map((item) => (
           <article key={item.id} className="glass rounded-[2rem] p-6">
             <div className="flex items-center gap-3 text-brand-muted">
               <FlaskConical size={16} />
@@ -361,15 +361,11 @@ function LabPage({ labItems }: { labItems: LabItem[] }) {
             </div>
             <h2 className="mt-4 text-2xl font-semibold">{item.title}</h2>
             <p className="mt-3 leading-7 text-brand-muted">{item.content}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {item.tools.map((tool) => (
-                <span key={tool} className="rounded-full bg-white/5 px-3 py-1 text-xs text-brand-muted">
-                  {tool}
-                </span>
-              ))}
+            <div className="mt-5">
+              <TagList items={item.tools} />
             </div>
           </article>
-        ))}
+        )) : <EmptyState title="No lab notes yet" body="Create experiments in the admin panel and they will show up here." />}
       </div>
     </section>
   );
@@ -423,25 +419,100 @@ function Footer() {
         </div>
         <div className="flex gap-3">
           <a
-            href="mailto:hello@studio.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white"
           >
             <Mail size={16} />
             Email
           </a>
           <a
-            href="https://www.linkedin.com"
+            href={GITHUB_URL}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white"
           >
-            <Linkedin size={16} />
-            LinkedIn
+            <Github size={16} />
+            GitHub
             <ExternalLink size={14} />
           </a>
         </div>
       </div>
     </footer>
+  );
+}
+
+function ContentSyncNotice({ message }: { message: string }) {
+  return (
+    <div className="section-shell pt-4">
+      <div className="flex items-start gap-3 rounded-[1.5rem] border border-amber-400/20 bg-amber-400/8 px-4 py-3 text-sm text-amber-100">
+        <AlertCircle size={16} className="mt-0.5 shrink-0" />
+        <p>{message}</p>
+      </div>
+    </div>
+  );
+}
+
+function AdminLoadingState() {
+  return (
+    <section className="section-shell py-24">
+      <div className="glass mx-auto max-w-xl rounded-[2rem] p-10 text-center">
+        <p className="text-sm uppercase tracking-[0.25em] text-brand-muted">Loading admin</p>
+        <h1 className="mt-4 text-3xl font-semibold">Preparing the Firebase workspace.</h1>
+        <p className="mt-4 leading-8 text-brand-muted">
+          Admin tools load separately from the public site so the portfolio stays lighter for visitors.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function ProjectMedia({
+  src,
+  alt,
+  className,
+}: {
+  src?: string;
+  alt: string;
+  className?: string;
+}) {
+  if (!src) {
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-center bg-[radial-gradient(circle_at_top_right,rgba(255,158,187,0.24),transparent_35%),rgba(255,255,255,0.04)] text-sm text-brand-muted',
+          className,
+        )}
+      >
+        Visual coming soon
+      </div>
+    );
+  }
+
+  return <img src={src} alt={alt} className={cn('object-cover', className)} />;
+}
+
+function TagList({ items }: { items?: string[] }) {
+  if (!items?.length) {
+    return <span className="text-xs text-brand-muted">Tools are being added.</span>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((tool) => (
+        <span key={tool} className="rounded-full bg-white/5 px-3 py-1 text-xs text-brand-muted">
+          {tool}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="glass rounded-[2rem] p-8">
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="mt-3 max-w-xl text-brand-muted">{body}</p>
+    </div>
   );
 }
 
