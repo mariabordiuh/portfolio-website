@@ -2,12 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Plus, Trash2, Edit3, Search, LogOut, Info, Rocket, 
-  Check, CheckCircle2, AlertCircle, Image as ImageIcon, 
-  Compass, Zap, Cpu, Code, Tag as TagIcon, ArrowRight
+  Check, CheckCircle2, Image as ImageIcon,
+  Compass, Zap, Cpu, Code, ArrowRight
 } from 'lucide-react';
 import { 
-  collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, 
-  onSnapshot 
+  collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -16,20 +15,89 @@ import { auth, db, storage } from '../firebase';
 import { AuthContext } from '../context/AuthContext';
 import { DataContext } from '../context/DataContext';
 import { handleFirestoreError, OperationType } from '../utils/error-handlers';
+import { toReadableGoogleSignInError } from '../utils/auth-errors';
 import { PageTransition } from '../components/PageTransition';
 import { cn } from '../lib/utils';
 import { Project, Video, LabItem, GalleryImage, ProjectPillar } from '../types';
 import { 
-  InputGroup, UploadBox, ListManager, ImagePhaseManager, ColorPaletteManager 
+  InputGroup, UploadBox, ListManager, ImagePhaseManager
 } from '../components/AdminComponents';
+import {
+  inferProjectContentType,
+  normalizePillar,
+  splitTagLikeString,
+  uniqueStrings,
+  WORK_PILLARS,
+} from '../utils/portfolio';
 
-const PROJECT_STEPS = [
-  { id: 'vision', label: 'Vision', icon: <Compass size={14} /> },
-  { id: 'story', label: 'Story', icon: <Zap size={14} /> },
-  { id: 'engine', label: 'Process', icon: <Cpu size={14} /> },
-  { id: 'render', label: 'Visuals', icon: <ImageIcon size={14} /> },
-  { id: 'meta', label: 'Tech', icon: <Code size={14} /> },
-];
+const STEP_ICONS = {
+  identity: <Compass size={14} />,
+  story: <Zap size={14} />,
+  process: <Cpu size={14} />,
+  visuals: <ImageIcon size={14} />,
+  publish: <Code size={14} />,
+};
+
+const PROJECT_STEPS_BY_PILLAR: Record<ProjectPillar, { id: string; label: string; icon: React.ReactNode }[]> = {
+  'Art Direction': [
+    { id: 'identity', label: 'Identity', icon: STEP_ICONS.identity },
+    { id: 'story', label: 'Narrative', icon: STEP_ICONS.story },
+    { id: 'process', label: 'Process', icon: STEP_ICONS.process },
+    { id: 'visuals', label: 'Visuals', icon: STEP_ICONS.visuals },
+    { id: 'publish', label: 'Publish', icon: STEP_ICONS.publish },
+  ],
+  'AI Generated': [
+    { id: 'identity', label: 'Identity', icon: STEP_ICONS.identity },
+    { id: 'visuals', label: 'Asset', icon: STEP_ICONS.visuals },
+    { id: 'publish', label: 'Publish', icon: STEP_ICONS.publish },
+  ],
+  'Illustration & Design': [
+    { id: 'identity', label: 'Identity', icon: STEP_ICONS.identity },
+    { id: 'visuals', label: 'Gallery', icon: STEP_ICONS.visuals },
+    { id: 'publish', label: 'Publish', icon: STEP_ICONS.publish },
+  ],
+  'Animation & Motion': [
+    { id: 'identity', label: 'Identity', icon: STEP_ICONS.identity },
+    { id: 'visuals', label: 'Motion', icon: STEP_ICONS.visuals },
+    { id: 'publish', label: 'Publish', icon: STEP_ICONS.publish },
+  ],
+};
+
+const createEmptyProject = (pillar: ProjectPillar = 'Art Direction'): Partial<Project> => ({
+  title: '',
+  pillar,
+  contentType: pillar === 'Art Direction' ? 'art-direction' : inferProjectContentType({ pillar }),
+  aiSubtype: pillar === 'AI Generated' ? 'ai-image' : undefined,
+  motionType: pillar === 'Animation & Motion' ? 'embed' : undefined,
+  category: '',
+  categories: [],
+  description: '',
+  thumbnail: '',
+  heroImage: '',
+  images: [],
+  mediaUrl: '',
+  embedUrl: '',
+  tools: [],
+  year: '',
+  client: '',
+  role: '',
+  credits: [],
+  creativeTension: '',
+  globalContext: '',
+  approach: '',
+  moodboardImages: [],
+  explorationImages: [],
+  outcomeImages: [],
+  outcomeCopy: '',
+});
+
+const applyProjectPillar = (draft: Partial<Project>, pillar: ProjectPillar): Partial<Project> => ({
+  ...draft,
+  pillar,
+  contentType: pillar === 'Art Direction' ? 'art-direction' : inferProjectContentType({ ...draft, pillar }),
+  aiSubtype: pillar === 'AI Generated' ? draft.aiSubtype || 'ai-image' : undefined,
+  motionType: pillar === 'Animation & Motion' ? draft.motionType || 'embed' : undefined,
+});
 
 export const Admin = () => {
   const { user, loading, isAdmin: isUserAdmin } = useContext(AuthContext);
@@ -61,6 +129,7 @@ export const Admin = () => {
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: string }>({});
   const [storageConnected, setStorageConnected] = useState<'testing' | 'ok' | 'blocked'>('testing');
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     const testStorage = async () => {
@@ -150,10 +219,154 @@ export const Admin = () => {
 
   const handleLogin = async () => {
     try {
+      setLoginError(null);
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Login failed", error);
+      setLoginError(toReadableGoogleSignInError(error));
+    }
+  };
+
+  const closeProjectEditor = () => {
+    setEditingProject(null);
+    setProjectStep(0);
+  };
+
+  const sanitizeProjectDraft = (draft: Partial<Project>) => {
+    const pillar = normalizePillar(draft.pillar);
+    const title = draft.title?.trim() || '';
+    const description = draft.description?.trim() || '';
+    const tools = uniqueStrings(draft.tools);
+
+    if (pillar === 'Art Direction') {
+      const categories = uniqueStrings(
+        draft.categories?.length ? draft.categories : splitTagLikeString(draft.category),
+      );
+      const heroImage = draft.heroImage?.trim() || draft.thumbnail?.trim() || '';
+      const outcomeImages = uniqueStrings(
+        draft.outcomeImages?.length ? draft.outcomeImages : draft.outcomeVisuals,
+      );
+
+      return {
+        title,
+        pillar,
+        contentType: 'art-direction',
+        category: categories.join(', '),
+        categories,
+        description,
+        thumbnail: heroImage,
+        heroImage,
+        images: [],
+        mediaUrl: '',
+        embedUrl: '',
+        tools,
+        year: draft.year?.trim() || '',
+        client: draft.client?.trim() || '',
+        role: draft.role?.trim() || '',
+        creativeTension: draft.creativeTension?.trim() || '',
+        globalContext: draft.globalContext?.trim() || '',
+        approach: draft.approach?.trim() || '',
+        moodboardImages: uniqueStrings(draft.moodboardImages),
+        explorationImages: uniqueStrings(draft.explorationImages),
+        outcomeImages,
+        outcomeVisuals: outcomeImages,
+        outcomeCopy: draft.outcomeCopy?.trim() || draft.outcomeResultCopy?.trim() || '',
+        outcomeResultCopy: draft.outcomeCopy?.trim() || draft.outcomeResultCopy?.trim() || '',
+        credits: uniqueStrings(draft.credits),
+      };
+    }
+
+    if (pillar === 'AI Generated') {
+      const aiSubtype = draft.aiSubtype === 'ai-video' ? 'ai-video' : 'ai-image';
+      const thumbnail = draft.thumbnail?.trim() || draft.heroImage?.trim() || '';
+      const mediaUrl = aiSubtype === 'ai-video' ? draft.mediaUrl?.trim() || draft.videoUrl?.trim() || '' : '';
+
+      return {
+        title,
+        pillar,
+        contentType: aiSubtype,
+        aiSubtype,
+        category: '',
+        categories: [],
+        description,
+        thumbnail,
+        heroImage: thumbnail,
+        images: aiSubtype === 'ai-image' && thumbnail ? [thumbnail] : [],
+        mediaUrl,
+        videoUrl: mediaUrl,
+        embedUrl: '',
+        tools,
+      };
+    }
+
+    if (pillar === 'Illustration & Design') {
+      const images = uniqueStrings(draft.images?.length ? draft.images : [draft.thumbnail]);
+      const thumbnail = draft.thumbnail?.trim() || images[0] || '';
+
+      return {
+        title,
+        pillar,
+        contentType: 'illustration',
+        category: '',
+        categories: [],
+        description,
+        thumbnail,
+        heroImage: thumbnail,
+        images,
+        mediaUrl: '',
+        embedUrl: '',
+        tools,
+      };
+    }
+
+    const motionType = draft.motionType || 'embed';
+    const embedUrl = motionType === 'embed' ? draft.embedUrl?.trim() || '' : '';
+    const mediaUrl = motionType === 'embed' ? '' : draft.mediaUrl?.trim() || draft.videoUrl?.trim() || '';
+    const thumbnail = draft.thumbnail?.trim() || (motionType === 'gif' ? mediaUrl : '');
+
+    return {
+      title,
+      pillar,
+      contentType: motionType === 'embed' ? 'motion-embed' : motionType === 'gif' ? 'motion-gif' : 'motion-video',
+      motionType,
+      category: '',
+      categories: [],
+      description,
+      thumbnail,
+      heroImage: thumbnail,
+      images: motionType === 'gif' && mediaUrl ? [mediaUrl] : [],
+      mediaUrl,
+      videoUrl: mediaUrl,
+      embedUrl,
+      tools,
+    };
+  };
+
+  const saveProject = async () => {
+    if (!editingProject) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = sanitizeProjectDraft(editingProject);
+      const isEditing = Boolean(editingProject.id);
+      const reference = isEditing
+        ? doc(db, 'projects', editingProject.id as string)
+        : doc(collection(db, 'projects'));
+
+      await setDoc(reference, {
+        ...payload,
+        createdAt: (editingProject as any).createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      closeProjectEditor();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'projects');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -184,6 +397,20 @@ export const Admin = () => {
     }
   };
 
+  const currentProjectPillar = normalizePillar(editingProject?.pillar);
+  const projectSteps = PROJECT_STEPS_BY_PILLAR[currentProjectPillar];
+  const currentProjectStepId = projectSteps[projectStep]?.id || projectSteps[0].id;
+
+  useEffect(() => {
+    if (!editingProject) {
+      return;
+    }
+
+    if (projectStep > projectSteps.length - 1) {
+      setProjectStep(projectSteps.length - 1);
+    }
+  }, [editingProject, projectStep, projectSteps.length]);
+
   if (loading) return <div className="pt-40 px-6 min-h-screen text-brand-muted uppercase font-mono tracking-widest text-center">Identifying Identity...</div>;
 
   if (!user || !isUserAdmin) {
@@ -197,6 +424,12 @@ export const Admin = () => {
             </span>
             <h1 className="text-4xl font-black tracking-tighter uppercase mb-4">Insecure Link</h1>
             <p className="text-brand-muted mb-8 italic text-sm">Restricted Access: Creative Direction Workspace Only</p>
+            {loginError ? (
+              <div className="mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">Google Sign-In Failed</p>
+                <p className="text-sm leading-relaxed text-white/80">{loginError}</p>
+              </div>
+            ) : null}
             
             {!user ? (
               <button 
@@ -275,7 +508,7 @@ export const Admin = () => {
                     <Plus size={14} strokeWidth={3} /> Create New
                  </button>
                  <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 shadow-3xl">
-                    <button onClick={() => setEditingProject({ title: '', pillar: 'Art Direction', category: '', tools: [], mariaRole: [], moodboardImages: [], explorationImages: [], hybridizationImages: [], outcomeVisuals: [], images: [], colorSystem: [] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
+                    <button onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
                     <button onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
                     <button onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
                     <button onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
@@ -313,7 +546,21 @@ export const Admin = () => {
                 <p className="text-[10px] text-brand-muted uppercase tracking-[0.3em] font-mono">{p.category}</p>
               </div>
               <div className="relative z-10 flex gap-4 pt-10">
-                <button onClick={() => setEditingProject(p)} className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest shadow-xl"><Edit3 size={14}/> Edit</button>
+                <button
+                  onClick={() =>
+                    setEditingProject({
+                      ...p,
+                      pillar: normalizePillar(p.pillar),
+                      heroImage: p.heroImage || p.thumbnail,
+                      categories: p.categories?.length ? p.categories : splitTagLikeString(p.category),
+                      outcomeImages: p.outcomeImages?.length ? p.outcomeImages : p.outcomeVisuals || [],
+                      outcomeCopy: p.outcomeCopy || p.outcomeResultCopy || '',
+                    })
+                  }
+                  className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest shadow-xl"
+                >
+                  <Edit3 size={14}/> Edit
+                </button>
                 <button onClick={() => deleteFromFirestore('projects', p.id)} className="w-14 h-14 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
               </div>
             </div>
@@ -379,18 +626,18 @@ export const Admin = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 sm:p-12 overflow-hidden backdrop-blur-3xl">
               <div className="w-full max-w-6xl glass rounded-[4rem] overflow-hidden flex flex-col max-h-[90vh] relative border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5 z-50">
-                   <motion.div 
-                     initial={{ width: 0 }} 
-                     animate={{ width: `${((projectStep + 1) / PROJECT_STEPS.length) * 100}%` }} 
-                     className="h-full bg-brand-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.5)]"
-                   />
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${((projectStep + 1) / projectSteps.length) * 100}%` }}
+                    className="h-full bg-brand-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.5)]"
+                  />
                 </div>
 
                 <div className="flex justify-between items-center px-10 py-10 bg-brand-bg/60 backdrop-blur-xl border-b border-white/5">
                   <div className="flex items-center gap-12">
                     <h2 className="text-4xl font-black tracking-tighter uppercase leading-none">{editingProject.id ? 'Edit' : 'Create'}</h2>
                     <div className="flex gap-3">
-                      {PROJECT_STEPS.map((step, idx) => (
+                      {projectSteps.map((step, idx) => (
                         <button
                           key={step.id}
                           onClick={() => setProjectStep(idx)}
@@ -406,149 +653,456 @@ export const Admin = () => {
                       ))}
                     </div>
                   </div>
-                  <button onClick={() => { setEditingProject(null); setProjectStep(0); }} className="p-4 glass rounded-full hover:bg-red-500 hover:text-white transition-all"><X size={24} /></button>
+                  <button onClick={closeProjectEditor} className="p-4 glass rounded-full hover:bg-red-500 hover:text-white transition-all"><X size={24} /></button>
                 </div>
 
                 <div className="flex-grow overflow-y-auto custom-scrollbar p-12">
                   <form className="max-w-4xl mx-auto pb-40">
                     <AnimatePresence mode="wait">
-                      {projectStep === 0 && (
-                        <motion.section key="step-0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
-                          <header className="flex items-center gap-6 mb-12">
-                             <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)]">01</span>
-                             <div>
-                                <h3 className="text-3xl font-black uppercase tracking-tighter">Core Identity</h3>
-                                <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Defining the archive anchor</p>
-                             </div>
+                      {currentProjectStepId === 'identity' ? (
+                        <motion.section key="project-identity" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-14">
+                          <header className="flex items-center gap-6">
+                            <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)]">01</span>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">Project Identity</h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Choose the pillar first, then the rest of the form adapts.</p>
+                            </div>
                           </header>
-                          <div className="grid md:grid-cols-2 gap-12">
+
+                          <div className="grid gap-12 lg:grid-cols-2">
                             <div className="space-y-10">
-                              <InputGroup label="Project Name" description="The public-facing identifier." value={editingProject.title || ''} onChange={v => setEditingProject({...editingProject, title: v})} />
+                              <InputGroup label="Title" description="The name shown on the work grid." value={editingProject.title || ''} onChange={v => setEditingProject({ ...editingProject, title: v })} />
                               <div className="space-y-4">
-                                <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Architecture Discipline</label>
+                                <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Pillar</label>
                                 <div className="grid grid-cols-2 gap-4">
-                                  {['Art Direction', 'AI Generated', 'Animations & Motion', 'Illustration & Design'].map(p => (
+                                  {WORK_PILLARS.map((pillar) => (
                                     <button
-                                      key={p} type="button"
-                                      onClick={() => setEditingProject({...editingProject, pillar: p as any})}
+                                      key={pillar}
+                                      type="button"
+                                      onClick={() => setEditingProject(applyProjectPillar(editingProject, pillar))}
                                       className={cn(
                                         "px-4 py-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all text-center leading-tight h-20 flex items-center justify-center",
-                                        editingProject.pillar === p ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                                        currentProjectPillar === pillar ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
                                       )}
                                     >
-                                      {p}
+                                      {pillar}
                                     </button>
                                   ))}
                                 </div>
                               </div>
+
+                              {currentProjectPillar === 'AI Generated' ? (
+                                <div className="space-y-4">
+                                  <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">AI subtype</label>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    {[
+                                      ['ai-image', 'AI Image'],
+                                      ['ai-video', 'AI Video'],
+                                    ].map(([value, label]) => (
+                                      <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() => setEditingProject({ ...editingProject, aiSubtype: value as Project['aiSubtype'] })}
+                                        className={cn(
+                                          "px-4 py-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all text-center leading-tight h-20 flex items-center justify-center",
+                                          (editingProject.aiSubtype || 'ai-image') === value ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                                        )}
+                                      >
+                                        {label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {currentProjectPillar === 'Animation & Motion' ? (
+                                <div className="space-y-4">
+                                  <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Motion format</label>
+                                  <div className="grid grid-cols-3 gap-4">
+                                    {[
+                                      ['embed', 'Embed'],
+                                      ['gif', 'GIF'],
+                                      ['mp4', 'MP4'],
+                                    ].map(([value, label]) => (
+                                      <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() => setEditingProject({ ...editingProject, motionType: value as Project['motionType'] })}
+                                        className={cn(
+                                          "px-4 py-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all text-center leading-tight h-20 flex items-center justify-center",
+                                          (editingProject.motionType || 'embed') === value ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                                        )}
+                                      >
+                                        {label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {currentProjectPillar === 'Art Direction' ? (
+                                <div className="grid gap-8 md:grid-cols-2">
+                                  <InputGroup label="Client" value={editingProject.client || ''} onChange={v => setEditingProject({ ...editingProject, client: v })} />
+                                  <InputGroup label="Year" value={editingProject.year || ''} onChange={v => setEditingProject({ ...editingProject, year: v })} />
+                                  <InputGroup label="Role" value={editingProject.role || ''} onChange={v => setEditingProject({ ...editingProject, role: v })} />
+                                  <div className="md:col-span-2">
+                                    <ListManager
+                                      label="Categories / Tags"
+                                      items={editingProject.categories?.length ? editingProject.categories : splitTagLikeString(editingProject.category)}
+                                      onAdd={value => {
+                                        const nextCategories = uniqueStrings([
+                                          ...(editingProject.categories?.length ? editingProject.categories : splitTagLikeString(editingProject.category)),
+                                          value,
+                                        ]);
+                                        setEditingProject({ ...editingProject, categories: nextCategories, category: nextCategories.join(', ') });
+                                      }}
+                                      onRemove={index => {
+                                        const currentCategories = editingProject.categories?.length ? editingProject.categories : splitTagLikeString(editingProject.category);
+                                        const nextCategories = currentCategories.filter((_, currentIndex) => currentIndex !== index);
+                                        setEditingProject({ ...editingProject, categories: nextCategories, category: nextCategories.join(', ') });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : null}
                             </div>
+
                             <div className="space-y-10">
-                               <InputGroup label="Archive Category" description="e.g. CGI, Interactive, Branding" value={editingProject.category || ''} onChange={v => setEditingProject({...editingProject, category: v})} />
-                               <InputGroup label="Client / Partner" description="Entity association (Optional)" value={editingProject.client || ''} onChange={v => setEditingProject({...editingProject, client: v})} />
-                               <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
-                                 <div className="grain-overlay" />
-                                 <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Cover Visual Index</label>
-                                 <UploadBox field="thumbnail" value={editingProject.thumbnail} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingProject} stateSetter={setEditingProject} />
-                               </div>
+                              <InputGroup
+                                label={currentProjectPillar === 'Art Direction' ? 'Case study summary' : 'Description'}
+                                description={currentProjectPillar === 'Art Direction' ? 'This appears in the case-study header and the work grid.' : 'A short description for the modal preview.'}
+                                value={editingProject.description || ''}
+                                onChange={v => setEditingProject({ ...editingProject, description: v })}
+                                isTextarea
+                              />
+
+                              {currentProjectPillar === 'Art Direction' ? (
+                                <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                  <div className="grain-overlay" />
+                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Hero image</label>
+                                  <UploadBox
+                                    field="heroImage"
+                                    value={editingProject.heroImage || editingProject.thumbnail}
+                                    onUpload={handleFileUpload}
+                                    progress={uploadProgress}
+                                    status={uploadStatus}
+                                    state={editingProject}
+                                    stateSetter={setEditingProject}
+                                    accept="image/*"
+                                  />
+                                </div>
+                              ) : null}
+
+                              {currentProjectPillar !== 'Art Direction' ? (
+                                <ListManager
+                                  label="Tools"
+                                  items={editingProject.tools || []}
+                                  onAdd={value => setEditingProject({ ...editingProject, tools: [...(editingProject.tools || []), value] })}
+                                  onRemove={index => setEditingProject({ ...editingProject, tools: editingProject.tools?.filter((_, currentIndex) => currentIndex !== index) })}
+                                />
+                              ) : null}
                             </div>
                           </div>
                         </motion.section>
-                      )}
+                      ) : null}
 
-                      {/* Other steps follow similar extraction pattern from App.tsx but using the components... */}
-                      {/* Truncating slightly for brevity, but I must ensure ALL steps are here */}
-                      {projectStep === 1 && (
-                         <motion.section key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
-                            <header className="flex items-center gap-6 mb-12">
-                               <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">02</span>
-                               <h3 className="text-3xl font-black uppercase tracking-tighter">Narrative Arc</h3>
-                            </header>
-                            <div className="space-y-12">
-                               <div className="p-10 glass rounded-[3rem] border border-white/5 space-y-4">
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Case Study Synopsis</label>
-                                  <textarea value={editingProject.description || ''} onChange={e => setEditingProject({...editingProject, description: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-8 outline-none focus:border-brand-accent min-h-[200px] resize-none leading-relaxed text-sm italic" placeholder="Tell the story of how this project lived..." />
-                               </div>
-                               <InputGroup label="Global Impact" description="Strategic context behind the visual." value={editingProject.globalContext || ''} onChange={v => setEditingProject({...editingProject, globalContext: v})} isTextarea />
-                               <InputGroup label="Creative Tension" description="The core friction being resolved." value={editingProject.creativeTension || ''} onChange={v => setEditingProject({...editingProject, creativeTension: v})} isTextarea />
+                      {currentProjectStepId === 'story' ? (
+                        <motion.section key="project-story" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
+                          <header className="flex items-center gap-6">
+                            <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">02</span>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">Case Study Narrative</h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Art Direction gets the full case-study structure.</p>
                             </div>
-                         </motion.section>
-                      )}
+                          </header>
+                          <div className="space-y-10">
+                            <InputGroup label="Creative tension" value={editingProject.creativeTension || ''} onChange={v => setEditingProject({ ...editingProject, creativeTension: v })} isTextarea />
+                            <InputGroup label="Global context" value={editingProject.globalContext || ''} onChange={v => setEditingProject({ ...editingProject, globalContext: v })} isTextarea />
+                            <InputGroup label="Approach" value={editingProject.approach || ''} onChange={v => setEditingProject({ ...editingProject, approach: v })} isTextarea />
+                          </div>
+                        </motion.section>
+                      ) : null}
 
-                      {projectStep === 2 && (
-                         <motion.section key="step-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
-                            <header className="flex items-center gap-6 mb-12">
-                               <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">03</span>
-                               <h3 className="text-3xl font-black uppercase tracking-tighter">Process Engine</h3>
-                            </header>
-                            <div className="grid md:grid-cols-2 gap-20">
-                               <div className="space-y-12">
-                                  <ListManager label="Creative Roles" items={editingProject.mariaRole || []} onAdd={v => setEditingProject({...editingProject, mariaRole: [...(editingProject.mariaRole || []), v]})} onRemove={i => setEditingProject({...editingProject, mariaRole: editingProject.mariaRole?.filter((_, idx) => idx !== i)})} />
-                                  <ListManager label="Toolchain Inventory" items={editingProject.tools || []} onAdd={v => setEditingProject({...editingProject, tools: [...(editingProject.tools || []), v]})} onRemove={i => setEditingProject({...editingProject, tools: editingProject.tools?.filter((_, idx) => idx !== i)})} />
-                               </div>
-                               <div className="p-10 glass rounded-[3rem] border border-brand-accent/20 bg-brand-accent/[0.01]">
-                                  <h4 className="text-[10px] uppercase tracking-widest text-brand-accent mb-10 block font-black font-mono">Chromatic Logic</h4>
-                                  <ColorPaletteManager colors={editingProject.colorSystem || []} onChange={v => setEditingProject({...editingProject, colorSystem: v})} />
-                               </div>
+                      {currentProjectStepId === 'process' ? (
+                        <motion.section key="project-process" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
+                          <header className="flex items-center gap-6">
+                            <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">03</span>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">Tools & Credits</h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Keep the production details compact and useful.</p>
                             </div>
-                         </motion.section>
-                      )}
+                          </header>
+                          <div className="grid gap-10 lg:grid-cols-2">
+                            <ListManager
+                              label="Tools"
+                              items={editingProject.tools || []}
+                              onAdd={value => setEditingProject({ ...editingProject, tools: [...(editingProject.tools || []), value] })}
+                              onRemove={index => setEditingProject({ ...editingProject, tools: editingProject.tools?.filter((_, currentIndex) => currentIndex !== index) })}
+                            />
+                            <ListManager
+                              label="Credits"
+                              items={editingProject.credits || []}
+                              onAdd={value => setEditingProject({ ...editingProject, credits: [...(editingProject.credits || []), value] })}
+                              onRemove={index => setEditingProject({ ...editingProject, credits: editingProject.credits?.filter((_, currentIndex) => currentIndex !== index) })}
+                            />
+                          </div>
+                        </motion.section>
+                      ) : null}
 
-                      {projectStep === 3 && (
-                         <motion.section key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-20">
-                            <ImagePhaseManager title="01 / Direction Moodboard" field="moodboardImages" images={editingProject.moodboardImages || []} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingProject} stateSetter={setEditingProject} onRemove={i => setEditingProject({...editingProject, moodboardImages: editingProject.moodboardImages?.filter((_, idx) => idx !== i)})} />
-                            
-                            <div className="space-y-10 pt-20 border-t border-white/5">
-                               <div className="flex justify-between items-center">
-                                  <h4 className="text-2xl font-black uppercase tracking-tighter">02 / Creative Search</h4>
-                                  <div className="flex gap-2">
-                                    {['masonry', 'slot-machine'].map(type => (
-                                      <button key={type} type="button" onClick={() => setEditingProject({...editingProject, explorationType: type as any})} className={cn("px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all", editingProject.explorationType === type ? "bg-white text-black border-white" : "glass border-white/20")}>{type}</button>
-                                    ))}
+                      {currentProjectStepId === 'visuals' ? (
+                        <motion.section key="project-visuals" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
+                          <header className="flex items-center gap-6">
+                            <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">
+                              {currentProjectPillar === 'Art Direction' ? '04' : '02'}
+                            </span>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">
+                                {currentProjectPillar === 'Art Direction' ? 'Visual System' : 'Media'}
+                              </h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">
+                                Upload or paste the exact media this pillar needs.
+                              </p>
+                            </div>
+                          </header>
+
+                          {currentProjectPillar === 'Art Direction' ? (
+                            <div className="space-y-14">
+                              <ImagePhaseManager
+                                title="Moodboard Images"
+                                field="moodboardImages"
+                                images={editingProject.moodboardImages || []}
+                                onUpload={handleFileUpload}
+                                progress={uploadProgress}
+                                status={uploadStatus}
+                                state={editingProject}
+                                stateSetter={setEditingProject}
+                                onRemove={index => setEditingProject({ ...editingProject, moodboardImages: editingProject.moodboardImages?.filter((_, currentIndex) => currentIndex !== index) })}
+                              />
+                              <ImagePhaseManager
+                                title="Exploration Images"
+                                field="explorationImages"
+                                images={editingProject.explorationImages || []}
+                                onUpload={handleFileUpload}
+                                progress={uploadProgress}
+                                status={uploadStatus}
+                                state={editingProject}
+                                stateSetter={setEditingProject}
+                                onRemove={index => setEditingProject({ ...editingProject, explorationImages: editingProject.explorationImages?.filter((_, currentIndex) => currentIndex !== index) })}
+                              />
+                              <ImagePhaseManager
+                                title="Outcome Images"
+                                field="outcomeImages"
+                                images={editingProject.outcomeImages || editingProject.outcomeVisuals || []}
+                                onUpload={handleFileUpload}
+                                progress={uploadProgress}
+                                status={uploadStatus}
+                                state={editingProject}
+                                stateSetter={setEditingProject}
+                                onRemove={index => {
+                                  const nextOutcomeImages = (editingProject.outcomeImages || editingProject.outcomeVisuals || []).filter((_, currentIndex) => currentIndex !== index);
+                                  setEditingProject({ ...editingProject, outcomeImages: nextOutcomeImages, outcomeVisuals: nextOutcomeImages });
+                                }}
+                              />
+                            </div>
+                          ) : null}
+
+                          {currentProjectPillar === 'AI Generated' ? (
+                            <div className="space-y-10">
+                              {(editingProject.aiSubtype || 'ai-image') === 'ai-image' ? (
+                                <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                  <div className="grain-overlay" />
+                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Image asset</label>
+                                  <UploadBox
+                                    field="thumbnail"
+                                    value={editingProject.thumbnail}
+                                    onUpload={handleFileUpload}
+                                    progress={uploadProgress}
+                                    status={uploadStatus}
+                                    state={editingProject}
+                                    stateSetter={setEditingProject}
+                                    accept="image/*"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                  <div className="grain-overlay" />
+                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Video file</label>
+                                  <UploadBox
+                                    field="mediaUrl"
+                                    value={editingProject.mediaUrl || editingProject.videoUrl}
+                                    onUpload={handleFileUpload}
+                                    progress={uploadProgress}
+                                    status={uploadStatus}
+                                    state={editingProject}
+                                    stateSetter={setEditingProject}
+                                    accept="video/*"
+                                    mediaType="video"
+                                    placeholder="Paste direct video URL here..."
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ) : null}
+
+                          {currentProjectPillar === 'Illustration & Design' ? (
+                            <ImagePhaseManager
+                              title="Images Gallery"
+                              field="images"
+                              images={editingProject.images || []}
+                              onUpload={handleFileUpload}
+                              progress={uploadProgress}
+                              status={uploadStatus}
+                              state={editingProject}
+                              stateSetter={setEditingProject}
+                              onRemove={index => setEditingProject({ ...editingProject, images: editingProject.images?.filter((_, currentIndex) => currentIndex !== index) })}
+                            />
+                          ) : null}
+
+                          {currentProjectPillar === 'Animation & Motion' ? (
+                            <div className="space-y-10">
+                              {(editingProject.motionType || 'embed') === 'embed' ? (
+                                <div className="grid gap-10 lg:grid-cols-2">
+                                  <InputGroup label="YouTube / Vimeo URL" value={editingProject.embedUrl || ''} onChange={v => setEditingProject({ ...editingProject, embedUrl: v })} />
+                                  <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                    <div className="grain-overlay" />
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <UploadBox
+                                      field="thumbnail"
+                                      value={editingProject.thumbnail}
+                                      onUpload={handleFileUpload}
+                                      progress={uploadProgress}
+                                      status={uploadStatus}
+                                      state={editingProject}
+                                      stateSetter={setEditingProject}
+                                      accept="image/*"
+                                    />
                                   </div>
-                               </div>
-                               <ImagePhaseManager hideHeading field="explorationImages" images={editingProject.explorationImages || []} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingProject} stateSetter={setEditingProject} onRemove={i => setEditingProject({...editingProject, explorationImages: editingProject.explorationImages?.filter((_, idx) => idx !== i)})} />
-                               <InputGroup label="Search Arc Commentary" value={editingProject.explorationCaption || ''} onChange={v => setEditingProject({...editingProject, explorationCaption: v})} isTextarea />
-                            </div>
+                                </div>
+                              ) : null}
 
-                            <div className="space-y-10 pt-20 border-t border-white/5">
-                               <h4 className="text-2xl font-black uppercase tracking-tighter">03 / Hybridization Proofs</h4>
-                               <ImagePhaseManager hideHeading field="hybridizationImages" images={editingProject.hybridizationImages || []} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingProject} stateSetter={setEditingProject} onRemove={i => setEditingProject({...editingProject, hybridizationImages: editingProject.hybridizationImages?.filter((_, idx) => idx !== i)})} />
-                               <InputGroup label="The Spark (Decision Point)" value={editingProject.decisionMomentCopy || ''} onChange={v => setEditingProject({...editingProject, decisionMomentCopy: v})} isTextarea />
-                            </div>
+                              {(editingProject.motionType || 'embed') === 'gif' ? (
+                                <div className="grid gap-10 lg:grid-cols-2">
+                                  <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                    <div className="grain-overlay" />
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">GIF file</label>
+                                    <UploadBox
+                                      field="mediaUrl"
+                                      value={editingProject.mediaUrl || editingProject.videoUrl}
+                                      onUpload={handleFileUpload}
+                                      progress={uploadProgress}
+                                      status={uploadStatus}
+                                      state={editingProject}
+                                      stateSetter={setEditingProject}
+                                      accept="image/gif"
+                                      placeholder="Paste direct GIF URL here..."
+                                    />
+                                  </div>
+                                  <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                    <div className="grain-overlay" />
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <UploadBox
+                                      field="thumbnail"
+                                      value={editingProject.thumbnail}
+                                      onUpload={handleFileUpload}
+                                      progress={uploadProgress}
+                                      status={uploadStatus}
+                                      state={editingProject}
+                                      stateSetter={setEditingProject}
+                                      accept="image/*"
+                                    />
+                                  </div>
+                                </div>
+                              ) : null}
 
-                            <div className="space-y-10 p-12 bg-white/[0.01] rounded-[4rem] border border-white/5">
-                               <h4 className="text-3xl font-black uppercase tracking-widest text-brand-accent">04 / Master Outcome</h4>
-                               <ImagePhaseManager hideHeading field="outcomeVisuals" images={editingProject.outcomeVisuals || []} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingProject} stateSetter={setEditingProject} onRemove={i => setEditingProject({...editingProject, outcomeVisuals: editingProject.outcomeVisuals?.filter((_, idx) => idx !== i)})} />
-                               <InputGroup label="Final Archive Synthesis" value={editingProject.outcomeResultCopy || ''} onChange={v => setEditingProject({...editingProject, outcomeResultCopy: v})} isTextarea />
+                              {(editingProject.motionType || 'embed') === 'mp4' ? (
+                                <div className="grid gap-10 lg:grid-cols-2">
+                                  <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                    <div className="grain-overlay" />
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">MP4 file</label>
+                                    <UploadBox
+                                      field="mediaUrl"
+                                      value={editingProject.mediaUrl || editingProject.videoUrl}
+                                      onUpload={handleFileUpload}
+                                      progress={uploadProgress}
+                                      status={uploadStatus}
+                                      state={editingProject}
+                                      stateSetter={setEditingProject}
+                                      accept="video/*"
+                                      mediaType="video"
+                                      placeholder="Paste direct MP4 URL here..."
+                                    />
+                                  </div>
+                                  <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
+                                    <div className="grain-overlay" />
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <UploadBox
+                                      field="thumbnail"
+                                      value={editingProject.thumbnail}
+                                      onUpload={handleFileUpload}
+                                      progress={uploadProgress}
+                                      status={uploadStatus}
+                                      state={editingProject}
+                                      stateSetter={setEditingProject}
+                                      accept="image/*"
+                                    />
+                                  </div>
+                                </div>
+                              ) : null}
                             </div>
-                         </motion.section>
-                      )}
+                          ) : null}
+                        </motion.section>
+                      ) : null}
 
-                      {projectStep === 4 && (
-                         <motion.section key="step-4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
-                            <header className="flex items-center gap-6 mb-12">
-                               <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">05</span>
-                               <h3 className="text-3xl font-black uppercase tracking-tighter">Technical Meta</h3>
-                            </header>
-                            <div className="grid md:grid-cols-2 gap-12">
-                               <div className="space-y-10">
-                                  <InputGroup label="Primary Experience URL (.mp4)" value={editingProject.videoUrl || ''} onChange={v => setEditingProject({...editingProject, videoUrl: v})} />
-                                  <InputGroup label="Production Study URL (.mp4)" value={editingProject.animaticVideoUrl || ''} onChange={v => setEditingProject({...editingProject, animaticVideoUrl: v})} />
-                               </div>
-                               <div className="space-y-10">
-                                  <InputGroup label="Archive Filter Label" value={editingProject.subCategory || ''} onChange={v => setEditingProject({...editingProject, subCategory: v})} />
-                                  <InputGroup label="Study Commentary" value={editingProject.animaticCaption || ''} onChange={v => setEditingProject({...editingProject, animaticCaption: v})} isTextarea />
-                               </div>
+                      {currentProjectStepId === 'publish' ? (
+                        <motion.section key="project-publish" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
+                          <header className="flex items-center gap-6">
+                            <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">
+                              {projectSteps.length === 5 ? '05' : '03'}
+                            </span>
+                            <div>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">Ready to Publish</h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Final polish before this item hits the archive.</p>
                             </div>
-                            <div className="pt-20 border-t border-white/5 text-center">
-                               <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 4 }} className="w-24 h-24 bg-brand-accent/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-brand-accent/20">
-                                  <Check size={48} className="text-brand-accent" />
-                               </motion.div>
-                               <h4 className="text-3xl font-black uppercase tracking-widest mb-4">Integrity Check Passed</h4>
-                               <p className="text-brand-muted uppercase text-[10px] tracking-widest font-black max-w-sm mx-auto opacity-50 italic">The Archive item is ready for global distribution.</p>
+                          </header>
+
+                          {currentProjectPillar === 'Art Direction' ? (
+                            <InputGroup
+                              label="Outcome Copy"
+                              description="The final paragraph that closes the case study."
+                              value={editingProject.outcomeCopy || editingProject.outcomeResultCopy || ''}
+                              onChange={v => setEditingProject({ ...editingProject, outcomeCopy: v, outcomeResultCopy: v })}
+                              isTextarea
+                            />
+                          ) : null}
+
+                          <div className="grid gap-6 rounded-[3rem] border border-white/10 bg-white/[0.03] p-8 md:grid-cols-2">
+                            <div>
+                              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">Current pillar</p>
+                              <p className="text-2xl font-black uppercase tracking-tight">{currentProjectPillar}</p>
                             </div>
-                         </motion.section>
-                      )}
+                            <div>
+                              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">What will be saved</p>
+                              <p className="text-sm leading-relaxed text-white/65">
+                                {currentProjectPillar === 'Art Direction'
+                                  ? 'A full case study with hero image, narrative, galleries, tools, and credits.'
+                                  : currentProjectPillar === 'AI Generated'
+                                    ? 'A single AI image or video asset that opens in a modal from the work grid.'
+                                    : currentProjectPillar === 'Illustration & Design'
+                                      ? 'A still-image gallery entry that opens in a modal from the work grid.'
+                                      : 'A motion piece with either an embed URL, GIF, or MP4 plus a thumbnail.'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="pt-10 border-t border-white/5 text-center">
+                            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 4 }} className="w-24 h-24 bg-brand-accent/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-brand-accent/20">
+                              <Check size={48} className="text-brand-accent" />
+                            </motion.div>
+                            <h4 className="text-3xl font-black uppercase tracking-widest mb-4">Schema Aligned</h4>
+                            <p className="text-brand-muted uppercase text-[10px] tracking-widest font-black max-w-sm mx-auto opacity-50 italic">This item now matches the pillar-specific archive model.</p>
+                          </div>
+                        </motion.section>
+                      ) : null}
                     </AnimatePresence>
                   </form>
                 </div>
@@ -564,7 +1118,7 @@ export const Admin = () => {
                     >
                       ← Previous
                     </button>
-                    {projectStep < PROJECT_STEPS.length - 1 ? (
+                    {projectStep < projectSteps.length - 1 ? (
                       <button 
                         type="button" 
                         onClick={() => setProjectStep(prev => prev + 1)}
@@ -580,7 +1134,7 @@ export const Admin = () => {
                       <button type="button" onClick={() => setUploadProgress({})} className="px-6 py-5 border border-brand-accent/30 text-brand-accent rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-accent/10 transition-all">Clear Sync</button>
                     )}
                     <button 
-                      onClick={(e) => { e.preventDefault(); saveToFirestore('projects', editingProject, editingProject.id, () => { setEditingProject(null); setProjectStep(0); }); }}
+                      onClick={(e) => { e.preventDefault(); saveProject(); }}
                       disabled={isSubmitting || Object.keys(uploadProgress).length > 0} 
                       className={cn(
                         "px-14 py-5 font-black uppercase tracking-widest rounded-2xl transition-all text-[10px] shadow-2xl disabled:opacity-50",
@@ -589,17 +1143,13 @@ export const Admin = () => {
                     >
                       {isSubmitting ? 'Syncing...' : 'Commit to Archive'}
                     </button>
-                    <button type="button" onClick={() => { setEditingProject(null); setProjectStep(0); }} className="px-10 py-5 border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:text-red-500 transition-all font-mono">Abort</button>
+                    <button type="button" onClick={closeProjectEditor} className="px-10 py-5 border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:text-red-500 transition-all font-mono">Abort</button>
                   </div>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Video / Lab / Gallery Modals follow same refactored pattern... */}
-        {/* I'll omit full implementation for brevity but ensure they work by logic */}
-        {/* Actually, it's safer to provide them to ensure consistency */}
 
         {/* Video Modal */}
         <AnimatePresence>
@@ -611,7 +1161,7 @@ export const Admin = () => {
                   <div className="space-y-4">
                     <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-4 block font-black text-center">Target Discipline</label>
                     <div className="grid grid-cols-2 gap-4">
-                      {['Animations & Motion', 'AI Generated'].map((p) => (
+                      {['Animation & Motion', 'AI Generated'].map((p) => (
                         <button key={p} type="button" onClick={() => setEditingVideo({...editingVideo, pillar: p as any})} className={cn("px-4 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all h-16 flex items-center justify-center", editingVideo.pillar === p ? "bg-white text-black border-white shadow-xl" : "glass border-white/5")}>{p}</button>
                       ))}
                     </div>

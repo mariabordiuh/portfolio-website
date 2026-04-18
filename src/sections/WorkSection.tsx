@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { BentoCard } from '../components/BentoCard';
 import { ProjectSkeleton } from '../components/Skeleton';
 import { Project } from '../types';
+import { toPortfolioItem } from '../utils/portfolio';
 
 interface WorkSectionProps {
   projects: Project[];
@@ -10,6 +11,8 @@ interface WorkSectionProps {
 }
 
 export const WorkSection = ({ projects, loading }: WorkSectionProps) => {
+  const featuredProjects = projects.filter((project) => project.pillar === 'Art Direction').slice(0, 6);
+
   return (
     <section className="py-60 px-0 md:px-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-20">
@@ -26,8 +29,8 @@ export const WorkSection = ({ projects, loading }: WorkSectionProps) => {
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <ProjectSkeleton key={i} />)
         ) : (
-          projects.slice(0, 6).map((project) => (
-            <BentoCard key={project.id} project={project} />
+          featuredProjects.map((project) => (
+            <BentoCard key={project.id} item={toPortfolioItem(project)} onPreview={() => {}} />
           ))
         )}
       </div>

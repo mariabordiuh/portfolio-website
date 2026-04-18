@@ -3,6 +3,7 @@ import { collection, onSnapshot, doc, getDocFromServer } from 'firebase/firestor
 import { db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../utils/error-handlers';
 import { Project, Video, LabItem, GalleryImage } from '../types';
+import { normalizeProject } from '../utils/portfolio';
 
 interface DataContextType {
   projects: Project[];
@@ -56,7 +57,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
-      setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
+      setProjects(
+        snapshot.docs.map((entry) => normalizeProject({ id: entry.id, ...entry.data() } as Project)),
+      );
       projectsLoaded = true;
       checkAllLoaded();
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'projects'));

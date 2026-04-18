@@ -1,10 +1,11 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { GalleryImage, LabItem, Project, ProjectPillar, Video } from '../types';
+import { normalizePillar } from '../utils/portfolio';
 
 export const ADMIN_EMAIL = 'helloveo333@gmail.com';
 export const PROJECT_PILLARS: ProjectPillar[] = [
   'AI Generated',
-  'Animations & Motion',
+  'Animation & Motion',
   'Illustration & Design',
   'Art Direction',
 ];
@@ -296,7 +297,7 @@ export function toVideoDraft(video?: Video): VideoDraft {
 
   return {
     title: video.title ?? '',
-    pillar: video.pillar ?? 'AI Generated',
+    pillar: normalizePillar(video.pillar),
     url: video.url ?? '',
     thumbnail: video.thumbnail ?? '',
     description: video.description ?? '',
@@ -326,7 +327,7 @@ export function toGalleryDraft(item?: GalleryImage): GalleryDraft {
 
   return {
     url: item.url ?? '',
-    pillar: item.pillar ?? '',
+    pillar: item.pillar ? normalizePillar(item.pillar) : '',
     tags: joinList(item.tags),
     software: item.software ?? '',
     info: item.info ?? '',

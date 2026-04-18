@@ -1,120 +1,114 @@
-import { Project, Video, LabItem } from './types';
+import { LabItem, Project, Video } from './types';
 
 export const projects: Project[] = [
   {
     id: '1',
     title: 'Karpatosauriki',
     pillar: 'Art Direction',
-    subCategory: 'Campaign & IP',
-    category: 'Full Visual System',
-    description: 'A new dinosaur character series for Morshynska children\'s water bottle labels, balancing playful appeal for kids with a crafted aesthetic for mothers.',
-    thumbnail: 'https://picsum.photos/seed/dino/1200/1500',
+    contentType: 'art-direction',
+    category: 'Campaign, Packaging',
+    categories: ['Campaign', 'Packaging', 'Character System'],
+    description:
+      "A playful visual world for a children's water line, designed to feel imaginative for kids and art-directed enough for the adults buying it.",
+    thumbnail: 'https://picsum.photos/seed/dino-hero/1600/2000',
+    heroImage: 'https://picsum.photos/seed/dino-hero/1600/2000',
     images: [],
-    tools: ['Midjourney', 'Firefly', 'Photoshop', 'AI Research'],
-    client: 'Morshynska (Nestlé)',
-    globalContext: 'Nestlé-owned. Ukraine\'s most distributed water brand.',
-    creativeTension: 'Playful enough for kids. Crafted enough for mothers.',
-    mariaRole: ['Creative Direction', 'Team Coordination', 'AI Pipeline Design'],
+    tools: ['Midjourney', 'Photoshop', 'Firefly', 'Creative Direction'],
+    year: '2024',
+    client: 'Morshynska (Nestle)',
+    role: 'Creative Direction',
+    creativeTension:
+      'The world needed to feel bold and collectible without losing the warmth and clarity expected from a family brand.',
+    globalContext:
+      "The packaging had to compete on shelf in a crowded mass-market category while still feeling specific, character-led, and premium enough to become a memorably branded kids' line.",
+    approach:
+      'We built a focused visual language around silhouette, color rhythm, and character consistency, then pressure-tested the system across fast moodboard, exploration, and packaging compositions before locking the final direction.',
     moodboardImages: [
-      'https://picsum.photos/seed/dino1/600/800',
-      'https://picsum.photos/seed/dino2/800/600',
-      'https://picsum.photos/seed/dino3/700/700',
-      'https://picsum.photos/seed/dino4/600/900',
-      'https://picsum.photos/seed/dino5/900/600'
+      'https://picsum.photos/seed/dino-mood-1/900/1200',
+      'https://picsum.photos/seed/dino-mood-2/900/1200',
+      'https://picsum.photos/seed/dino-mood-3/900/1200',
     ],
-    explorationType: 'masonry',
     explorationImages: [
-      'https://picsum.photos/seed/dex1/800/1200',
-      'https://picsum.photos/seed/dex2/1200/800',
-      'https://picsum.photos/seed/dex3/900/900',
-      'https://picsum.photos/seed/dex4/1000/1400',
-      'https://picsum.photos/seed/dex5/1500/1000',
-      'https://picsum.photos/seed/dex6/800/800'
+      'https://picsum.photos/seed/dino-exp-1/1000/1200',
+      'https://picsum.photos/seed/dino-exp-2/1000/1200',
+      'https://picsum.photos/seed/dino-exp-3/1000/1200',
+      'https://picsum.photos/seed/dino-exp-4/1000/1200',
     ],
-    explorationCaption: 'Midjourney search arc: recursive prompting to find the "crafted playful" sweet spot.',
-    decisionMomentCopy: 'The dual audience problem. Every visual decision had to work for a 5-year-old and their mother simultaneously. Playful but not cheap. Bright but not chaotic.',
-    colorSystem: [
-      { hex: '#FF3B3F', emotion: 'Playful Ignite' },
-      { hex: '#264D2F', emotion: 'Carpathian Deep' },
-      { hex: '#FFD700', emotion: 'Joyful Energy' },
-      { hex: '#4A90E2', emotion: 'Pure Hydration' },
-      { hex: '#F5F5F5', emotion: 'Sophisticated Clean' }
+    outcomeImages: [
+      'https://picsum.photos/seed/dino-outcome-1/1600/1200',
+      'https://picsum.photos/seed/dino-outcome-2/1600/1200',
+      'https://picsum.photos/seed/dino-outcome-3/1600/1200',
     ],
-    animaticVideoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    animaticCaption: 'AI-assisted coloring page production and character consistency tests.',
-    hybridizationImages: [
-      'https://picsum.photos/seed/h1/800/800',
-      'https://picsum.photos/seed/h2/800/800',
-      'https://picsum.photos/seed/h3/800/800'
-    ],
-    hybridizationCaption: 'Firefly Hybridization: Merging the refined Midjourney style with original structural dinosaur references for cross-generational appeal.',
-    outcomeVisuals: [
-      'https://picsum.photos/seed/df1/1920/1080',
-      'https://picsum.photos/seed/df2/1920/1080'
-    ],
-    outcomeResultCopy: 'COMPLETED. NATIONAL DISTRIBUTION ACROSS UKRAINE. HERO PORTFOLIO PIECE GENERATING 100% BRAND RECALL AMONG DUAL AUDIENCE.'
+    outcomeCopy:
+      'The final system gave the brand a collectible cast of characters, a tighter shelf presence, and a reusable visual language for future product extensions.',
+    credits: ['Maria Bordiuh - Creative Direction', 'Packaging Team - Production Design'],
   },
   {
     id: '2',
-    title: 'Kinetic Logic',
-    pillar: 'Animations & Motion',
-    category: 'Motion Graphics',
-    description: 'Deconstructing the rhythm of complex data sets through high-speed motion studies.',
-    thumbnail: 'https://picsum.photos/seed/kinetic/1200/1500',
+    title: 'Signal Bloom',
+    pillar: 'AI Generated',
+    contentType: 'ai-image',
+    aiSubtype: 'ai-image',
+    category: '',
+    categories: [],
+    description: 'A single still exploring synthetic florals, reflective surfaces, and near-editorial lighting.',
+    thumbnail: 'https://picsum.photos/seed/ai-image-1/1200/1500',
+    heroImage: 'https://picsum.photos/seed/ai-image-1/1200/1500',
+    images: ['https://picsum.photos/seed/ai-image-1/1200/1500'],
+    tools: ['Midjourney', 'Photoshop'],
+  },
+  {
+    id: '3',
+    title: 'Fever Loop',
+    pillar: 'Animation & Motion',
+    contentType: 'motion-video',
+    motionType: 'mp4',
+    category: '',
+    categories: [],
+    description: 'A short motion study built from repeating vector distortions and rhythmic type hits.',
+    thumbnail: 'https://picsum.photos/seed/motion-thumb-1/1200/1500',
+    heroImage: 'https://picsum.photos/seed/motion-thumb-1/1200/1500',
     images: [],
-    tools: ['After Effects', 'Cinema 4D', 'Red Giant'],
-    client: 'DataFlow Systems',
-    globalContext: 'Visualizing the invisible speed of trade.',
-    creativeTension: 'The Geometry of Chaos.',
-    mariaRole: ['Motion Design', 'Technical Direction'],
-    moodboardImages: [
-      'https://picsum.photos/seed/km1/600/800',
-      'https://picsum.photos/seed/km2/800/600',
-      'https://picsum.photos/seed/km3/700/700'
+    mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    tools: ['After Effects', 'Premiere Pro'],
+  },
+  {
+    id: '4',
+    title: 'Soft Geometry',
+    pillar: 'Illustration & Design',
+    contentType: 'illustration',
+    category: '',
+    categories: [],
+    description: 'A compact illustration set balancing material softness with strict geometric framing.',
+    thumbnail: 'https://picsum.photos/seed/illustration-hero/1200/1500',
+    heroImage: 'https://picsum.photos/seed/illustration-hero/1200/1500',
+    images: [
+      'https://picsum.photos/seed/illustration-hero/1200/1500',
+      'https://picsum.photos/seed/illustration-2/1200/1500',
+      'https://picsum.photos/seed/illustration-3/1200/1500',
     ],
-    explorationType: 'slot-machine',
-    explorationVideos: [
-      'https://www.w3schools.com/html/mov_bbb.mp4',
-      'https://www.w3schools.com/html/movie.mp4',
-      'https://www.w3schools.com/html/mov_bbb.mp4',
-      'https://www.w3schools.com/html/movie.mp4'
-    ],
-    explorationCaption: 'Procedural noise experiments in C4D to mimic high-frequency trading signals.',
-    decisionMomentCopy: 'We stripped all color. Velocity is best communicated through shape and shadow, not hue. The black and white palette forces the viewer to focus on the raw acceleration of the assets.',
-    colorSystem: [
-      { hex: '#111111', emotion: 'Silence' },
-      { hex: '#ffffff', emotion: 'Impact' },
-      { hex: '#222222', emotion: 'Depth' },
-      { hex: '#444444', emotion: 'Steel' },
-      { hex: '#000000', emotion: 'Infinite' }
-    ],
-    animaticVideoUrl: 'https://www.w3schools.com/html/movie.mp4',
-    animaticCaption: 'Temporal blockout exploring the limits of 120fps legibility.',
-    outcomeVisuals: [
-      'https://picsum.photos/seed/kf1/1920/1080',
-      'https://picsum.photos/seed/kf2/1920/1080'
-    ],
-    outcomeResultCopy: 'SYSTEM ADOPTED BY THREE OF THE TOP FIVE GLOBAL EXCHANGES AS THEIR PRIMARY VISUAL LANGUAGE.'
-  }
+    tools: ['Illustrator', 'Photoshop'],
+  },
 ];
 
 export const videos: Video[] = [
   {
     id: '1',
-    title: 'The Future of Art Direction',
+    title: 'Future Artifact',
     pillar: 'AI Generated',
-    url: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    thumbnail: 'https://picsum.photos/seed/vid1/1280/720',
-    description: 'A short film about how AI is changing the creative process.'
+    url: 'https://www.w3schools.com/html/movie.mp4',
+    thumbnail: 'https://picsum.photos/seed/ai-video-thumb/1280/720',
+    description: 'Legacy AI video entry kept for backwards-compatible work grid support.',
   },
   {
     id: '2',
     title: 'Motion Study 01',
-    pillar: 'Animations & Motion',
-    url: 'https://www.w3schools.com/html/movie.mp4',
-    thumbnail: 'https://picsum.photos/seed/vid2/1280/720',
-    description: 'Exploring fluid dynamics in digital interfaces.'
-  }
+    pillar: 'Animation & Motion',
+    url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    thumbnail: 'https://picsum.photos/seed/motion-video-thumb/1280/720',
+    description: 'Legacy motion video entry kept for backwards-compatible work grid support.',
+  },
 ];
 
 export const labItems: LabItem[] = [
@@ -122,18 +116,19 @@ export const labItems: LabItem[] = [
     id: '1',
     title: 'Prompt Engineering for Textures',
     type: 'Learning',
-    content: 'Discovered a new way to generate hyper-realistic fabric textures using specific noise seeds.',
+    content:
+      'Discovered a more reliable way to keep textile patterns coherent across multiple prompt iterations.',
     image: 'https://picsum.photos/seed/lab1/800/800',
     tools: ['Midjourney', 'Magnific AI'],
-    date: '2024-03-10'
+    date: '2024-03-10',
   },
   {
     id: '2',
     title: 'Vibe-based Color Palettes',
     type: 'Experiment',
     content: 'An algorithm that generates color palettes based on the emotional tone of a text prompt.',
-    code: 'const generatePalette = (vibe) => { ... }',
+    code: 'const generatePalette = (vibe) => { /* ... */ }',
     tools: ['React', 'Gemini API'],
-    date: '2024-03-15'
-  }
+    date: '2024-03-15',
+  },
 ];

@@ -3,6 +3,18 @@ import { motion } from 'motion/react';
 import { Plus, X, Trash2, Image as ImageIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+type TeamMember = {
+  name: string;
+  role: string;
+};
+
+type TimelineEntry = {
+  stage: string;
+  date: string;
+  description: string;
+  image?: string;
+};
+
 export const InputGroup = ({ label, value, onChange, isTextarea = false, description }: { 
   label: string, 
   value: string, 
@@ -32,11 +44,23 @@ export const InputGroup = ({ label, value, onChange, isTextarea = false, descrip
   </div>
 );
 
-export const UploadBox = ({ field, value, onUpload, progress, status, state, stateSetter }: any) => {
+export const UploadBox = ({
+  field,
+  value,
+  onUpload,
+  progress,
+  status,
+  state,
+  stateSetter,
+  accept = 'image/*',
+  mediaType = 'image',
+  placeholder,
+}: any) => {
   const uploadKey = Object.keys(progress).find(key => key.startsWith(`${field}_`));
   const isUploading = !!uploadKey;
   const currentProgress = uploadKey ? progress[uploadKey] : 0;
   const currentStatus = uploadKey ? status[uploadKey] : '';
+  const isVideo = mediaType === 'video';
 
   return (
     <div className="space-y-4">
@@ -47,7 +71,7 @@ export const UploadBox = ({ field, value, onUpload, progress, status, state, sta
             value={value || ''} 
             onChange={e => stateSetter((prev: any) => ({...prev, [field]: e.target.value}))} 
             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none text-xs" 
-            placeholder="Paste direct URL link here..." 
+            placeholder={placeholder || `Paste direct ${isVideo ? 'media' : 'image'} URL here...`} 
           />
         </div>
         <label className={cn(
@@ -58,7 +82,7 @@ export const UploadBox = ({ field, value, onUpload, progress, status, state, sta
           <input 
             type="file" 
             className="hidden" 
-            accept="image/*" 
+            accept={accept}
             onChange={e => {
               const file = e.target.files?.[0];
               if(file) {
@@ -86,7 +110,11 @@ export const UploadBox = ({ field, value, onUpload, progress, status, state, sta
       )}
       {value && !isUploading && (
         <div className="aspect-video w-32 rounded-lg overflow-hidden border border-white/10 relative group">
-          <img src={value} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" alt="" />
+          {isVideo ? (
+            <video src={value} className="w-full h-full object-cover" controls muted playsInline />
+          ) : (
+            <img src={value} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" alt="" />
+          )}
           <button onClick={() => stateSetter((p: any) => ({...p, [field]: ''}))} className="absolute inset-0 bg-red-500/80 items-center justify-center hidden group-hover:flex"><Trash2 size={16} /></button>
         </div>
       )}
@@ -126,8 +154,22 @@ export const ListManager = ({ label, items, onAdd, onRemove }: {
   );
 };
 
-export const ImagePhaseManager = ({ title, field, images, onUpload, progress, status, state, stateSetter, onRemove, hideHeading = false }: any) => {
+export const ImagePhaseManager = ({
+  title,
+  field,
+  images,
+  onUpload,
+  progress,
+  status,
+  state,
+  stateSetter,
+  onRemove,
+  hideHeading = false,
+  mediaType = 'image',
+  accept,
+}: any) => {
   const uploadingThisField = Object.keys(progress).filter(key => key.startsWith(`${field}_`));
+  const isVideo = mediaType === 'video';
 
   return (
     <div className="space-y-6">
@@ -135,13 +177,13 @@ export const ImagePhaseManager = ({ title, field, images, onUpload, progress, st
       <div className="flex gap-4">
         <input 
           type="text" 
-          placeholder="Paste image URL..." 
+          placeholder={`Paste ${isVideo ? 'video' : 'image'} URL...`}
           className="flex-grow bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm" 
           onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); const v = (e.target as HTMLInputElement).value; if(v){ stateSetter((prev: any) => ({...prev, [field]: [...(prev[field] || []), v]})); (e.target as HTMLInputElement).value = ''; } } }} 
         />
         <label className="cursor-pointer px-6 bg-white/10 rounded-2xl hover:bg-brand-accent hover:text-brand-bg transition-all flex items-center justify-center gap-2 font-black uppercase tracking-widest text-xs min-h-[56px]">
           <Plus size={18} /> Upload
-          <input type="file" className="hidden" accept="image/*" multiple onChange={e => { 
+          <input type="file" className="hidden" accept={accept || (isVideo ? "video/*" : "image/*")} multiple onChange={e => { 
             if(e.target.files) {
               Array.from(e.target.files).forEach(f => onUpload(f, field, stateSetter));
               e.target.value = ''; 
@@ -169,8 +211,12 @@ export const ImagePhaseManager = ({ title, field, images, onUpload, progress, st
 
       <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
         {images.map((img: string, i: number) => (
-          <div key={i} className="aspect-square relative group rounded-2xl overflow-hidden border border-white/5 shadow-lg">
-            <img src={img} className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-110" alt="" />
+          <div key={i} className={cn("relative group rounded-2xl overflow-hidden border border-white/5 shadow-lg", isVideo ? "aspect-video col-span-4 md:col-span-3 lg:col-span-4" : "aspect-square")}>
+            {isVideo ? (
+              <video src={img} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" controls muted playsInline />
+            ) : (
+              <img src={img} className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-110" alt="" />
+            )}
             <button type="button" onClick={() => onRemove(i)} className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={24} className="text-white"/></button>
           </div>
         ))}
@@ -206,6 +252,193 @@ export const ColorPaletteManager = ({ colors, onChange }: {
               <p className="text-xs text-brand-muted truncate italic">{c.emotion}</p>
             </div>
             <button type="button" onClick={() => onChange(colors.filter((_, idx) => idx !== i))} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-brand-muted hover:text-red-400"><X size={12} /></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const TeamManager = ({
+  members,
+  onChange,
+}: {
+  members: TeamMember[];
+  onChange: (next: TeamMember[]) => void;
+}) => {
+  const [draft, setDraft] = useState<TeamMember>({ name: '', role: '' });
+
+  const addMember = () => {
+    const name = draft.name.trim();
+    const role = draft.role.trim();
+    if (!name && !role) return;
+    onChange([...members, { name, role }]);
+    setDraft({ name: '', role: '' });
+  };
+
+  const updateMember = (index: number, key: keyof TeamMember, value: string) => {
+    onChange(members.map((member, memberIndex) => (
+      memberIndex === index ? { ...member, [key]: value } : member
+    )));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-end gap-4">
+        <div className="flex-1 space-y-2">
+          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Team member</label>
+          <input
+            type="text"
+            value={draft.name}
+            onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+            placeholder="Name"
+          />
+        </div>
+        <div className="flex-1 space-y-2">
+          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Role</label>
+          <input
+            type="text"
+            value={draft.role}
+            onChange={e => setDraft(prev => ({ ...prev, role: e.target.value }))}
+            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+            placeholder="Role / contribution"
+          />
+        </div>
+        <button type="button" onClick={addMember} className="h-[56px] px-6 bg-white/10 rounded-2xl hover:bg-brand-accent hover:text-brand-bg transition-all flex items-center gap-2 font-black uppercase tracking-widest text-xs">
+          <Plus size={16} />
+          Add
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {members.map((member, index) => (
+          <div key={index} className="grid md:grid-cols-[1fr_1fr_auto] gap-4 p-6 glass rounded-[2rem] border border-white/5">
+            <input
+              type="text"
+              value={member.name}
+              onChange={e => updateMember(index, 'name', e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-brand-accent text-sm"
+              placeholder="Name"
+            />
+            <input
+              type="text"
+              value={member.role}
+              onChange={e => updateMember(index, 'role', e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-brand-accent text-sm"
+              placeholder="Role"
+            />
+            <button type="button" onClick={() => onChange(members.filter((_, memberIndex) => memberIndex !== index))} className="w-12 h-12 text-brand-muted hover:text-red-400 transition-colors justify-self-end">
+              <Trash2 size={18} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const TimelineManager = ({
+  entries,
+  onChange,
+}: {
+  entries: TimelineEntry[];
+  onChange: (next: TimelineEntry[]) => void;
+}) => {
+  const [draft, setDraft] = useState<TimelineEntry>({
+    stage: '',
+    date: '',
+    description: '',
+    image: '',
+  });
+
+  const addEntry = () => {
+    const stage = draft.stage.trim();
+    const date = draft.date.trim();
+    const description = draft.description.trim();
+    const image = draft.image?.trim() || '';
+    if (!stage && !date && !description && !image) return;
+    onChange([...entries, { stage, date, description, image }]);
+    setDraft({ stage: '', date: '', description: '', image: '' });
+  };
+
+  const updateEntry = (index: number, key: keyof TimelineEntry, value: string) => {
+    onChange(entries.map((entry, entryIndex) => (
+      entryIndex === index ? { ...entry, [key]: value } : entry
+    )));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-4">
+        <input
+          type="text"
+          value={draft.stage}
+          onChange={e => setDraft(prev => ({ ...prev, stage: e.target.value }))}
+          className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+          placeholder="Stage"
+        />
+        <input
+          type="text"
+          value={draft.date}
+          onChange={e => setDraft(prev => ({ ...prev, date: e.target.value }))}
+          className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+          placeholder="Date / marker"
+        />
+        <textarea
+          value={draft.description}
+          onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
+          className="md:col-span-2 w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent min-h-[120px] resize-none text-sm"
+          placeholder="What happened in this phase?"
+        />
+        <input
+          type="text"
+          value={draft.image}
+          onChange={e => setDraft(prev => ({ ...prev, image: e.target.value }))}
+          className="md:col-span-2 w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+          placeholder="Optional image URL"
+        />
+      </div>
+      <button type="button" onClick={addEntry} className="px-6 py-4 bg-white/10 rounded-2xl hover:bg-brand-accent hover:text-brand-bg transition-all flex items-center gap-2 font-black uppercase tracking-widest text-xs">
+        <Plus size={16} />
+        Add Timeline Entry
+      </button>
+
+      <div className="space-y-4">
+        {entries.map((entry, index) => (
+          <div key={index} className="space-y-4 p-6 glass rounded-[2rem] border border-white/5">
+            <div className="grid md:grid-cols-[1fr_1fr_auto] gap-4">
+              <input
+                type="text"
+                value={entry.stage}
+                onChange={e => updateEntry(index, 'stage', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-brand-accent text-sm"
+                placeholder="Stage"
+              />
+              <input
+                type="text"
+                value={entry.date}
+                onChange={e => updateEntry(index, 'date', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-brand-accent text-sm"
+                placeholder="Date"
+              />
+              <button type="button" onClick={() => onChange(entries.filter((_, entryIndex) => entryIndex !== index))} className="w-12 h-12 text-brand-muted hover:text-red-400 transition-colors justify-self-end">
+                <Trash2 size={18} />
+              </button>
+            </div>
+            <textarea
+              value={entry.description}
+              onChange={e => updateEntry(index, 'description', e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none focus:border-brand-accent min-h-[120px] resize-none text-sm"
+              placeholder="Description"
+            />
+            <input
+              type="text"
+              value={entry.image || ''}
+              onChange={e => updateEntry(index, 'image', e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-brand-accent text-sm"
+              placeholder="Optional image URL"
+            />
           </div>
         ))}
       </div>

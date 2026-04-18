@@ -8,6 +8,7 @@ import { LabAdmin } from './admin/lab-admin';
 import { ProjectsAdmin } from './admin/projects-admin';
 import { VideosAdmin } from './admin/videos-admin';
 import { AdminWelcomeCard, CenteredCard, NoticeBanner } from './admin/admin-ui';
+import { toReadableGoogleSignInError } from './utils/auth-errors';
 import { cn } from '@/src/lib/utils';
 
 export default function AdminShell() {
@@ -43,7 +44,7 @@ export default function AdminShell() {
                 setAuthError(null);
                 await signInWithPopup(auth, new GoogleAuthProvider());
               } catch (error) {
-                setAuthError(toReadableError('Google sign-in failed.', error));
+                setAuthError(toReadableGoogleSignInError(error));
               }
             }}
             className="inline-flex items-center gap-2 rounded-full bg-brand-accent px-6 py-3 text-sm font-semibold text-brand-bg"
