@@ -86,6 +86,10 @@ const createEmptyProject = (pillar: ProjectPillar = 'Art Direction'): Partial<Pr
   globalContext: '',
   approach: '',
   moodboardImages: [],
+  sketchImages: [],
+  explorationType: 'masonry',
+  slotMachineGridSize: 4,
+  slotMachineFps: 12,
   explorationImages: [],
   outcomeImages: [],
   outcomeCopy: '',
@@ -268,6 +272,10 @@ export const Admin = () => {
         globalContext: draft.globalContext?.trim() || '',
         approach: draft.approach?.trim() || '',
         moodboardImages: uniqueStrings(draft.moodboardImages),
+        sketchImages: uniqueStrings(draft.sketchImages),
+        explorationType: draft.explorationType || 'masonry',
+        slotMachineGridSize: draft.slotMachineGridSize ?? 4,
+        slotMachineFps: draft.slotMachineFps ?? 12,
         explorationImages: uniqueStrings(draft.explorationImages),
         outcomeImages,
         outcomeVisuals: outcomeImages,
@@ -878,6 +886,68 @@ export const Admin = () => {
                                 stateSetter={setEditingProject}
                                 onRemove={index => setEditingProject({ ...editingProject, moodboardImages: editingProject.moodboardImages?.filter((_, currentIndex) => currentIndex !== index) })}
                               />
+                              <ImagePhaseManager
+                                title="Sketches"
+                                field="sketchImages"
+                                images={editingProject.sketchImages || []}
+                                onUpload={handleFileUpload}
+                                progress={uploadProgress}
+                                status={uploadStatus}
+                                state={editingProject}
+                                stateSetter={setEditingProject}
+                                onRemove={index => setEditingProject({ ...editingProject, sketchImages: editingProject.sketchImages?.filter((_, currentIndex) => currentIndex !== index) })}
+                              />
+                              <div className="space-y-6">
+                                <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Exploration display mode</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                  {(['masonry', 'slot-machine'] as const).map(mode => (
+                                    <button
+                                      key={mode}
+                                      type="button"
+                                      onClick={() => setEditingProject({ ...editingProject, explorationType: mode })}
+                                      className={cn(
+                                        "px-4 py-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all h-20 flex items-center justify-center",
+                                        (editingProject.explorationType || 'masonry') === mode ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                                      )}
+                                    >
+                                      {mode}
+                                    </button>
+                                  ))}
+                                </div>
+                                {(editingProject.explorationType || 'masonry') === 'slot-machine' ? (
+                                  <div className="grid gap-8 md:grid-cols-2 p-8 glass rounded-[2rem] border border-brand-accent/10">
+                                    <div className="space-y-4">
+                                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Grid size</label>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        {[3, 4].map(size => (
+                                          <button
+                                            key={size}
+                                            type="button"
+                                            onClick={() => setEditingProject({ ...editingProject, slotMachineGridSize: size })}
+                                            className={cn(
+                                              "px-4 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all",
+                                              (editingProject.slotMachineGridSize ?? 4) === size ? "bg-white text-black border-white" : "glass border-white/5"
+                                            )}
+                                          >
+                                            {size}×{size}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">FPS</label>
+                                      <input
+                                        type="number"
+                                        value={editingProject.slotMachineFps ?? 12}
+                                        onChange={e => setEditingProject({ ...editingProject, slotMachineFps: Number(e.target.value) })}
+                                        min={1}
+                                        max={60}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-brand-accent text-sm"
+                                      />
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </div>
                               <ImagePhaseManager
                                 title="Exploration Images"
                                 field="explorationImages"

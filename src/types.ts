@@ -67,7 +67,10 @@ export interface Project {
   creativeTension?: string;
   mariaRole?: string[];
   moodboardImages?: string[];
+  sketchImages?: string[];
   explorationType?: 'masonry' | 'slot-machine';
+  slotMachineGridSize?: number;
+  slotMachineFps?: number;
   explorationImages?: string[];
   explorationVideos?: string[];
   explorationCaption?: string;

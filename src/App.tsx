@@ -19,6 +19,7 @@ const ProjectDetail = lazy(() => import('./pages/ProjectDetail').then(m => ({ de
 const Lab = lazy(() => import('./pages/Lab').then(m => ({ default: m.Lab })));
 const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
 const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
+const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 
 const LoadingFallback = () => (
   <div className="fixed inset-0 bg-brand-bg flex items-center justify-center z-50">
@@ -41,6 +42,7 @@ const AnimatedRoutes = () => {
         <Route path="/lab" element={<Suspense fallback={<LoadingFallback />}><Lab /></Suspense>} />
         <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
         <Route path="/admin" element={<Suspense fallback={<LoadingFallback />}><Admin /></Suspense>} />
+        <Route path="*" element={<Suspense fallback={<LoadingFallback />}><NotFound /></Suspense>} />
       </Routes>
     </AnimatePresence>
   );

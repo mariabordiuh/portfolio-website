@@ -1,3 +1,4 @@
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
@@ -52,6 +53,104 @@ const GallerySection = ({
   );
 };
 
+const SlotMachineGrid = ({
+  images,
+  gridSize,
+  fps,
+}: {
+  images: string[];
+  gridSize: number;
+  fps: number;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const totalCells = gridSize * gridSize;
+
+  // Distribute images across cells, wrapping if fewer images than cells
+  const cellImages = useMemo<string[][]>(() => {
+    if (!images.length) return Array.from({ length: totalCells }, () => []);
+    const perCell = Math.max(1, Math.floor(images.length / totalCells));
+    return Array.from({ length: totalCells }, (_, i) => {
+      const start = (i * perCell) % images.length;
+      return images.slice(start, start + perCell);
+    });
+  }, [images, totalCells]);
+
+  const [frameIndices, setFrameIndices] = useState<number[]>(() =>
+    Array(totalCells).fill(0)
+  );
+
+  // Pause cycling when scrolled out of view
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Per-cell intervals with random desync offset (max 300ms)
+  useEffect(() => {
+    if (!isVisible) return;
+    const frameMs = 1000 / fps;
+    const allTimers: ReturnType<typeof setTimeout>[] = [];
+    const allIntervals: ReturnType<typeof setInterval>[] = [];
+
+    for (let i = 0; i < totalCells; i++) {
+      const cellIdx = i;
+      const delay = Math.random() * 300;
+      const timer = setTimeout(() => {
+        const iv = setInterval(() => {
+          setFrameIndices((prev) => {
+            const cellLen = cellImages[cellIdx]?.length ?? 0;
+            if (cellLen <= 1) return prev;
+            const next = [...prev];
+            next[cellIdx] = (next[cellIdx] + 1) % cellLen;
+            return next;
+          });
+        }, frameMs);
+        allIntervals.push(iv);
+      }, delay);
+      allTimers.push(timer);
+    }
+
+    return () => {
+      allTimers.forEach(clearTimeout);
+      allIntervals.forEach(clearInterval);
+    };
+  }, [isVisible, fps, totalCells, cellImages]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="grid gap-1"
+      style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
+    >
+      {Array.from({ length: totalCells }, (_, i) => {
+        const imgs = cellImages[i] ?? [];
+        const src = imgs[frameIndices[i] ?? 0];
+        return (
+          <div key={i} className="aspect-square overflow-hidden bg-white/5">
+            {src ? (
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full" />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export const ProjectDetail = () => {
   const { id } = useParams();
   const { projects, loading } = useData();
@@ -103,6 +202,10 @@ export const ProjectDetail = () => {
   const credits = normalized.credits ?? [];
   const heroImage = normalized.heroImage || normalized.thumbnail;
   const moodboardImages = normalized.moodboardImages ?? [];
+  const sketchImages = normalized.sketchImages ?? [];
+  const explorationType = normalized.explorationType ?? 'masonry';
+  const slotGridSize = normalized.slotMachineGridSize ?? 4;
+  const slotFps = normalized.slotMachineFps ?? 12;
   const explorationImages =
     normalized.explorationImages?.length
       ? normalized.explorationImages
@@ -248,7 +351,26 @@ export const ProjectDetail = () => {
           </section>
 
           <GallerySection eyebrow="Moodboard" title="Initial visual territory" images={moodboardImages} />
-          <GallerySection eyebrow="Exploration" title="Search and refinement" images={explorationImages} />
+          {sketchImages.length > 0 ? (
+            <GallerySection eyebrow="Sketches" title="Early hand-drawn exploration" images={sketchImages} />
+          ) : null}
+          {explorationImages.length > 0 ? (
+            explorationType === 'slot-machine' ? (
+              <section className="space-y-8">
+                <div className="max-w-2xl">
+                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    Exploration
+                  </p>
+                  <h2 className="text-3xl font-black uppercase tracking-tight md:text-5xl">
+                    Search and refinement
+                  </h2>
+                </div>
+                <SlotMachineGrid images={explorationImages} gridSize={slotGridSize} fps={slotFps} />
+              </section>
+            ) : (
+              <GallerySection eyebrow="Exploration" title="Search and refinement" images={explorationImages} />
+            )
+          ) : null}
           <GallerySection eyebrow="Outcome" title="Final visuals" images={outcomeImages} />
 
           {outcomeCopy ? (

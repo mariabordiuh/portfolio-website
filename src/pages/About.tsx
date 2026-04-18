@@ -20,16 +20,8 @@ export const About = () => {
         <div className="sticky top-40 z-10">
           <div className="aspect-[3/4] bg-white/5 rounded-3xl overflow-hidden relative mb-8 shadow-2xl">
             <div className="grain-overlay" />
-            <img 
-              src="https://picsum.photos/seed/profile/800/1200" 
-              alt="Profile" 
-              width={800}
-              height={1200}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000 scale-105 hover:scale-100"
-              referrerPolicy="no-referrer"
-            />
+            {/* TODO: Maria to add real photo — drop an <img> here replacing this div */}
+            <div className="w-full h-full bg-white/[0.04]" />
             <div className="absolute inset-0 border-[20px] border-brand-bg/50 pointer-events-none" />
             <motion.button
               onClick={handleCatClick}
@@ -43,20 +35,20 @@ export const About = () => {
             </motion.button>
           </div>
           <div className="flex gap-4">
-            <a 
-              href="https://linkedin.com" 
-              target="_blank" 
+            <a
+              href="https://linkedin.com/in/mariabordiuh"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex-1 p-4 glass rounded-2xl flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group"
             >
-              <Linkedin size={18} className="group-hover:scale-110 transition-transform" /> 
+              <Linkedin size={18} className="group-hover:scale-110 transition-transform" />
               <span className="text-[10px] uppercase tracking-widest font-black">LinkedIn</span>
             </a>
-            <a 
-              href="mailto:hello@studio.com" 
+            <a
+              href="mailto:mariabordiuh@gmail.com"
               className="flex-1 p-4 glass rounded-2xl flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group"
             >
-              <Mail size={18} className="group-hover:scale-110 transition-transform" /> 
+              <Mail size={18} className="group-hover:scale-110 transition-transform" />
               <span className="text-[10px] uppercase tracking-widest font-black">Email</span>
             </a>
           </div>
@@ -84,13 +76,13 @@ export const About = () => {
           
           <div className="space-y-8 text-fluid-base text-brand-muted leading-relaxed font-medium">
             <p>
-              I am a creative director with over a decade of experience in visual storytelling and digital innovation. My work sits at the intersection of high-end design and emerging technologies.
+              I'm an Art Director and AI Creative Director based in Hamburg. I lead visual systems from concept to delivery — character design, brand worlds, campaign imagery, motion — and increasingly build those systems using a stack that mixes traditional craft with AI as a production layer, not a novelty.
             </p>
             <p>
-              I believe in "Vibe Coding" — the art of creating digital experiences that feel as good as they look. Whether it's a global campaign or a niche AI experiment, my goal is to push the boundaries of what's possible.
+              I work across pharma (Novo Nordisk), FMCG (Morshynska, Nestlé), fashion tech (Fashn.ai integrations), and independent creative projects. My practice spans Houdini for CGI, Midjourney and Firefly for generative image exploration, Make.com for creative automation, and a model-routing stack that sits across Claude, Gemini, and DeepSeek. I speak German and English fluently; Ukrainian is my first language.
             </p>
             <p>
-              I'm a nerd at heart, obsessed with prompt engineering, synthetic media, and the future of human-computer interaction. I work well with teams but am equally comfortable building solo from my home studio.
+              My role is usually vision and direction — the story, the visual logic, the decisions. I coordinate specialists for execution and treat AI the same way: another skilled collaborator whose output needs editing, not worship.
             </p>
           </div>
 
