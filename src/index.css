@@ -3,6 +3,13 @@
 
 :root {
   --accent-color: #ff9ebb;
+  
+  /* Fluid Typography Scale Tokens */
+  --fs-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
+  --fs-sm: clamp(0.8rem, 0.75rem + 0.3vw, 0.9rem);
+  --fs-base: clamp(0.95rem, 0.9rem + 0.4vw, 1.1rem);
+  --fs-lg: clamp(1.2rem, 1.1rem + 1vw, 1.6rem);
+  --fs-xl: clamp(2.5rem, 2rem + 4vw, 5rem);
 }
 
 @theme {
@@ -14,6 +21,13 @@
   --color-brand-ink: #ffffff;
   --color-brand-muted: #989898;
   --color-brand-accent: var(--accent-color);
+  
+  /* Fluid Typography Utilities */
+  --text-fluid-xs: var(--fs-xs);
+  --text-fluid-sm: var(--fs-sm);
+  --text-fluid-base: var(--fs-base);
+  --text-fluid-lg: var(--fs-lg);
+  --text-fluid-xl: var(--fs-xl);
 }
 
 @layer base {
@@ -23,14 +37,13 @@
 
   body {
     @apply bg-brand-bg text-brand-ink font-sans antialiased selection:bg-brand-accent selection:text-brand-bg;
-    background-image:
-      radial-gradient(circle at top right, rgba(255, 158, 187, 0.18), transparent 25%),
-      radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.06), transparent 22%);
+    cursor: none;
     min-height: 100vh;
   }
 
   a, button, [role="button"], input, textarea, select, label {
     @apply transition-colors duration-200;
+    cursor: none;
   }
 
   img {
@@ -58,5 +71,11 @@
 
   .pill {
     @apply inline-flex items-center rounded-full border border-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-muted;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
   }
 }
