@@ -1,10 +1,19 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useState } from 'react';
 import { Linkedin, Mail, Cat } from 'lucide-react';
 import { PageTransition } from '../components/PageTransition';
 import { RevealText } from '../components/RevealText';
 
-export const About = () => (
+export const About = () => {
+  const [catAnimating, setCatAnimating] = useState(false);
+
+  const handleCatClick = () => {
+    new Audio('/sounds/meow.mp3').play().catch(() => {});
+    setCatAnimating(true);
+  };
+
+  return (
   <PageTransition>
     <div className="pt-40 px-6 pb-32 max-w-7xl mx-auto">
       <div className="grid md:grid-cols-2 gap-20 items-start">
@@ -22,9 +31,16 @@ export const About = () => (
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 border-[20px] border-brand-bg/50 pointer-events-none" />
-            <Link to="/admin" className="opacity-0 hover:opacity-10 transition-opacity absolute bottom-2 right-2 cursor-default z-10">
-              <Cat size={12} />
-            </Link>
+            <motion.button
+              onClick={handleCatClick}
+              animate={catAnimating ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+              transition={{ duration: 0.4 }}
+              onAnimationComplete={() => setCatAnimating(false)}
+              className="absolute bottom-2 right-2 cursor-default z-10 text-black opacity-30"
+              aria-hidden="true"
+            >
+              <Cat size={20} />
+            </motion.button>
           </div>
           <div className="flex gap-4">
             <a 
@@ -104,4 +120,5 @@ export const About = () => (
       </div>
     </div>
   </PageTransition>
-);
+  );
+};

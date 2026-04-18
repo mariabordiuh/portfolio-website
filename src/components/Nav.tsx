@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -8,8 +8,10 @@ import { useMagnetic } from '../hooks/useMagnetic';
 export const Nav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
+  const clickCountRef = useRef(0);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,15 +21,17 @@ export const Nav = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setClickCount(0), 2000);
-    return () => clearTimeout(timer);
-  }, [clickCount]);
+  const handleLogoClick = (e: React.MouseEvent) => {
+    clickCountRef.current += 1;
 
-  const handleLogoClick = () => {
-    setClickCount(prev => prev + 1);
-    if (clickCount + 1 >= 5) {
-      window.location.href = '/admin';
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 3000);
+
+    if (clickCountRef.current >= 5) {
+      e.preventDefault();
+      clickCountRef.current = 0;
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      navigate('/admin');
     }
   };
 
