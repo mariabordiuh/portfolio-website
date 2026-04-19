@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useEffect } from 'react';
+import { useRef, useState, useMemo, useEffect, Fragment } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
@@ -151,6 +151,72 @@ const SlotMachineGrid = ({
   );
 };
 
+const CASE_STUDY_LINKS = [
+  { label: 'overview', href: '#overview' },
+  { label: 'context', href: '#context' },
+  { label: 'process', href: '#process' },
+  { label: 'outcome', href: '#outcome' },
+];
+
+const CaseStudyNav = () => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [floating, setFloating] = useState(false);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFloating(!entry.isIntersecting),
+      { rootMargin: '-80px 0px 0px 0px', threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const renderLinks = () => (
+    <>
+      {CASE_STUDY_LINKS.map((item, i) => (
+        <Fragment key={item.href}>
+          {i > 0 && <span className="w-1 h-1 rounded-full bg-white/20 flex-none" aria-hidden />}
+          <a
+            href={item.href}
+            className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted hover:text-white transition-colors"
+          >
+            {item.label}
+          </a>
+        </Fragment>
+      ))}
+      <span className="w-1 h-1 rounded-full bg-white/20 flex-none" aria-hidden />
+      <button
+        onClick={scrollToTop}
+        className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted hover:text-white transition-colors"
+      >
+        back to top
+      </button>
+    </>
+  );
+
+  return (
+    <>
+      <div ref={sentinelRef} />
+      <nav
+        className={`hidden md:flex items-center gap-4 py-5 border-b border-white/5 px-6 md:px-8 transition-opacity duration-200 ${
+          floating ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        {renderLinks()}
+      </nav>
+      {floating && (
+        <nav className="hidden md:flex fixed top-6 left-1/2 -translate-x-1/2 z-40 items-center gap-4 px-6 py-3 rounded-full border border-white/10 bg-black/70 backdrop-blur-xl shadow-xl">
+          {renderLinks()}
+        </nav>
+      )}
+    </>
+  );
+};
+
 export const ProjectDetail = () => {
   const { id } = useParams();
   const { projects, loading } = useData();
@@ -159,7 +225,7 @@ export const ProjectDetail = () => {
   if (loading) {
     return (
       <div className="pt-40 px-6 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
-        Syncing archive...
+        brewing...
       </div>
     );
   }
@@ -217,7 +283,7 @@ export const ProjectDetail = () => {
   return (
     <PageTransition>
       <article className="bg-brand-bg text-white">
-        <section className="relative overflow-hidden border-b border-white/5">
+        <section id="overview" className="relative overflow-hidden border-b border-white/5">
           <div className="absolute inset-0">
             {heroImage ? (
               <img
@@ -279,7 +345,10 @@ export const ProjectDetail = () => {
           </div>
         </section>
 
+        <CaseStudyNav />
+
         <div className="mx-auto max-w-7xl space-y-24 px-6 py-20 md:px-8 md:py-24">
+          <div id="context" className="scroll-mt-24" />
           <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-10 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8 md:p-10">
               {normalized.creativeTension ? (
@@ -350,6 +419,7 @@ export const ProjectDetail = () => {
             </div>
           </section>
 
+          <div id="process" className="scroll-mt-24" />
           <GallerySection eyebrow="Moodboard" title="Initial visual territory" images={moodboardImages} />
           {sketchImages.length > 0 ? (
             <GallerySection eyebrow="Sketches" title="Early hand-drawn exploration" images={sketchImages} />
@@ -371,6 +441,7 @@ export const ProjectDetail = () => {
               <GallerySection eyebrow="Exploration" title="Search and refinement" images={explorationImages} />
             )
           ) : null}
+          <div id="outcome" className="scroll-mt-24" />
           <GallerySection eyebrow="Outcome" title="Final visuals" images={outcomeImages} />
 
           {outcomeCopy ? (

@@ -36,6 +36,10 @@ export const Lab = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
+          ) : !labItems.length ? (
+            <div className="col-span-full py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
+              nothing here yet. come back with coffee.
+            </div>
           ) : (
             labItems.map((item) => (
               <div 

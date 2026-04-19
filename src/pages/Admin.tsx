@@ -419,7 +419,7 @@ export const Admin = () => {
     }
   }, [editingProject, projectStep, projectSteps.length]);
 
-  if (loading) return <div className="pt-40 px-6 min-h-screen text-brand-muted uppercase font-mono tracking-widest text-center">Identifying Identity...</div>;
+  if (loading) return <div className="pt-40 px-6 min-h-screen text-brand-muted uppercase font-mono tracking-widest text-center">brewing...</div>;
 
   if (!user || !isUserAdmin) {
     return (

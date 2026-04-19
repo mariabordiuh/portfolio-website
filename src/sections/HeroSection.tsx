@@ -23,11 +23,12 @@ export const HeroSection = () => {
         }}
         className="mb-12 z-10"
       >
-        <h1 className="text-fluid-xl leading-[0.85] font-black tracking-tighter uppercase mb-4">
-          <RevealText>AI-led image systems,</RevealText>
-          <RevealText>art direction, and motion</RevealText>
-          <RevealText>for brands that want to look</RevealText>
-          <RevealText>current<span className="text-brand-accent">.</span> Not templated<span className="text-brand-accent">.</span></RevealText>
+        <h1
+          className="font-black tracking-tighter uppercase mb-4 leading-[0.9]"
+          style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)' }}
+        >
+          <RevealText>Art direction, motion,</RevealText>
+          <RevealText>and AI-led image systems<span className="text-brand-accent">.</span></RevealText>
         </h1>
       </motion.div>
 

@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useMagnetic } from '../hooks/useMagnetic';
 
 export const Nav = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,8 +35,9 @@ export const Nav = () => {
   };
 
   const navLinks = [
-    { name: 'Work', path: '/work' },
-    { name: 'Lab', path: '/lab' },
+    { name: 'home', path: '/' },
+    { name: 'work', path: '/work' },
+    { name: 'lab', path: '/lab' },
   ];
 
   return (
@@ -50,7 +50,7 @@ export const Nav = () => {
         onClick={handleLogoClick}
         className="text-2xl font-bold tracking-tighter hover:opacity-70 transition-opacity"
       >
-        STUDIO<span className="text-brand-accent">.</span>
+        Maria<span className="text-brand-accent">.</span>
       </Link>
 
       {/* Desktop Nav */}
@@ -61,19 +61,20 @@ export const Nav = () => {
             to={link.path}
             className={cn(
               "text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-brand-accent",
-              location.pathname.startsWith(link.path) ? "text-brand-accent" : "text-brand-muted"
+              location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
+                ? "text-brand-accent"
+                : "text-brand-muted"
             )}
           >
             {link.name}
           </Link>
         ))}
-        <Link 
-          ref={useMagnetic() as React.RefObject<HTMLAnchorElement>}
-          to="/about"
-          className="px-5 py-2 border border-brand-accent/20 rounded-full text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-brand-accent hover:text-brand-bg transition-all"
+        <a
+          href="mailto:mariabordiuh@gmail.com"
+          className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted transition-colors hover:text-brand-accent"
         >
-          Let's Build
-        </Link>
+          say hi
+        </a>
       </div>
 
       {/* Mobile Toggle */}
@@ -112,14 +113,13 @@ export const Nav = () => {
                 {link.name}
               </Link>
             ))}
-            <Link 
-              ref={useMagnetic() as React.RefObject<HTMLAnchorElement>}
-              to="/about"
+            <a
+              href="mailto:mariabordiuh@gmail.com"
               onClick={() => setIsOpen(false)}
-              className="mt-4 px-8 py-3 border border-brand-accent/20 rounded-full text-sm uppercase tracking-widest hover:bg-brand-accent hover:text-brand-bg transition-all"
+              className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
             >
-              Let's Build
-            </Link>
+              say hi
+            </a>
           </motion.div>
         )}
       </AnimatePresence>

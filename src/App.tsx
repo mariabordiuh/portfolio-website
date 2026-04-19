@@ -11,6 +11,7 @@ import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CircleCursor } from './components/CircleCursor';
+import { CoffeeBeanCursor } from './components/CoffeeBeanCursor';
 
 // Lazy Loaded Pages
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -25,7 +26,7 @@ const LoadingFallback = () => (
   <div className="fixed inset-0 bg-brand-bg flex items-center justify-center z-50">
     <div className="flex flex-col items-center gap-4">
       <div className="w-12 h-12 border-2 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin" />
-      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted animate-pulse">Synchronizing Archive // Syncing Artifacts</p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted animate-pulse">brewing...</p>
     </div>
   </div>
 );
@@ -55,6 +56,7 @@ export default function App() {
         <DataProvider>
           <Router>
             <CircleCursor />
+            <CoffeeBeanCursor />
             <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
               <Nav />
               <main className="flex-grow relative z-10">

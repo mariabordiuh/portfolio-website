@@ -49,5 +49,5 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   }
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   // Replace raw error with a friendly generic message in UI, but keep full error in console
-  throw new Error("A database error occurred. Please try again later.");
+  throw new Error("something burned. try again.");
 }

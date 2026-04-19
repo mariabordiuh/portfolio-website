@@ -177,15 +177,13 @@ export const Work = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? Array.from({ length: 6 }).map((_, index) => <ProjectSkeleton key={index} />)
-            : filteredItems.map((item) => (
-                <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
-              ))}
-        </div>
-
-        {!loading && filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <ProjectSkeleton key={index} />
+            ))}
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] py-32 text-center">
             <h3 className="mb-4 text-2xl font-black uppercase tracking-tighter opacity-60">
               No work matches this filter
@@ -194,7 +192,55 @@ export const Work = () => {
               Try a different pillar or clear the active tool filter.
             </p>
           </div>
-        ) : null}
+        ) : (
+          <div className="space-y-16">
+            {/* AI Generated · Images */}
+            {(() => {
+              const items = filteredItems.filter((i) => i.contentType === 'ai-image');
+              return items.length ? (
+                <div>
+                  <p className="mb-6 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    AI Generated · Images
+                  </p>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item) => (
+                      <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* AI Generated · Videos */}
+            {(() => {
+              const items = filteredItems.filter((i) => i.contentType === 'ai-video');
+              return items.length ? (
+                <div>
+                  <p className="mb-6 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    AI Generated · Videos
+                  </p>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item) => (
+                      <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* All other pillars */}
+            {(() => {
+              const items = filteredItems.filter((i) => i.pillar !== 'AI Generated');
+              return items.length ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {items.map((item) => (
+                    <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
+                  ))}
+                </div>
+              ) : null;
+            })()}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

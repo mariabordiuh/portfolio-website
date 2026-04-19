@@ -28,10 +28,14 @@ export const WorkSection = ({ projects, loading }: WorkSectionProps) => {
       <div id="bento-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden glass">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <ProjectSkeleton key={i} />)
-        ) : (
+        ) : featuredProjects.length ? (
           featuredProjects.map((project) => (
             <BentoCard key={project.id} item={toPortfolioItem(project)} onPreview={() => {}} />
           ))
+        ) : (
+          <div className="col-span-full py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
+            nothing here yet. come back with coffee.
+          </div>
         )}
       </div>
     </section>

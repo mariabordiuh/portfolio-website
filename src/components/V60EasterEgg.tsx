@@ -5,7 +5,7 @@ export const V60EasterEgg = () => {
     <div className="v60-wrapper flex items-center gap-10 group cursor-default select-none">
       <span className="v60-text text-[12px] uppercase tracking-[1px] text-white/50 opacity-0 -translate-x-[10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-700 pointer-events-none text-right whitespace-nowrap leading-relaxed font-sans">
         COFFEE'S READY. LET'S WORK. <br />
-        <span className="text-brand-accent">hello@studio.io</span>
+        <span className="text-brand-accent">mariabordiuh@gmail.com</span>
       </span>
       
       <div className="relative w-[180px] h-[240px]">

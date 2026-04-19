@@ -1,5 +1,5 @@
+import { Link, useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
-import { V60EasterEgg } from './V60EasterEgg';
 
 const V60_STYLES = `
   @keyframes v60-drip-fall {
@@ -20,90 +20,129 @@ const V60_STYLES = `
   .v60-unit:hover .v60-drip { animation-duration: 1s; }
 `;
 
-export const Footer = () => (
-  <footer className="px-6 py-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-end gap-12 relative overflow-hidden bg-brand-bg">
-    <style>{V60_STYLES}</style>
-    <div className="max-w-md">
-      <h3 className="text-4xl font-bold tracking-tighter mb-6 leading-none">Let's build something amazing together.</h3>
-      <p className="text-brand-muted mb-8 text-sm">Available for freelance projects and creative collaborations worldwide.</p>
-      <div className="flex flex-col gap-12">
-        <a 
-          href="mailto:hello@studio.com" 
-          className="text-xl font-medium border-b border-brand-accent pb-1 hover:text-brand-accent transition-colors w-fit"
-        >
-          hello@studio.com
-        </a>
-        <div className="flex flex-col gap-4">
-          <span className="text-xs uppercase tracking-widest text-brand-muted font-mono">Socials</span>
-          <div className="flex gap-6">
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-brand-accent transition-colors"
-              aria-label="LinkedIn profile"
-            >
-              <Linkedin size={20} />
-            </a>
-            <a
-              href="mailto:hello@studio.com"
-              className="hover:text-brand-accent transition-colors"
-              aria-label="Send an email"
-            >
-              <Mail size={20} />
-            </a>
-          </div>
-        </div>
+const FOOTER_LINKS = [
+  { name: 'home', path: '/' },
+  { name: 'work', path: '/work' },
+  { name: 'lab', path: '/lab' },
+];
 
-        {/* Hario V60 coffee illustration */}
-        <div className="v60-unit flex items-center gap-3 text-brand-accent">
-          <svg
-            width="38"
-            height="50"
-            viewBox="0 0 40 54"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+export const Footer = () => {
+  const { pathname } = useLocation();
+  const showCta = pathname === '/' || pathname === '/about';
+
+  return (
+    <footer className="bg-brand-bg border-t border-white/5">
+      <style>{V60_STYLES}</style>
+
+      {/* CTA — Home and About only */}
+      {showCta && (
+        <div className="px-6 pt-20 pb-14 max-w-lg">
+          <h3 className="text-4xl font-bold tracking-tighter mb-4 leading-none">
+            Let's build something amazing together.
+          </h3>
+          <p className="text-brand-muted mb-8 text-sm">
+            Available for freelance projects and creative collaborations worldwide.
+          </p>
+          <a
+            href="mailto:mariabordiuh@gmail.com"
+            className="text-xl font-medium border-b border-brand-accent pb-1 hover:text-brand-accent transition-colors"
           >
-            {/* V60 cone — top rim + left/right walls + flat base */}
-            <path
-              d="M 3 8 L 37 8 M 3 8 L 14 26 M 37 8 L 26 26 M 14 26 L 26 26"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            {/* Cup — rim + three walls */}
-            <path
-              d="M 6 32 L 34 32 M 8 32 L 8 52 L 32 52 L 32 32"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            {/* Cup handle */}
-            <path
-              d="M 32 37 Q 39 37 39 44 Q 39 51 32 51"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            {/* Falling drip — animates via .v60-drip keyframes */}
-            <circle className="v60-drip" cx="20" cy="27" r="1.5" fill="currentColor" />
-            {/* Rising liquid — scaleY from bottom via .v60-liquid keyframes */}
-            <rect className="v60-liquid" x="9" y="43" width="22" height="8" fill="currentColor" />
-          </svg>
-          <span style={{ fontSize: '11px', letterSpacing: '0.2em', fontVariant: 'small-caps', color: 'var(--color-brand-muted)' }}>
-            Coffee's ready. Let's work.
-          </span>
+            mariabordiuh@gmail.com
+          </a>
         </div>
+      )}
 
+      {/* Nav links + Socials */}
+      <div className={`px-6 py-8 flex flex-wrap items-center justify-between gap-6 border-t border-white/5 ${!showCta ? 'pt-16' : ''}`}>
+        <nav className="flex flex-wrap items-center gap-6">
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className="text-[10px] uppercase tracking-[0.2em] text-brand-muted hover:text-white transition-colors font-mono"
+            >
+              {link.name}
+            </Link>
+          ))}
+          <a
+            href="mailto:mariabordiuh@gmail.com"
+            className="text-[10px] uppercase tracking-[0.2em] text-brand-muted hover:text-white transition-colors font-mono"
+          >
+            say hi
+          </a>
+        </nav>
+        <div className="flex items-center gap-5 text-brand-muted">
+          <a
+            href="https://linkedin.com/in/mariabordiuh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-brand-accent transition-colors"
+            aria-label="LinkedIn profile"
+          >
+            <Linkedin size={18} />
+          </a>
+          <a
+            href="mailto:mariabordiuh@gmail.com"
+            className="hover:text-brand-accent transition-colors"
+            aria-label="Send an email"
+          >
+            <Mail size={18} />
+          </a>
+        </div>
       </div>
-    </div>
-    
-    <div className="flex flex-col items-end gap-6">
-      <V60EasterEgg />
-      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-brand-muted font-mono">
-        <span>© 2026 STUDIO</span>
-        <span className="w-1 h-1 bg-brand-accent rounded-full" />
-        <span>Built with Coffee</span>
+
+      {/* V60 + microcopy */}
+      <div className="px-6 py-6 v60-unit flex items-center gap-3 text-brand-accent border-t border-white/5">
+        <svg
+          width="38"
+          height="50"
+          viewBox="0 0 40 54"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M 3 8 L 37 8 M 3 8 L 14 26 M 37 8 L 26 26 M 14 26 L 26 26"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 6 32 L 34 32 M 8 32 L 8 52 L 32 52 L 32 32"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 32 37 Q 39 37 39 44 Q 39 51 32 51"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <circle className="v60-drip" cx="20" cy="27" r="1.5" fill="currentColor" />
+          <rect className="v60-liquid" x="9" y="43" width="22" height="8" fill="currentColor" />
+        </svg>
+        <span style={{ fontSize: '11px', letterSpacing: '0.2em', fontVariant: 'small-caps', color: 'var(--color-brand-muted)' }}>
+          Coffee's ready. Let's work.
+        </span>
       </div>
-    </div>
-  </footer>
-);
+
+      {/* Copyright */}
+      <div className="px-6 py-4 border-t border-white/5">
+        <span className="text-[10px] uppercase tracking-[0.2em] text-brand-muted font-mono">
+          © 2026 Maria Bordiuh
+        </span>
+      </div>
+
+      {/* Signature */}
+      <div className="px-6 pt-14 pb-3 text-center">
+        <p className="font-display italic text-[18px] text-brand-muted">
+          measure twice, brew once.
+        </p>
+      </div>
+      <div className="px-6 pb-12 text-center">
+        <p className="text-[12px] text-white/30">
+          brewed in Hamburg. powered by caffeine and one black cat.
+        </p>
+      </div>
+    </footer>
+  );
+};
