@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -15,7 +15,7 @@ const ModalImage = ({ src, alt, className }: { src: string; alt: string; classNa
     alt={alt}
     loading="lazy"
     decoding="async"
-    className={cn('w-full h-full object-cover', className)}
+    className={cn('block max-w-full', className)}
     referrerPolicy="no-referrer"
   />
 );
@@ -27,6 +27,10 @@ export const PortfolioPreviewModal = ({
   item: PortfolioItem;
   onClose: () => void;
 }) => {
+  const titleId = useId();
+  const descriptionId = useId();
+  const isAIItem = item.contentType === 'ai-image' || item.contentType === 'ai-video';
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -45,7 +49,7 @@ export const PortfolioPreviewModal = ({
   const renderMedia = () => {
     if (item.contentType === 'motion-embed' && embedUrl) {
       return (
-        <div className="aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
+        <div className="mx-auto aspect-video max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
           <iframe
             src={embedUrl}
             title={item.title}
@@ -59,13 +63,13 @@ export const PortfolioPreviewModal = ({
 
     if ((item.contentType === 'ai-video' || item.contentType === 'motion-video') && mediaUrl) {
       return (
-        <div className="aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
+        <div className="mx-auto aspect-video max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
           <video
             src={mediaUrl}
             controls
             playsInline
             poster={item.thumbnail || undefined}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-contain"
           />
         </div>
       );
@@ -73,39 +77,52 @@ export const PortfolioPreviewModal = ({
 
     if ((item.contentType === 'motion-gif' || isGifUrl(mediaUrl)) && mediaUrl) {
       return (
-        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
-          <ModalImage src={mediaUrl} alt={item.title} className="max-h-[75vh]" />
+        <div className="mx-auto flex max-w-[min(100%,920px)] justify-center overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-2 md:p-3">
+          <ModalImage
+            src={mediaUrl}
+            alt={item.title}
+            className="h-auto max-h-[74vh] w-auto max-w-full rounded-[1.35rem] object-contain"
+          />
         </div>
       );
     }
 
     if (!galleryImages.length && mediaUrl && !isVideoFileUrl(mediaUrl)) {
       return (
-        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
-          <ModalImage src={mediaUrl} alt={item.title} className="max-h-[75vh]" />
+        <div className="mx-auto flex max-w-[min(100%,920px)] justify-center overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-2 md:p-3">
+          <ModalImage
+            src={mediaUrl}
+            alt={item.title}
+            className="h-auto max-h-[74vh] w-auto max-w-full rounded-[1.35rem] object-contain"
+          />
         </div>
       );
     }
 
     if (galleryImages.length === 1) {
       return (
-        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
-          <ModalImage src={galleryImages[0]} alt={item.title} className="max-h-[75vh]" />
+        <div className="mx-auto flex max-w-[min(100%,920px)] justify-center overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-2 md:p-3">
+          <ModalImage
+            src={galleryImages[0]}
+            alt={item.title}
+            className="h-auto max-h-[74vh] w-auto max-w-full rounded-[1.35rem] object-contain"
+          />
         </div>
       );
     }
 
     return (
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="mx-auto max-w-5xl columns-1 gap-4 md:columns-2">
         {galleryImages.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className={cn(
-              'overflow-hidden rounded-[2rem] border border-white/10 bg-white/5',
-              index === 0 ? 'md:col-span-2' : '',
-            )}
+            className="mb-4 overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 p-2 [break-inside:avoid] md:p-3"
           >
-            <ModalImage src={image} alt={`${item.title} ${index + 1}`} className="aspect-[4/5]" />
+            <ModalImage
+              src={image}
+              alt={`${item.title} ${index + 1}`}
+              className="h-auto w-full rounded-[1.3rem] object-contain"
+            />
           </div>
         ))}
       </div>
@@ -127,6 +144,10 @@ export const PortfolioPreviewModal = ({
         transition={{ duration: 0.28, ease: 'easeOut' }}
         className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[2.75rem] border border-white/10 bg-brand-bg shadow-2xl"
         onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={item.description ? descriptionId : undefined}
       >
         <header className="flex items-start justify-between gap-6 border-b border-white/5 px-6 py-6 md:px-8">
           <div className="space-y-3">
@@ -141,9 +162,14 @@ export const PortfolioPreviewModal = ({
               ) : null}
             </div>
             <div>
-              <h2 className="text-3xl font-black uppercase tracking-tight md:text-5xl">{item.title}</h2>
+              <h2 id={titleId} className="text-3xl font-black uppercase tracking-tight md:text-5xl">
+                {item.title}
+              </h2>
               {item.description ? (
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base">
+                <p
+                  id={descriptionId}
+                  className="mt-3 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base"
+                >
                   {item.description}
                 </p>
               ) : null}
@@ -173,7 +199,7 @@ export const PortfolioPreviewModal = ({
           <div className="space-y-8">
             {renderMedia()}
 
-            {item.categories.length || item.credits?.length ? (
+            {!isAIItem && (item.categories.length || item.credits?.length) ? (
               <div className="grid gap-6 border-t border-white/5 pt-6 md:grid-cols-2">
                 <div>
                   <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">

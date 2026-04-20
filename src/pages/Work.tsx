@@ -4,8 +4,10 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Filter } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import { RevealText } from '../components/RevealText';
 import { BentoCard } from '../components/BentoCard';
+import { MasonryPortfolioGrid } from '../components/MasonryPortfolioGrid';
 import { PortfolioPreviewModal } from '../components/PortfolioPreviewModal';
 import { ProjectSkeleton } from '../components/Skeleton';
 import { type ProjectPillar } from '../types';
@@ -23,6 +25,24 @@ const PILLAR_COPY: Record<ProjectPillar, string> = {
   'Illustration & Design': 'Still image sets and crafted visual systems that stand on their own.',
   'Animation & Motion': 'Embedded or uploaded motion pieces, from loops to short-form studies.',
 };
+
+const hashString = (value: string) => {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
+
+const shufflePortfolioItems = (items: PortfolioItem[], seed: string) =>
+  [...items].sort((left, right) => {
+    const leftValue = hashString(`${seed}:${left.id}`);
+    const rightValue = hashString(`${seed}:${right.id}`);
+    return leftValue - rightValue;
+  });
 
 export const Work = () => {
   const { projects, videos, galleryImages, loading } = useData();
@@ -53,6 +73,18 @@ export const Work = () => {
     const matchesTool = !activeTool || item.tools.includes(activeTool);
     return matchesPillar && matchesTool;
   });
+
+  const aiImageItems = shufflePortfolioItems(
+    filteredItems.filter((item) => item.contentType === 'ai-image'),
+    'ai-image',
+  );
+  const aiVideoItems = filteredItems.filter((item) => item.contentType === 'ai-video');
+  const illustrationItems = shufflePortfolioItems(
+    filteredItems.filter((item) => item.contentType === 'illustration'),
+    'illustration',
+  );
+  const artDirectionItems = filteredItems.filter((item) => item.contentType === 'art-direction');
+  const motionItems = filteredItems.filter((item) => item.pillar === 'Animation & Motion');
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);
@@ -104,28 +136,29 @@ export const Work = () => {
               const itemCount = workItems.filter((item) => item.pillar === pillar).length;
 
               return (
-                <button
-                  key={pillar}
-                  type="button"
-                  onClick={() => handlePillarChange(isActive ? 'All' : pillar)}
-                  className={`rounded-[2rem] border p-6 text-left transition-all ${
-                    isActive
-                      ? 'border-brand-accent bg-brand-accent/10 shadow-[0_20px_60px_rgba(var(--accent-rgb),0.12)]'
-                      : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <p className="mb-6 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    <span>{pillar}</span>
-                    <span className="rounded-full border border-white/10 px-2 py-1 text-white/60">
-                      {itemCount}
-                    </span>
-                  </p>
-                  <p className="max-w-xs text-sm leading-relaxed text-white/70">{PILLAR_COPY[pillar]}</p>
-                  <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/50">
-                    <span>{isActive ? 'Showing this pillar' : 'Filter this pillar'}</span>
-                    <ArrowRight size={12} />
-                  </div>
-                </button>
+                <RevealOnScroll key={pillar} delay={workItems.length ? WORK_PILLARS.indexOf(pillar) * 0.05 : 0}>
+                  <button
+                    type="button"
+                    onClick={() => handlePillarChange(isActive ? 'All' : pillar)}
+                    className={`w-full rounded-[2rem] border p-6 text-left transition-all ${
+                      isActive
+                        ? 'border-brand-accent bg-brand-accent/10 shadow-[0_20px_60px_rgba(var(--accent-rgb),0.12)]'
+                        : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    <p className="mb-6 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                      <span>{pillar}</span>
+                      <span className="rounded-full border border-white/10 px-2 py-1 text-white/60">
+                        {itemCount}
+                      </span>
+                    </p>
+                    <p className="max-w-xs text-sm leading-relaxed text-white/70">{PILLAR_COPY[pillar]}</p>
+                    <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/50">
+                      <span>{isActive ? 'Showing this pillar' : 'Filter this pillar'}</span>
+                      <ArrowRight size={12} />
+                    </div>
+                  </button>
+                </RevealOnScroll>
               );
             })}
           </div>
@@ -194,51 +227,72 @@ export const Work = () => {
           </div>
         ) : (
           <div className="space-y-16">
-            {/* AI Generated · Images */}
-            {(() => {
-              const items = filteredItems.filter((i) => i.contentType === 'ai-image');
-              return items.length ? (
-                <div>
-                  <p className="mb-6 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+            {aiImageItems.length ? (
+              <section>
+                <RevealOnScroll className="mb-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
                     AI Generated · Images
                   </p>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
-                      <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
-                    ))}
-                  </div>
-                </div>
-              ) : null;
-            })()}
+                </RevealOnScroll>
+                <MasonryPortfolioGrid items={aiImageItems} onPreview={setActivePreview} />
+              </section>
+            ) : null}
 
-            {/* AI Generated · Videos */}
-            {(() => {
-              const items = filteredItems.filter((i) => i.contentType === 'ai-video');
-              return items.length ? (
-                <div>
-                  <p className="mb-6 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+            {aiVideoItems.length ? (
+              <section>
+                <RevealOnScroll className="mb-6">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
                     AI Generated · Videos
                   </p>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
-                      <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
-                    ))}
-                  </div>
-                </div>
-              ) : null;
-            })()}
-
-            {/* All other pillars */}
-            {(() => {
-              const items = filteredItems.filter((i) => i.pillar !== 'AI Generated');
-              return items.length ? (
+                </RevealOnScroll>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {items.map((item) => (
+                  {aiVideoItems.map((item) => (
                     <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
                   ))}
                 </div>
-              ) : null;
-            })()}
+              </section>
+            ) : null}
+
+            {illustrationItems.length ? (
+              <section>
+                <RevealOnScroll className="mb-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    Illustration & Design
+                  </p>
+                </RevealOnScroll>
+                <MasonryPortfolioGrid items={illustrationItems} onPreview={setActivePreview} />
+              </section>
+            ) : null}
+
+            {artDirectionItems.length ? (
+              <section>
+                <RevealOnScroll className="mb-6">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    Art Direction
+                  </p>
+                </RevealOnScroll>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {artDirectionItems.map((item) => (
+                    <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {motionItems.length ? (
+              <section>
+                <RevealOnScroll className="mb-6">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                    Animation & Motion
+                  </p>
+                </RevealOnScroll>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {motionItems.map((item) => (
+                    <BentoCard key={item.id} item={item} onPreview={setActivePreview} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         )}
       </div>

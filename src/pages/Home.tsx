@@ -4,6 +4,7 @@ import { PageTransition } from '../components/PageTransition';
 import { HeroSection } from '../sections/HeroSection';
 import { WorkSection } from '../sections/WorkSection';
 import { VelocityMarquee } from '../sections/VelocityMarquee';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import { StackedProjectCard } from '../components/StackedProjectCard';
 
 export const Home = () => {
@@ -20,11 +21,11 @@ export const Home = () => {
 
         {/* Case Studies Stack */}
         <section id="work-stack" className="px-6 py-32 space-y-[20vh]">
-          <div className="flex justify-between items-end mb-20 border-b border-white/5 pb-8">
+          <RevealOnScroll className="flex justify-between items-end mb-20 border-b border-white/5 pb-8">
             <h2 className="text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono leading-none">Perspective // 01 // Case Studies</h2>
-          </div>
+          </RevealOnScroll>
           
-          <div className="relative">
+          <RevealOnScroll delay={0.08} className="relative">
             {loading ? (
               <div className="h-[70vh] w-full bg-white/5 animate-pulse rounded-3xl" />
             ) : (
@@ -36,7 +37,7 @@ export const Home = () => {
                 />
               ))
             )}
-          </div>
+          </RevealOnScroll>
         </section>
       </div>
     </PageTransition>

@@ -11,17 +11,24 @@ import {
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
-import { auth, db, storage } from '../firebase';
+import { auth } from '../firebase-auth';
+import { db } from '../firebase-firestore';
+import { storage } from '../firebase-storage';
 import { AuthContext } from '../context/AuthContext';
 import { DataContext } from '../context/DataContext';
 import { handleFirestoreError, OperationType } from '../utils/error-handlers';
 import { toReadableGoogleSignInError } from '../utils/auth-errors';
 import { PageTransition } from '../components/PageTransition';
 import { cn } from '../lib/utils';
-import { Project, Video, LabItem, GalleryImage, ProjectPillar } from '../types';
+import { Project, Video, LabItem, GalleryImage, ProjectPillar, HomeHeroSettings } from '../types';
 import { 
   InputGroup, UploadBox, ListManager, ImagePhaseManager
 } from '../components/AdminComponents';
+import {
+  DEFAULT_HOME_HERO_SETTINGS,
+  HOME_HERO_SETTINGS_ID,
+  normalizeHomeHeroSettings,
+} from '../utils/home-hero';
 import {
   inferProjectContentType,
   normalizePillar,
@@ -105,13 +112,14 @@ const applyProjectPillar = (draft: Partial<Project>, pillar: ProjectPillar): Par
 
 export const Admin = () => {
   const { user, loading, isAdmin: isUserAdmin } = useContext(AuthContext);
-  const { projects, videos, labItems, galleryImages } = useContext(DataContext);
-  const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery'>('projects');
+  const { projects, videos, labItems, galleryImages, homeHero } = useContext(DataContext);
+  const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery' | 'hero'>('projects');
   
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [editingVideo, setEditingVideo] = useState<Partial<Video> | null>(null);
   const [editingLab, setEditingLab] = useState<Partial<LabItem> | null>(null);
   const [editingGalleryImage, setEditingGalleryImage] = useState<Partial<GalleryImage> | null>(null);
+  const [homeHeroDraft, setHomeHeroDraft] = useState<HomeHeroSettings>(DEFAULT_HOME_HERO_SETTINGS);
   
   const [bulkGalleryQueue, setBulkGalleryQueue] = useState<{ 
     file: File; 
@@ -126,6 +134,7 @@ export const Admin = () => {
   }[]>([]);
   const [bulkTags, setBulkTags] = useState<string[]>([]);
   const [bulkPillar, setBulkPillar] = useState<ProjectPillar>('Illustration & Design');
+  const [homeHeroNotice, setHomeHeroNotice] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
   
   const [projectStep, setProjectStep] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,6 +157,22 @@ export const Admin = () => {
     const interval = setInterval(testStorage, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setHomeHeroDraft(homeHero);
+  }, [homeHero]);
+
+  useEffect(() => {
+    if (!homeHeroNotice) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setHomeHeroNotice(null);
+    }, 3200);
+
+    return () => window.clearTimeout(timeout);
+  }, [homeHeroNotice]);
 
   const handleFileUpload = async (file: File, field: string, stateSetter: any): Promise<string | undefined> => {
     if (!file) return;
@@ -396,6 +421,38 @@ export const Admin = () => {
     }
   };
 
+  const saveHomeHero = async () => {
+    setIsSubmitting(true);
+    setHomeHeroNotice(null);
+    try {
+      const normalized = normalizeHomeHeroSettings(homeHeroDraft);
+      const { id: _id, ...payload } = normalized;
+
+      await setDoc(
+        doc(db, 'settings', HOME_HERO_SETTINGS_ID),
+        {
+          ...payload,
+          createdAt: homeHero.createdAt || serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+      setHomeHeroNotice({ tone: 'success', message: 'Homepage hero saved.' });
+    } catch (error) {
+      try {
+        handleFirestoreError(error, OperationType.WRITE, 'settings/homeHero');
+      } catch (friendlyError) {
+        setHomeHeroNotice({
+          tone: 'error',
+          message:
+            friendlyError instanceof Error ? friendlyError.message : 'something burned. try again.',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const deleteFromFirestore = async (collectionName: string, id: string) => {
     if (!confirm(`Delete this ${collectionName.slice(0, -1)}?`)) return;
     try {
@@ -484,7 +541,7 @@ export const Admin = () => {
             
             <div className="mt-12 flex flex-col md:flex-row gap-6 items-center w-full">
               <div className="flex flex-wrap gap-3">
-                {(['projects', 'videos', 'lab', 'gallery'] as const).map(tab => (
+                {(['projects', 'videos', 'lab', 'gallery', 'hero'] as const).map(tab => (
                   <button
                     key={tab}
                     onClick={() => { setActiveTab(tab); setSearchQuery(''); }}
@@ -495,49 +552,242 @@ export const Admin = () => {
                         : "glass text-brand-muted border-white/5 hover:text-white"
                     )}
                   >
-                    {tab}
+                    {tab === 'hero' ? 'home hero' : tab}
                   </button>
                 ))}
               </div>
 
-              <div className="flex-grow flex items-center gap-4 glass rounded-2xl border border-white/5 px-6 py-2 w-full md:max-w-md focus-within:border-brand-accent/40 transition-all font-mono">
-                <Search size={16} className="text-brand-muted" />
-                <input 
-                  type="text" 
-                  placeholder={`Filter archive...`} 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent border-none outline-none py-3 text-xs uppercase tracking-widest w-full"
-                />
-              </div>
-              
-              <div className="relative group/create shrink-0">
-                 <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center gap-3 hover:bg-brand-accent transition-all shadow-xl">
-                    <Plus size={14} strokeWidth={3} /> Create New
-                 </button>
-                 <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 shadow-3xl">
-                    <button onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
-                    <button onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
-                    <button onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
-                    <button onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
-                    <label className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 cursor-pointer block">
-                      Bulk Sync
-                      <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => {
-                        if (e.target.files) {
-                          const files = Array.from(e.target.files);
-                          setBulkGalleryQueue(files.map(f => ({ file: f, previewUrl: URL.createObjectURL(f), tags: [], status: 'Ready', progress: 0 })));
-                          e.target.value = '';
-                        }
-                      }} />
-                    </label>
+              {activeTab !== 'hero' ? (
+                <>
+                  <div className="flex-grow flex items-center gap-4 glass rounded-2xl border border-white/5 px-6 py-2 w-full md:max-w-md focus-within:border-brand-accent/40 transition-all font-mono">
+                    <Search size={16} className="text-brand-muted" />
+                    <input 
+                      type="text" 
+                      placeholder={`Filter archive...`} 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-transparent border-none outline-none py-3 text-xs uppercase tracking-widest w-full"
+                    />
                   </div>
-               </div>
+                  
+                  <div className="relative group/create shrink-0">
+                     <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center gap-3 hover:bg-brand-accent transition-all shadow-xl">
+                        <Plus size={14} strokeWidth={3} /> Create New
+                     </button>
+                     <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 shadow-3xl">
+                        <button onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
+                        <button onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
+                        <button onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
+                        <button onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
+                        <label className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 cursor-pointer block">
+                          Bulk Sync
+                          <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => {
+                            if (e.target.files) {
+                              const files = Array.from(e.target.files);
+                              setBulkGalleryQueue(files.map(f => ({ file: f, previewUrl: URL.createObjectURL(f), tags: [], status: 'Ready', progress: 0 })));
+                              e.target.value = '';
+                            }
+                          }} />
+                        </label>
+                      </div>
+                   </div>
+                </>
+              ) : (
+                <div className="glass rounded-2xl border border-white/5 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-brand-muted font-mono">
+                  Singleton setting: <span className="text-brand-accent">settings/{HOME_HERO_SETTINGS_ID}</span>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
         {/* Content Lists */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+          {activeTab === 'hero' ? (
+            <div className="lg:col-span-3">
+              <div className="glass rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">
+                <div className="border-b border-white/5 bg-white/[0.02] px-10 py-10">
+                  <div className="max-w-4xl space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">Homepage Hero</p>
+                    <h2 className="text-5xl font-black uppercase tracking-tighter">Media Control</h2>
+                    <p className="max-w-2xl text-sm leading-relaxed text-white/65">
+                      Choose whether the first screen uses an image or a video, then set separate
+                      desktop and mobile assets. Mobile falls back to desktop when left empty.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-10 px-10 py-10 xl:grid-cols-[minmax(0,1.1fr)_22rem]">
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Hero mode</label>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {[
+                          ['image', 'Image Hero'],
+                          ['video', 'Video Hero'],
+                        ].map(([value, label]) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setHomeHeroDraft({ ...homeHeroDraft, mode: value as HomeHeroSettings['mode'] })}
+                            className={cn(
+                              "px-6 py-6 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.22em] border transition-all h-24 flex items-center justify-center",
+                              homeHeroDraft.mode === value ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {homeHeroDraft.mode === 'image' ? (
+                      <div className="grid gap-8 lg:grid-cols-2">
+                        <div className="p-8 glass rounded-[2.5rem] border border-brand-accent/10 space-y-6">
+                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop image</label>
+                          <UploadBox
+                            field="desktopImage"
+                            value={homeHeroDraft.desktopImage}
+                            onUpload={handleFileUpload}
+                            progress={uploadProgress}
+                            status={uploadStatus}
+                            state={homeHeroDraft}
+                            stateSetter={setHomeHeroDraft}
+                            accept="image/*"
+                            placeholder="Paste desktop hero image URL..."
+                          />
+                        </div>
+
+                        <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6">
+                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile image</label>
+                          <UploadBox
+                            field="mobileImage"
+                            value={homeHeroDraft.mobileImage}
+                            onUpload={handleFileUpload}
+                            progress={uploadProgress}
+                            status={uploadStatus}
+                            state={homeHeroDraft}
+                            stateSetter={setHomeHeroDraft}
+                            accept="image/*"
+                            placeholder="Optional mobile-specific hero image..."
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid gap-8 xl:grid-cols-2">
+                        <div className="p-8 glass rounded-[2.5rem] border border-brand-accent/10 space-y-6">
+                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop video</label>
+                          <UploadBox
+                            field="desktopVideo"
+                            value={homeHeroDraft.desktopVideo}
+                            onUpload={handleFileUpload}
+                            progress={uploadProgress}
+                            status={uploadStatus}
+                            state={homeHeroDraft}
+                            stateSetter={setHomeHeroDraft}
+                            accept="video/*"
+                            mediaType="video"
+                            placeholder="Paste desktop hero video URL..."
+                          />
+                        </div>
+
+                        <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6">
+                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile video</label>
+                          <UploadBox
+                            field="mobileVideo"
+                            value={homeHeroDraft.mobileVideo}
+                            onUpload={handleFileUpload}
+                            progress={uploadProgress}
+                            status={uploadStatus}
+                            state={homeHeroDraft}
+                            stateSetter={setHomeHeroDraft}
+                            accept="video/*"
+                            mediaType="video"
+                            placeholder="Optional mobile-specific hero video..."
+                          />
+                        </div>
+
+                        <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6 xl:col-span-2">
+                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster image fallback</label>
+                          <UploadBox
+                            field="posterImage"
+                            value={homeHeroDraft.posterImage}
+                            onUpload={handleFileUpload}
+                            progress={uploadProgress}
+                            status={uploadStatus}
+                            state={homeHeroDraft}
+                            stateSetter={setHomeHeroDraft}
+                            accept="image/*"
+                            placeholder="Shown while video loads or when motion is reduced..."
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-4 border-t border-white/5 pt-8 md:flex-row">
+                      <button
+                        type="button"
+                        onClick={saveHomeHero}
+                        disabled={isSubmitting || Object.keys(uploadProgress).length > 0}
+                        className={cn(
+                          "px-10 py-5 font-black uppercase tracking-widest rounded-2xl transition-all text-[10px] shadow-xl",
+                          isSubmitting || Object.keys(uploadProgress).length > 0
+                            ? "glass text-brand-muted"
+                            : "bg-brand-accent text-brand-bg"
+                        )}
+                      >
+                        {isSubmitting ? 'Saving Hero...' : 'Save Homepage Hero'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHomeHeroDraft(homeHero)}
+                        className="px-10 py-5 glass border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-black transition-all"
+                      >
+                        Reset to Live
+                      </button>
+                    </div>
+
+                    {homeHeroNotice ? (
+                      <div
+                        className={cn(
+                          "rounded-2xl border px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em]",
+                          homeHeroNotice.tone === 'success'
+                            ? 'border-green-500/20 bg-green-500/10 text-green-400'
+                            : 'border-red-500/20 bg-red-500/10 text-red-400'
+                        )}
+                      >
+                        {homeHeroNotice.message}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <aside className="space-y-6">
+                    <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8">
+                      <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">Current setup</p>
+                      <div className="space-y-4 text-sm text-white/70">
+                        <p><span className="text-white">Mode:</span> {homeHeroDraft.mode}</p>
+                        <p><span className="text-white">Desktop:</span> {homeHeroDraft.mode === 'image' ? (homeHeroDraft.desktopImage ? 'set' : 'missing') : (homeHeroDraft.desktopVideo ? 'set' : 'missing')}</p>
+                        <p><span className="text-white">Mobile:</span> {homeHeroDraft.mode === 'image' ? (homeHeroDraft.mobileImage ? 'set' : 'falls back to desktop') : (homeHeroDraft.mobileVideo ? 'set' : 'falls back to desktop')}</p>
+                        {homeHeroDraft.mode === 'video' ? (
+                          <p><span className="text-white">Poster:</span> {homeHeroDraft.posterImage ? 'set' : 'falls back automatically'}</p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8">
+                      <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">Recommended</p>
+                      <div className="space-y-3 text-sm leading-relaxed text-white/65">
+                        <p>Desktop: wide cinematic crop, around 2:1 or 21:9.</p>
+                        <p>Mobile: portrait or tall crop that keeps the focal point visible.</p>
+                        <p>Video mode works best with a lightweight looping MP4 plus a crisp poster image.</p>
+                      </div>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {activeTab === 'projects' && projects
             .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
             .map(p => (
@@ -836,23 +1086,31 @@ export const Admin = () => {
                           <header className="flex items-center gap-6">
                             <span className="w-12 h-12 rounded-2xl border-2 border-brand-accent flex items-center justify-center font-black text-xs text-brand-accent">03</span>
                             <div>
-                              <h3 className="text-3xl font-black uppercase tracking-tighter">Tools & Credits</h3>
-                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">Keep the production details compact and useful.</p>
+                              <h3 className="text-3xl font-black uppercase tracking-tighter">
+                                {currentProjectPillar === 'AI Generated' ? 'Tools' : 'Tools & Credits'}
+                              </h3>
+                              <p className="text-[10px] uppercase font-mono tracking-widest text-brand-muted">
+                                {currentProjectPillar === 'AI Generated'
+                                  ? 'AI pieces only need the tool tags used to make them.'
+                                  : 'Keep the production details compact and useful.'}
+                              </p>
                             </div>
                           </header>
-                          <div className="grid gap-10 lg:grid-cols-2">
+                          <div className={`grid gap-10 ${currentProjectPillar === 'AI Generated' ? '' : 'lg:grid-cols-2'}`}>
                             <ListManager
                               label="Tools"
                               items={editingProject.tools || []}
                               onAdd={value => setEditingProject({ ...editingProject, tools: [...(editingProject.tools || []), value] })}
                               onRemove={index => setEditingProject({ ...editingProject, tools: editingProject.tools?.filter((_, currentIndex) => currentIndex !== index) })}
                             />
-                            <ListManager
-                              label="Credits"
-                              items={editingProject.credits || []}
-                              onAdd={value => setEditingProject({ ...editingProject, credits: [...(editingProject.credits || []), value] })}
-                              onRemove={index => setEditingProject({ ...editingProject, credits: editingProject.credits?.filter((_, currentIndex) => currentIndex !== index) })}
-                            />
+                            {currentProjectPillar !== 'AI Generated' ? (
+                              <ListManager
+                                label="Credits"
+                                items={editingProject.credits || []}
+                                onAdd={value => setEditingProject({ ...editingProject, credits: [...(editingProject.credits || []), value] })}
+                                onRemove={index => setEditingProject({ ...editingProject, credits: editingProject.credits?.filter((_, currentIndex) => currentIndex !== index) })}
+                              />
+                            ) : null}
                           </div>
                         </motion.section>
                       ) : null}

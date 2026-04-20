@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase-firestore';
 import { GalleryImage, ProjectPillar } from '../types';
 import {
   ChecklistItem,

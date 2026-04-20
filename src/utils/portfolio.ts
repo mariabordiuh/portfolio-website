@@ -207,9 +207,17 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
   const outcomeImages = uniqueStrings(
     project.outcomeImages?.length ? project.outcomeImages : project.outcomeVisuals,
   );
+  // Firestore data arrives untyped — `credits` may contain {name, role} objects
+  // instead of strings if older documents were seeded incorrectly. Handle both.
+  const rawCredits = (project.credits ?? []) as unknown[];
+  const creditsAsStrings: string[] = rawCredits.map((c) => {
+    if (typeof c === 'string') return c;
+    const obj = c as { name?: string; role?: string };
+    return [trim(obj.name), trim(obj.role)].filter(Boolean).join(' - ');
+  });
   const credits = uniqueStrings(
-    project.credits?.length
-      ? project.credits
+    creditsAsStrings.filter(Boolean).length
+      ? creditsAsStrings
       : project.team?.map((member) =>
           [trim(member.name), trim(member.role)].filter(Boolean).join(' - '),
         ),
@@ -274,6 +282,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
   const normalized = normalizeProject(project);
   const contentType = normalized.contentType ?? inferProjectContentType(normalized);
   const isArtDirection = normalized.pillar === 'Art Direction';
+  const isAIItem = contentType === 'ai-image' || contentType === 'ai-video';
   const images =
     contentType === 'illustration'
       ? uniqueStrings(normalized.images.length ? normalized.images : [normalized.thumbnail])
@@ -302,7 +311,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     year: normalized.year,
     client: normalized.client,
     role: normalized.role,
-    credits: normalized.credits,
+    credits: isAIItem ? [] : normalized.credits,
   };
 };
 

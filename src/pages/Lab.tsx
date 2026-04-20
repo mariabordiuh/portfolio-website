@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import { RevealText } from '../components/RevealText';
 import { Tag } from '../components/Tag';
 import { LabSkeleton } from '../components/Skeleton';
@@ -30,7 +31,9 @@ export const Lab = () => {
           >
             <RevealText>The Lab</RevealText>
           </motion.h1>
-          <p className="text-brand-muted max-w-xl text-lg">Experiments, tests, learnings, and unfinished vibecodings.</p>
+          <RevealOnScroll delay={0.08}>
+            <p className="max-w-xl text-lg text-brand-muted">Experiments, tests, learnings, and unfinished vibecodings.</p>
+          </RevealOnScroll>
         </header>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -41,49 +44,50 @@ export const Lab = () => {
               nothing here yet. come back with coffee.
             </div>
           ) : (
-            labItems.map((item) => (
-              <div 
-                key={item.id} 
-                onClick={() => setActiveItem(item)}
-                className="p-8 bg-white/5 rounded-3xl border border-white/10 flex flex-col gap-6 hover:bg-white/10 transition-colors cursor-pointer group relative overflow-hidden"
-              >
-                <div className="flex justify-between items-start z-10">
-                  <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
-                    {item.type}
-                  </span>
-                  <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
-                </div>
-                {item.image && (
-                  <div className="aspect-video rounded-xl overflow-hidden bg-black/20 z-10">
-                    <img 
-                      src={item.image} 
-                      alt={item.title} 
-                      width={600}
-                      height={400}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 grayscale hover:grayscale-0" 
-                      referrerPolicy="no-referrer" 
-                    />
+            labItems.map((item, index) => (
+              <RevealOnScroll key={item.id} delay={index * 0.05}>
+                <div 
+                  onClick={() => setActiveItem(item)}
+                  className="p-8 bg-white/5 rounded-3xl border border-white/10 flex flex-col gap-6 hover:bg-white/10 transition-colors cursor-pointer group relative overflow-hidden"
+                >
+                  <div className="flex justify-between items-start z-10">
+                    <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
+                      {item.type}
+                    </span>
+                    <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
                   </div>
-                )}
-                <div className="z-10">
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-brand-accent transition-colors leading-tight">{item.title}</h3>
-                  <p className="text-brand-muted text-sm leading-relaxed mb-4 line-clamp-3 italic">{item.content}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {item.tools.map(tool => (
-                      <Tag 
-                        key={tool} 
-                        name={tool} 
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          window.location.href = `/work?tool=${tool}`;
-                        }}
+                  {item.image && (
+                    <div className="aspect-video rounded-xl overflow-hidden bg-black/20 z-10">
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        width={600}
+                        height={400}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 grayscale hover:grayscale-0" 
+                        referrerPolicy="no-referrer" 
                       />
-                    ))}
+                    </div>
+                  )}
+                  <div className="z-10">
+                    <h3 className="text-xl font-bold mb-3 group-hover:text-brand-accent transition-colors leading-tight">{item.title}</h3>
+                    <p className="text-brand-muted text-sm leading-relaxed mb-4 line-clamp-3 italic">{item.content}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {item.tools.map(tool => (
+                        <Tag 
+                          key={tool} 
+                          name={tool} 
+                          onClick={(e) => {
+                            e?.stopPropagation();
+                            window.location.href = `/work?tool=${tool}`;
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </RevealOnScroll>
             ))
           )}
         </div>

@@ -38,6 +38,7 @@ export const Nav = () => {
     { name: 'home', path: '/' },
     { name: 'work', path: '/work' },
     { name: 'lab', path: '/lab' },
+    { name: 'about', path: '/about' },
   ];
 
   return (
@@ -69,12 +70,6 @@ export const Nav = () => {
             {link.name}
           </Link>
         ))}
-        <a
-          href="mailto:mariabordiuh@gmail.com"
-          className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted transition-colors hover:text-brand-accent"
-        >
-          say hi
-        </a>
       </div>
 
       {/* Mobile Toggle */}
@@ -113,13 +108,6 @@ export const Nav = () => {
                 {link.name}
               </Link>
             ))}
-            <a
-              href="mailto:mariabordiuh@gmail.com"
-              onClick={() => setIsOpen(false)}
-              className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
-            >
-              say hi
-            </a>
           </motion.div>
         )}
       </AnimatePresence>

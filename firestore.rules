@@ -76,6 +76,16 @@ service cloud.firestore {
              data.tags is list;
     }
 
+    function isValidHomeHeroSettings(data) {
+      return data.mode in ['image', 'video'] &&
+             data.desktopImage is string &&
+             data.desktopImage.size() > 0 &&
+             (!('mobileImage' in data) || data.mobileImage is string) &&
+             (!('desktopVideo' in data) || data.desktopVideo is string) &&
+             (!('mobileVideo' in data) || data.mobileVideo is string) &&
+             (!('posterImage' in data) || data.posterImage is string);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -106,6 +116,14 @@ service cloud.firestore {
       allow create: if isAdmin() && isValidGalleryImage(request.resource.data);
       allow update: if isAdmin() && isValidGalleryImage(request.resource.data);
       allow delete: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if isAdmin() &&
+        settingId == 'homeHero' &&
+        isValidHomeHeroSettings(request.resource.data);
+      allow delete: if false;
     }
 
     match /users/{userId} {

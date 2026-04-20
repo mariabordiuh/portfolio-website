@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase-firestore';
 import { LabItem } from '../types';
 import {
   ChecklistItem,

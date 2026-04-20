@@ -8,6 +8,7 @@ export type LegacyProjectPillar = ProjectPillar | 'Animations & Motion';
 
 export type AIGeneratedSubtype = 'ai-image' | 'ai-video';
 export type MotionMediaType = 'embed' | 'gif' | 'mp4';
+export type HomeHeroMode = 'image' | 'video';
 export type ProjectContentType =
   | 'art-direction'
   | 'illustration'
@@ -114,4 +115,16 @@ export interface GalleryImage {
   software?: string;
   info?: string;
   createdAt?: any;
+}
+
+export interface HomeHeroSettings {
+  id: string;
+  mode: HomeHeroMode;
+  desktopImage: string;
+  mobileImage?: string;
+  desktopVideo?: string;
+  mobileVideo?: string;
+  posterImage?: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
 }

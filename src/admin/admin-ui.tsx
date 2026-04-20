@@ -14,7 +14,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { storage } from '../firebase';
+import { storage } from '../firebase-storage';
 import { cn } from '@/src/lib/utils';
 import {
   ChecklistItem,

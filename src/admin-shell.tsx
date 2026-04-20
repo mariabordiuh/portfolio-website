@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { LogOut, Shield } from 'lucide-react';
-import { auth } from './firebase';
+import { auth } from './firebase-auth';
 import { ADMIN_EMAIL, AdminTab, toReadableError } from './admin/admin-logic';
 import { GalleryAdmin } from './admin/gallery-admin';
 import { LabAdmin } from './admin/lab-admin';
