@@ -158,7 +158,7 @@ export const NotFound = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="text-brand-muted text-base tracking-tight"
+        className="text-brand-muted text-base"
       >
         this page started procrastinating.
       </motion.p>

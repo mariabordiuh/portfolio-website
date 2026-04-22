@@ -641,6 +641,20 @@ export const Admin = () => {
                       </div>
                     </div>
 
+                    <div className="space-y-4">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Orientation</label>
+                      <button
+                        type="button"
+                        onClick={() => setHomeHeroDraft({ ...homeHeroDraft, flipHorizontal: !homeHeroDraft.flipHorizontal })}
+                        className={cn(
+                          "w-full px-6 py-6 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.22em] border transition-all h-24 flex items-center justify-center",
+                          homeHeroDraft.flipHorizontal ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        {homeHeroDraft.flipHorizontal ? "Mirrored (Flipped)" : "Default"}
+                      </button>
+                    </div>
+
                     {homeHeroDraft.mode === 'image' ? (
                       <div className="grid gap-8 lg:grid-cols-2">
                         <div className="p-8 glass rounded-[2.5rem] border border-brand-accent/10 space-y-6">
@@ -720,6 +734,20 @@ export const Admin = () => {
                             accept="image/*"
                             placeholder="Shown while video loads or when motion is reduced..."
                           />
+
+                          <div className="pt-2 border-t border-white/5 space-y-4">
+                            <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster Orientation</label>
+                            <button
+                              type="button"
+                              onClick={() => setHomeHeroDraft({ ...homeHeroDraft, flipPosterHorizontal: !homeHeroDraft.flipPosterHorizontal })}
+                              className={cn(
+                                "w-full md:max-w-xs px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.22em] border transition-all flex items-center justify-center",
+                                homeHeroDraft.flipPosterHorizontal ? "bg-white text-black border-white shadow-xl" : "glass border-white/5 hover:border-white/20"
+                              )}
+                            >
+                              {homeHeroDraft.flipPosterHorizontal ? "Mirrored (Flipped)" : "Default"}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}

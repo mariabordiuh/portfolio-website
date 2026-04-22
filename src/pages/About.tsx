@@ -181,13 +181,13 @@ export const About = () => {
                     <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted">
                       Base
                     </p>
-                    <p className="text-lg tracking-tight text-white">Hamburg, working globally.</p>
+                    <p className="text-lg text-white">Hamburg, working globally.</p>
                   </div>
                   <div>
                     <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted">
                       Focus
                     </p>
-                    <p className="text-lg tracking-tight text-white">
+                    <p className="text-lg text-white">
                       Brand worlds, campaign imagery, motion, and systems thinking.
                     </p>
                   </div>
@@ -195,13 +195,13 @@ export const About = () => {
                     <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted">
                       Languages
                     </p>
-                    <p className="text-lg tracking-tight text-white">Ukrainian, English, German.</p>
+                    <p className="text-lg text-white">Ukrainian, English, German.</p>
                   </div>
                   <div>
                     <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted">
                       Working style
                     </p>
-                    <p className="text-lg tracking-tight text-white">Taste first. Systems second. Noise removed.</p>
+                    <p className="text-lg text-white">Taste first. Systems second. Noise removed.</p>
                   </div>
                 </div>
               </div>

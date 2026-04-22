@@ -110,6 +110,7 @@ export interface LabItem {
 export interface GalleryImage {
   id: string;
   url: string;
+  image?: string;
   pillar?: LegacyProjectPillar;
   tags: string[];
   software?: string;
@@ -120,6 +121,8 @@ export interface GalleryImage {
 export interface HomeHeroSettings {
   id: string;
   mode: HomeHeroMode;
+  flipHorizontal?: boolean;
+  flipPosterHorizontal?: boolean;
   desktopImage: string;
   mobileImage?: string;
   desktopVideo?: string;

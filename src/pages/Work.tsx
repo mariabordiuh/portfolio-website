@@ -50,6 +50,7 @@ export const Work = () => {
   const [activePillar, setActivePillar] = useState<ProjectPillar | 'All'>('All');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [activePreview, setActivePreview] = useState<PortfolioItem | null>(null);
+  const [sessionSeed] = useState(() => Math.random().toString(36).slice(2));
 
   useEffect(() => {
     const pillarParam = searchParams.get('pillar');
@@ -76,12 +77,12 @@ export const Work = () => {
 
   const aiImageItems = shufflePortfolioItems(
     filteredItems.filter((item) => item.contentType === 'ai-image'),
-    'ai-image',
+    `ai-image-${sessionSeed}`,
   );
   const aiVideoItems = filteredItems.filter((item) => item.contentType === 'ai-video');
   const illustrationItems = shufflePortfolioItems(
     filteredItems.filter((item) => item.contentType === 'illustration'),
-    'illustration',
+    `illustration-${sessionSeed}`,
   );
   const artDirectionItems = filteredItems.filter((item) => item.contentType === 'art-direction');
   const motionItems = filteredItems.filter((item) => item.pillar === 'Animation & Motion');
