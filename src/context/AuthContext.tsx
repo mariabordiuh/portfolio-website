@@ -16,6 +16,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     return onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user) {

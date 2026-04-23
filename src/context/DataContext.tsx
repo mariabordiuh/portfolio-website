@@ -99,6 +99,7 @@ export const DataProvider = ({
     const unsubscribers: Array<() => void> = [];
 
     const testConnection = async () => {
+      if (!db) return;
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
       } catch (error) {
@@ -107,6 +108,11 @@ export const DataProvider = ({
         }
       }
     };
+
+    if (!db) {
+      setLoading(false);
+      return () => {};
+    }
 
     if (
       enabledCollections.projects ||
@@ -134,7 +140,7 @@ export const DataProvider = ({
     };
 
     if (enabledCollections.projects) {
-      const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
+      const unsubProjects = onSnapshot(collection(db!, 'projects'), (snapshot) => {
         const nextProjects = snapshot.docs.map((entry) =>
           normalizeProject({ id: entry.id, ...entry.data() } as Project),
         );
@@ -147,7 +153,7 @@ export const DataProvider = ({
     }
 
     if (enabledCollections.videos) {
-      const unsubVideos = onSnapshot(collection(db, 'videos'), (snapshot) => {
+      const unsubVideos = onSnapshot(collection(db!, 'videos'), (snapshot) => {
         const nextVideos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Video));
         setVideos(nextVideos);
         writeSessionCache(CACHE_KEYS.videos, nextVideos);
@@ -158,7 +164,7 @@ export const DataProvider = ({
     }
 
     if (enabledCollections.labItems) {
-      const unsubLab = onSnapshot(collection(db, 'labItems'), (snapshot) => {
+      const unsubLab = onSnapshot(collection(db!, 'labItems'), (snapshot) => {
         const nextLabItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LabItem));
         setLabItems(nextLabItems);
         writeSessionCache(CACHE_KEYS.labItems, nextLabItems);
@@ -169,7 +175,7 @@ export const DataProvider = ({
     }
 
     if (enabledCollections.galleryImages) {
-      const unsubGallery = onSnapshot(collection(db, 'gallery'), (snapshot) => {
+      const unsubGallery = onSnapshot(collection(db!, 'gallery'), (snapshot) => {
         const nextGalleryImages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryImage));
         setGalleryImages(nextGalleryImages);
         writeSessionCache(CACHE_KEYS.galleryImages, nextGalleryImages);
@@ -181,7 +187,7 @@ export const DataProvider = ({
 
     if (enabledCollections.homeHero) {
       const unsubHomeHero = onSnapshot(
-        doc(db, 'settings', HOME_HERO_SETTINGS_ID),
+        doc(db!, 'settings', HOME_HERO_SETTINGS_ID),
         (snapshot) => {
           const nextHomeHero = snapshot.exists()
             ? normalizeHomeHeroSettings({ id: snapshot.id, ...snapshot.data() } as Partial<HomeHeroSettings>)
