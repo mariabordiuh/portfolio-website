@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase-firestore';
 import { GalleryImage, ProjectPillar } from '../types';
@@ -68,11 +68,8 @@ export function GalleryAdmin() {
     }
 
     return toGalleryDraft(selectedItem);
-  }, [draft, isCreatingNew, selectedId, selectedItem]);
-
-  useEffect(() => {
-    setDraft(baselineDraft);
-  }, [baselineDraft]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreatingNew, selectedItem]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -86,6 +83,13 @@ export function GalleryAdmin() {
     baselineDraft,
     checklist,
   });
+  const isDirtyRef = useRef(false);
+  useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+  useEffect(() => {
+    if (!isDirtyRef.current) {
+      setDraft(baselineDraft);
+    }
+  }, [baselineDraft]);
   const payload = useMemo(
     () => ({
       url: trimValue(draft.url),

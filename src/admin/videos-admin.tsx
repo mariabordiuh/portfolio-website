@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase-firestore';
 import { ProjectPillar, Video } from '../types';
@@ -66,11 +66,8 @@ export function VideosAdmin() {
     }
 
     return toVideoDraft(selectedItem);
-  }, [draft, isCreatingNew, selectedId, selectedItem]);
-
-  useEffect(() => {
-    setDraft(baselineDraft);
-  }, [baselineDraft]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreatingNew, selectedItem]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -86,6 +83,13 @@ export function VideosAdmin() {
     baselineDraft,
     checklist,
   });
+  const isDirtyRef = useRef(false);
+  useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+  useEffect(() => {
+    if (!isDirtyRef.current) {
+      setDraft(baselineDraft);
+    }
+  }, [baselineDraft]);
   const payload = useMemo(
     () => ({
       title: trimValue(draft.title),
