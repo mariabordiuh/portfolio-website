@@ -48,13 +48,14 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "helloveo333@gmail.com" && request.auth.token.email_verified == true)); 
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "helloveo333@gmail.com" && request.auth.token.email_verified == true));
     }
 
     function isValidProject(data) {
       return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
-             data.pillar in ['AI Generated', 'Animation & Motion', 'Animations & Motion', 'Illustration & Design', 'Art Direction'] &&
+             data.pillar in ['AI Generated', 'Animation & Motion', 'Illustration & Design', 'Art Direction'] &&
              data.category is string && data.category.size() < 100 &&
              (!('description' in data) || (data.description is string && data.description.size() < 5000)) &&
              (!('thumbnail' in data) || (data.thumbnail is string && data.thumbnail.size() < 1000));
