@@ -10,7 +10,9 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "hosting:preview": "npm run build && npx --yes firebase-tools hosting:channel:deploy preview",
+    "hosting:preview:construction": "VITE_UNDER_CONSTRUCTION=true npm run build && node scripts/prepare-construction-index.mjs && npx --yes firebase-tools hosting:channel:deploy construction",
     "hosting:deploy": "npm run build && npx --yes firebase-tools deploy --only hosting",
+    "hosting:deploy:construction": "VITE_UNDER_CONSTRUCTION=true npm run build && node scripts/prepare-construction-index.mjs && npx --yes firebase-tools deploy --only hosting",
     "seed": "npx vite-node scripts/seed-projects.ts"
   },
   "dependencies": {

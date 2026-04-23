@@ -486,7 +486,7 @@ export const Footer = () => {
 
         <div className="flex items-center gap-5 text-brand-muted">
           <a
-            href="https://linkedin.com/in/mariabordiuh"
+            href="https://www.linkedin.com/in/mariia-bordiuh/"
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors hover:text-brand-accent"
@@ -506,17 +506,13 @@ export const Footer = () => {
 
       <FooterAsciiCoffee />
 
-      <div className="border-t border-white/5 px-6 py-4">
+      <div className="border-t border-white/5 px-6 py-6 flex flex-col gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">
           © 2026 Maria Bordiuh
         </span>
-      </div>
-
-      <div className="px-6 pb-3 pt-14 text-center">
-        <p className="font-display text-[18px] italic text-brand-muted">measure twice, brew once.</p>
-      </div>
-      <div className="px-6 pb-12 text-center">
-        <p className="text-[12px] text-white/30">brewed in Hamburg. powered by caffeine and one black cat.</p>
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted/60">
+          brewed in Hamburg. powered by caffeine and one black cat.
+        </span>
       </div>
     </footer>
   );

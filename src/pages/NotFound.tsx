@@ -143,22 +143,21 @@ export const NotFound = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-brand-bg px-6 text-center gap-8">
 
       {/* 404 */}
-      <motion.p
+      <motion.h1
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="font-display font-black text-brand-accent leading-none select-none"
+        className="text-brand-accent leading-none select-none tracking-tighter"
         style={{ fontSize: 'clamp(80px, 14vw, 140px)' }}
-        aria-label="404"
       >
         404
-      </motion.p>
+      </motion.h1>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="text-brand-muted text-base"
+        className="text-brand-muted text-[10px] uppercase tracking-[0.3em] font-mono"
       >
         this page started procrastinating.
       </motion.p>
@@ -172,14 +171,14 @@ export const NotFound = () => {
       >
         {/* Score row */}
         <div className="flex justify-between items-center mb-3 px-1">
-          <span className="font-display italic text-brand-accent text-2xl">{score}</span>
-          <div className="flex gap-1">
+          <span className="text-brand-accent text-2xl font-mono tracking-tight tabular-nums">{score}</span>
+          <div className="flex gap-1.5">
             {Array.from({ length: MAX_MISSES }).map((_, i) => (
-              <span key={i} className={`text-[10px] ${i < misses ? 'text-brand-accent' : 'text-white/20'}`}>●</span>
+              <span key={i} className={`text-xs transition-colors ${i < misses ? 'text-brand-accent' : 'text-white/15'}`}>●</span>
             ))}
           </div>
           {highScore > 0 && (
-            <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-mono">best {highScore}</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-mono tabular-nums">best {highScore}</span>
           )}
         </div>
 
@@ -223,7 +222,7 @@ export const NotFound = () => {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
               {score > 0 ? (
                 <>
-                  <p className="font-display italic text-brand-accent text-4xl">{score} caught</p>
+                  <p className="text-brand-accent text-4xl font-mono tracking-tight tabular-nums">{score} caught</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-mono">3 drips hit the floor</p>
                 </>
               ) : (
@@ -233,7 +232,7 @@ export const NotFound = () => {
               )}
               <button
                 onClick={reset}
-                className="mt-2 px-6 py-3 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-full hover:bg-brand-accent transition-all"
+                className="mt-2 px-6 py-3 bg-white text-black uppercase tracking-[0.2em] text-[10px] rounded-full hover:bg-brand-accent transition-all font-mono"
               >
                 {score > 0 ? 'try again' : 'start'}
               </button>

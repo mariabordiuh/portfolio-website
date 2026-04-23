@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Plus, Trash2, Edit3, Search, LogOut, Info, Rocket, 
-  Check, CheckCircle2, Image as ImageIcon,
-  Compass, Zap, Cpu, Code, ArrowRight
+  Check, CheckCircle2, Image as ImageIcon, Star,
+  Compass, Zap, Cpu, Code, ArrowRight, AlertTriangle
 } from 'lucide-react';
 import { 
   collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc
@@ -19,6 +19,8 @@ import { DataContext } from '../context/DataContext';
 import { handleFirestoreError, OperationType } from '../utils/error-handlers';
 import { toReadableGoogleSignInError } from '../utils/auth-errors';
 import { PageTransition } from '../components/PageTransition';
+import { StorageOptimizer } from '../admin/storage-optimizer';
+
 import { cn } from '../lib/utils';
 import { Project, Video, LabItem, GalleryImage, ProjectPillar, HomeHeroSettings } from '../types';
 import { 
@@ -70,6 +72,29 @@ const PROJECT_STEPS_BY_PILLAR: Record<ProjectPillar, { id: string; label: string
   ],
 };
 
+type AdminNotice = {
+  tone: 'success' | 'error';
+  message: string;
+};
+
+type DeleteTarget = {
+  collectionName: string;
+  id: string;
+  label: string;
+};
+
+const COLLECTION_LABELS: Record<string, string> = {
+  projects: 'project',
+  videos: 'video',
+  labItems: 'lab item',
+  gallery: 'gallery image',
+};
+
+const hasText = (value?: string | null) => Boolean(value?.trim());
+
+const toValidationMessage = (errors: string[]) =>
+  errors.length === 1 ? errors[0] : `Missing: ${errors.join(', ')}.`;
+
 const createEmptyProject = (pillar: ProjectPillar = 'Art Direction'): Partial<Project> => ({
   title: '',
   pillar,
@@ -113,7 +138,19 @@ const applyProjectPillar = (draft: Partial<Project>, pillar: ProjectPillar): Par
 export const Admin = () => {
   const { user, loading, isAdmin: isUserAdmin } = useContext(AuthContext);
   const { projects, videos, labItems, galleryImages, homeHero } = useContext(DataContext);
-  const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery' | 'hero'>('projects');
+
+  const featuredCounts = useMemo(() => ({
+    projects: projects.filter(p => p.featured).length,
+    videos: videos.filter(v => v.featured).length,
+    gallery: galleryImages.filter(g => g.featured).length,
+  }), [projects, videos, galleryImages]);
+
+  const galleryFilterTags = useMemo(
+    () => ['All', 'Featured', ...uniqueStrings(galleryImages.flatMap(g => g.tags))],
+    [galleryImages],
+  );
+
+  const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery' | 'hero' | 'storage'>('projects');
   
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
   const [editingVideo, setEditingVideo] = useState<Partial<Video> | null>(null);
@@ -135,14 +172,37 @@ export const Admin = () => {
   const [bulkTags, setBulkTags] = useState<string[]>([]);
   const [bulkPillar, setBulkPillar] = useState<ProjectPillar>('Illustration & Design');
   const [homeHeroNotice, setHomeHeroNotice] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
+  const [adminNotice, setAdminNotice] = useState<AdminNotice | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   
   const [projectStep, setProjectStep] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeGalleryFilter, setActiveGalleryFilter] = useState<string>('All');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: string }>({});
   const [storageConnected, setStorageConnected] = useState<'testing' | 'ok' | 'blocked'>('testing');
   const [loginError, setLoginError] = useState<string | null>(null);
+  const hasActiveUploads = Object.keys(uploadProgress).length > 0;
+
+  const showAdminNotice = (notice: AdminNotice) => {
+    setAdminNotice(notice);
+  };
+
+  const triggerAdminNotice = (message: string, tone: AdminNotice['tone']) => {
+    showAdminNotice({ tone, message });
+  };
+
+  const reportFirestoreError = (error: unknown, operationType: OperationType, path: string) => {
+    try {
+      handleFirestoreError(error, operationType, path);
+    } catch (friendlyError) {
+      showAdminNotice({
+        tone: 'error',
+        message: friendlyError instanceof Error ? friendlyError.message : 'something burned. try again.',
+      });
+    }
+  };
 
   useEffect(() => {
     const testStorage = async () => {
@@ -174,11 +234,24 @@ export const Admin = () => {
     return () => window.clearTimeout(timeout);
   }, [homeHeroNotice]);
 
+  useEffect(() => {
+    if (!adminNotice) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setAdminNotice(null);
+    }, 3600);
+
+    return () => window.clearTimeout(timeout);
+  }, [adminNotice]);
+
   const handleFileUpload = async (file: File, field: string, stateSetter: any): Promise<string | undefined> => {
     if (!file) return;
     if (!auth.currentUser) {
-      alert("STOP: You are not logged in. Firebase blocks all anonymous uploads.");
-      return;
+      const message = 'You are not logged in. Firebase blocks anonymous uploads.';
+      showAdminNotice({ tone: 'error', message });
+      throw new Error(message);
     }
 
     const uploadId = `${field}_${Date.now()}_${file.name}`;
@@ -213,6 +286,9 @@ export const Admin = () => {
           setUploadStatus(prev => { const n = { ...prev }; delete n[uploadId]; return n; });
           resolve(downloadURL);
         } catch (err) {
+          setUploadProgress(prev => { const n = { ...prev }; delete n[uploadId]; return n; });
+          setUploadStatus(prev => { const n = { ...prev }; delete n[uploadId]; return n; });
+          showAdminNotice({ tone: 'error', message: 'Upload failed. Please try again.' });
           reject(err);
         }
         return;
@@ -227,6 +303,8 @@ export const Admin = () => {
         }, 
         (error) => {
           setUploadProgress(prev => { const n = { ...prev }; delete n[uploadId]; return n; });
+          setUploadStatus(prev => { const n = { ...prev }; delete n[uploadId]; return n; });
+          showAdminNotice({ tone: 'error', message: 'Upload failed. Please try again.' });
           reject(error);
         }, 
         async () => {
@@ -255,6 +333,113 @@ export const Admin = () => {
       console.error("Login failed", error);
       setLoginError(toReadableGoogleSignInError(error));
     }
+  };
+
+  const toggleProjectFeatured = async (project: Project) => {
+    try {
+      const docRef = doc(db, 'projects', project.id);
+      await updateDoc(docRef, { featured: !project.featured, updatedAt: serverTimestamp() });
+      triggerAdminNotice(`Project ${project.featured ? 'removed from' : 'added to'} Homepage`, 'success');
+    } catch (error) {
+      console.error(error);
+      triggerAdminNotice(`Failed to toggle feature status for ${project.title}`, 'error');
+    }
+  };
+
+  const toggleVideoFeatured = async (video: Video) => {
+    try {
+      const docRef = doc(db, 'videos', video.id);
+      await updateDoc(docRef, { featured: !video.featured, updatedAt: serverTimestamp() });
+      triggerAdminNotice(`Video ${video.featured ? 'removed from' : 'added to'} Homepage`, 'success');
+    } catch (error) {
+      console.error(error);
+      triggerAdminNotice(`Failed to toggle feature status for ${video.title}`, 'error');
+    }
+  };
+
+  const toggleGalleryFeatured = async (img: GalleryImage) => {
+    try {
+      const docRef = doc(db, 'gallery', img.id);
+      await updateDoc(docRef, { featured: !img.featured, updatedAt: serverTimestamp() });
+      triggerAdminNotice(`Gallery image ${img.featured ? 'removed from' : 'added to'} Homepage`, 'success');
+    } catch (error) {
+      console.error(error);
+      triggerAdminNotice(`Failed to toggle gallery image feature status`, 'error');
+    }
+  };
+
+  const validateProjectDraft = (draft: Partial<Project>) => {
+    const pillar = normalizePillar(draft.pillar);
+    const errors: string[] = [];
+
+    if (!hasText(draft.title)) errors.push('title');
+    if (!hasText(draft.description)) errors.push('description');
+
+    if (pillar === 'Art Direction') {
+      if (!hasText(draft.heroImage) && !hasText(draft.thumbnail)) errors.push('hero image');
+      if (!hasText(draft.creativeTension)) errors.push('creative tension');
+      if (!hasText(draft.globalContext)) errors.push('global context');
+      if (!hasText(draft.approach)) errors.push('approach');
+      if (!hasText(draft.outcomeCopy) && !hasText(draft.outcomeResultCopy)) errors.push('outcome copy');
+    }
+
+    if (pillar === 'AI Generated') {
+      if ((draft.aiSubtype || 'ai-image') === 'ai-video') {
+        if (!hasText(draft.mediaUrl) && !hasText(draft.videoUrl)) errors.push('video file');
+      } else if (!hasText(draft.thumbnail) && !hasText(draft.heroImage)) {
+        errors.push('image asset');
+      }
+    }
+
+    if (pillar === 'Illustration & Design' && !uniqueStrings(draft.images?.length ? draft.images : [draft.thumbnail]).length) {
+      errors.push('images gallery');
+    }
+
+    if (pillar === 'Animation & Motion') {
+      const motionType = draft.motionType || 'embed';
+      if (motionType === 'embed' && !hasText(draft.embedUrl)) errors.push('YouTube / Vimeo URL');
+      if (motionType !== 'embed' && !hasText(draft.mediaUrl) && !hasText(draft.videoUrl)) errors.push('motion file');
+    }
+
+    return errors;
+  };
+
+  const validateHomeHeroDraft = (draft: HomeHeroSettings) => {
+    const errors: string[] = [];
+
+    if (draft.mode === 'image' && !hasText(draft.desktopImage)) {
+      errors.push('desktop image');
+    }
+
+    if (draft.mode === 'video' && !hasText(draft.desktopVideo) && !hasText(draft.mobileVideo)) {
+      errors.push('desktop or mobile video');
+    }
+
+    return errors;
+  };
+
+  const validateCollectionDraft = (collectionName: string, data: any) => {
+    const errors: string[] = [];
+
+    if (collectionName === 'videos') {
+      if (!hasText(data.title)) errors.push('title');
+      if (!hasText(data.url)) errors.push('stream URL');
+      if (!hasText(data.thumbnail)) errors.push('thumbnail');
+    }
+
+    if (collectionName === 'labItems') {
+      if (!hasText(data.title)) errors.push('title');
+      if (!hasText(data.content)) errors.push('log / findings');
+      if (!hasText(data.date)) errors.push('date');
+    }
+
+    if (collectionName === 'gallery') {
+      if (!hasText(data.url)) errors.push('asset link');
+      if (!data.pillar) errors.push('pillar allocation');
+      if (!data.tags?.length) errors.push('at least one tag');
+    }
+
+    return errors;
   };
 
   const closeProjectEditor = () => {
@@ -381,6 +566,17 @@ export const Admin = () => {
       return;
     }
 
+    if (hasActiveUploads) {
+      showAdminNotice({ tone: 'error', message: 'Wait for uploads to finish before saving.' });
+      return;
+    }
+
+    const validationErrors = validateProjectDraft(editingProject);
+    if (validationErrors.length) {
+      showAdminNotice({ tone: 'error', message: toValidationMessage(validationErrors) });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = sanitizeProjectDraft(editingProject);
@@ -396,14 +592,26 @@ export const Admin = () => {
       });
 
       closeProjectEditor();
+      showAdminNotice({ tone: 'success', message: `${payload.title || 'Project'} saved.` });
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'projects');
+      reportFirestoreError(error, OperationType.WRITE, 'projects');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveToFirestore = async (collectionName: string, data: any, id: string | undefined, resetFn: () => void) => {
+    if (hasActiveUploads) {
+      showAdminNotice({ tone: 'error', message: 'Wait for uploads to finish before saving.' });
+      return;
+    }
+
+    const validationErrors = validateCollectionDraft(collectionName, data);
+    if (validationErrors.length) {
+      showAdminNotice({ tone: 'error', message: toValidationMessage(validationErrors) });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = { ...data, updatedAt: serverTimestamp() };
@@ -411,17 +619,32 @@ export const Admin = () => {
         const { id: _, ...updateData } = payload;
         await updateDoc(doc(db, collectionName, id), updateData);
       } else {
-        await addDoc(collection(db, collectionName), payload);
+        await addDoc(collection(db, collectionName), { ...payload, createdAt: serverTimestamp() });
       }
       resetFn();
+      showAdminNotice({
+        tone: 'success',
+        message: `${COLLECTION_LABELS[collectionName] || 'item'} saved.`,
+      });
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, collectionName);
+      reportFirestoreError(error, OperationType.WRITE, collectionName);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveHomeHero = async () => {
+    if (hasActiveUploads) {
+      setHomeHeroNotice({ tone: 'error', message: 'Wait for uploads to finish before saving.' });
+      return;
+    }
+
+    const validationErrors = validateHomeHeroDraft(homeHeroDraft);
+    if (validationErrors.length) {
+      setHomeHeroNotice({ tone: 'error', message: toValidationMessage(validationErrors) });
+      return;
+    }
+
     setIsSubmitting(true);
     setHomeHeroNotice(null);
     try {
@@ -453,12 +676,25 @@ export const Admin = () => {
     }
   };
 
-  const deleteFromFirestore = async (collectionName: string, id: string) => {
-    if (!confirm(`Delete this ${collectionName.slice(0, -1)}?`)) return;
+  const requestDeleteFromFirestore = (collectionName: string, id: string, label: string) => {
+    setDeleteTarget({ collectionName, id, label });
+  };
+
+  const confirmDeleteFromFirestore = async () => {
+    if (!deleteTarget) return;
+
+    setIsSubmitting(true);
     try {
-      await deleteDoc(doc(db, collectionName, id));
+      await deleteDoc(doc(db, deleteTarget.collectionName, deleteTarget.id));
+      showAdminNotice({
+        tone: 'success',
+        message: `${COLLECTION_LABELS[deleteTarget.collectionName] || 'item'} deleted.`,
+      });
+      setDeleteTarget(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, collectionName);
+      reportFirestoreError(error, OperationType.DELETE, deleteTarget.collectionName);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -541,10 +777,12 @@ export const Admin = () => {
             
             <div className="mt-12 flex flex-col md:flex-row gap-6 items-center w-full">
               <div className="flex flex-wrap gap-3">
-                {(['projects', 'videos', 'lab', 'gallery', 'hero'] as const).map(tab => (
+                {(['projects', 'videos', 'lab', 'gallery', 'hero', 'storage'] as const).map(tab => (
                   <button
                     key={tab}
+                    type="button"
                     onClick={() => { setActiveTab(tab); setSearchQuery(''); }}
+                    aria-pressed={activeTab === tab}
                     className={cn(
                       "px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border shrink-0",
                       activeTab === tab 
@@ -552,12 +790,17 @@ export const Admin = () => {
                         : "glass text-brand-muted border-white/5 hover:text-white"
                     )}
                   >
-                    {tab === 'hero' ? 'home hero' : tab}
+                    {tab === 'hero' ? 'home hero' : tab === 'storage' ? 'storage' : tab}
+                    {(tab === 'projects' || tab === 'videos' || tab === 'gallery') && featuredCounts[tab] > 0 ? (
+                      <span className="ml-2 inline-flex items-center justify-center min-w-[1.2rem] h-[1.2rem] rounded-full bg-white/20 text-[8px] font-black px-1">
+                        {featuredCounts[tab]}★
+                      </span>
+                    ) : null}
                   </button>
                 ))}
               </div>
 
-              {activeTab !== 'hero' ? (
+              {activeTab !== 'hero' && activeTab !== 'storage' ? (
                 <>
                   <div className="flex-grow flex items-center gap-4 glass rounded-2xl border border-white/5 px-6 py-2 w-full md:max-w-md focus-within:border-brand-accent/40 transition-all font-mono">
                     <Search size={16} className="text-brand-muted" />
@@ -566,19 +809,20 @@ export const Admin = () => {
                       placeholder={`Filter archive...`} 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      aria-label="Filter archive"
                       className="bg-transparent border-none outline-none py-3 text-xs uppercase tracking-widest w-full"
                     />
                   </div>
                   
                   <div className="relative group/create shrink-0">
-                     <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center gap-3 hover:bg-brand-accent transition-all shadow-xl">
+                     <button type="button" className="px-8 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center gap-3 hover:bg-brand-accent transition-all shadow-xl">
                         <Plus size={14} strokeWidth={3} /> Create New
                      </button>
-                     <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 shadow-3xl">
-                        <button onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
-                        <button onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
-                        <button onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
-                        <button onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
+                     <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible group-focus-within/create:opacity-100 group-focus-within/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 group-focus-within/create:translate-y-0 shadow-3xl">
+                        <button type="button" onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
+                        <button type="button" onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
+                        <button type="button" onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
+                        <button type="button" onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
                         <label className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 cursor-pointer block">
                           Bulk Sync
                           <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => {
@@ -592,16 +836,55 @@ export const Admin = () => {
                       </div>
                    </div>
                 </>
-              ) : (
+              ) : activeTab === 'hero' ? (
                 <div className="glass rounded-2xl border border-white/5 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-brand-muted font-mono">
                   Singleton setting: <span className="text-brand-accent">settings/{HOME_HERO_SETTINGS_ID}</span>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </header>
 
+        <AnimatePresence>
+          {adminNotice ? (
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              role={adminNotice.tone === 'error' ? 'alert' : 'status'}
+              aria-live={adminNotice.tone === 'error' ? 'assertive' : 'polite'}
+              className={cn(
+                "relative z-30 mb-8 rounded-2xl border px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]",
+                adminNotice.tone === 'success'
+                  ? 'border-green-500/20 bg-green-500/10 text-green-400'
+                  : 'border-red-500/20 bg-red-500/10 text-red-400',
+              )}
+            >
+              {adminNotice.message}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
         {/* Content Lists */}
+        {activeTab === 'gallery' && (
+          <div className="flex flex-wrap items-center gap-3 mb-10 relative z-20">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-muted mr-2">Filters:</span>
+            {galleryFilterTags.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveGalleryFilter(filter)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                  activeGalleryFilter === filter
+                    ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                    : "glass border border-white/10 hover:bg-white/10"
+                )}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
           {activeTab === 'hero' ? (
             <div className="lg:col-span-3">
@@ -756,10 +1039,10 @@ export const Admin = () => {
                       <button
                         type="button"
                         onClick={saveHomeHero}
-                        disabled={isSubmitting || Object.keys(uploadProgress).length > 0}
+                        disabled={isSubmitting || hasActiveUploads}
                         className={cn(
                           "px-10 py-5 font-black uppercase tracking-widest rounded-2xl transition-all text-[10px] shadow-xl",
-                          isSubmitting || Object.keys(uploadProgress).length > 0
+                          isSubmitting || hasActiveUploads
                             ? "glass text-brand-muted"
                             : "bg-brand-accent text-brand-bg"
                         )}
@@ -777,6 +1060,8 @@ export const Admin = () => {
 
                     {homeHeroNotice ? (
                       <div
+                        role={homeHeroNotice.tone === 'error' ? 'alert' : 'status'}
+                        aria-live={homeHeroNotice.tone === 'error' ? 'assertive' : 'polite'}
                         className={cn(
                           "rounded-2xl border px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em]",
                           homeHeroNotice.tone === 'success'
@@ -816,6 +1101,16 @@ export const Admin = () => {
             </div>
           ) : null}
 
+          {activeTab === 'storage' && (
+            <StorageOptimizer
+              projects={projects}
+              videos={videos}
+              labItems={labItems}
+              galleryImages={galleryImages}
+              homeHero={homeHero}
+            />
+          )}
+
           {activeTab === 'projects' && projects
             .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
             .map(p => (
@@ -826,7 +1121,22 @@ export const Admin = () => {
               <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent">{p.pillar}</span>
-                   <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                   <div className="flex items-center gap-3">
+                     <button
+                       type="button"
+                       onClick={() => toggleProjectFeatured(p)}
+                       className={cn(
+                         "p-2 rounded-full backdrop-blur-md transition-all hover:scale-110 flex items-center justify-center",
+                         p.featured 
+                           ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
+                           : "bg-black/40 text-white/40 hover:text-white"
+                       )}
+                       title={p.featured ? "Remove from Selected Works" : "Add to Selected Works"}
+                     >
+                       <Star size={14} className={p.featured ? "fill-black" : ""} />
+                     </button>
+                     <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                   </div>
                 </div>
                 <h3 className="text-4xl font-black uppercase tracking-tighter leading-none mb-3">{p.title}</h3>
                 <p className="text-[10px] text-brand-muted uppercase tracking-[0.3em] font-mono">{p.category}</p>
@@ -847,7 +1157,14 @@ export const Admin = () => {
                 >
                   <Edit3 size={14}/> Edit
                 </button>
-                <button onClick={() => deleteFromFirestore('projects', p.id)} className="w-14 h-14 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                <button
+                  type="button"
+                  onClick={() => requestDeleteFromFirestore('projects', p.id, p.title)}
+                  className="w-14 h-14 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                  aria-label={`Delete ${p.title}`}
+                >
+                  <Trash2 size={18}/>
+                </button>
               </div>
             </div>
           ))}
@@ -864,8 +1181,28 @@ export const Admin = () => {
                 <p className="text-[10px] text-brand-muted line-clamp-2 uppercase tracking-widest italic">{v.description}</p>
               </div>
               <div className="relative z-10 flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => toggleVideoFeatured(v)}
+                  className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
+                    v.featured
+                      ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                      : "glass border border-white/10 hover:bg-white hover:text-black"
+                  )}
+                  title={v.featured ? "Remove from Selected Works" : "Add to Selected Works"}
+                >
+                  <Star size={18} className={v.featured ? "fill-black" : ""} />
+                </button>
                 <button onClick={() => setEditingVideo(v)} className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all font-black uppercase text-[10px] tracking-widest shadow-xl">Edit</button>
-                <button onClick={() => deleteFromFirestore('videos', v.id)} className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                <button
+                  type="button"
+                  onClick={() => requestDeleteFromFirestore('videos', v.id, v.title)}
+                  className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"
+                  aria-label={`Delete ${v.title}`}
+                >
+                  <Trash2 size={18}/>
+                </button>
               </div>
             </div>
           ))}
@@ -881,13 +1218,25 @@ export const Admin = () => {
               </div>
               <div className="flex gap-4 pt-6">
                 <button onClick={() => setEditingLab(l)} className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all font-black uppercase text-[10px] tracking-widest shadow-xl">Edit Entry</button>
-                <button onClick={() => deleteFromFirestore('labItems', l.id)} className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                <button
+                  type="button"
+                  onClick={() => requestDeleteFromFirestore('labItems', l.id, l.title)}
+                  className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"
+                  aria-label={`Delete ${l.title}`}
+                >
+                  <Trash2 size={18}/>
+                </button>
               </div>
             </div>
           ))}
 
           {activeTab === 'gallery' && galleryImages
-            .filter(img => img.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())))
+            .filter(img => {
+              const matchesSearch = !searchQuery || img.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+              if (activeGalleryFilter === 'All') return matchesSearch;
+              if (activeGalleryFilter === 'Featured') return matchesSearch && img.featured;
+              return matchesSearch && img.tags?.includes(activeGalleryFilter);
+            })
             .map(img => (
             <div key={img.id} className="glass rounded-[2rem] border border-white/5 overflow-hidden group shadow-2xl relative aspect-square">
                 <img src={img.url} className="absolute inset-0 w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" alt="" referrerPolicy="no-referrer" />
@@ -897,20 +1246,41 @@ export const Admin = () => {
                       {img.tags?.map(t => <span key={t} className="text-[7px] font-black bg-white/10 px-2 py-0.5 rounded-full uppercase tracking-widest">#{t}</span>)}
                     </div>
                     <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleGalleryFeatured(img)}
+                        className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                          img.featured
+                            ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                            : "bg-white/10 text-white hover:bg-white hover:text-black"
+                        )}
+                        title={img.featured ? "Remove from Selected Works" : "Add to Selected Works"}
+                      >
+                        <Star size={16} className={img.featured ? "fill-black" : ""} />
+                      </button>
                       <button onClick={() => setEditingGalleryImage(img)} className="flex-1 py-3 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-brand-accent transition-colors">Edit</button>
-                      <button onClick={() => deleteFromFirestore('gallery', img.id)} className="w-10 h-10 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"><Trash2 size={16}/></button>
+                      <button
+                        type="button"
+                        onClick={() => requestDeleteFromFirestore('gallery', img.id, img.tags?.join(', ') || 'gallery image')}
+                        className="w-10 h-10 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+                        aria-label="Delete gallery image"
+                      >
+                        <Trash2 size={16}/>
+                      </button>
                     </div>
                   </div>
                 </div>
             </div>
           ))}
+
         </div>
 
         {/* Project Edit Modal */}
         <AnimatePresence>
           {editingProject && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 sm:p-12 overflow-hidden backdrop-blur-3xl">
-              <div className="w-full max-w-6xl glass rounded-[4rem] overflow-hidden flex flex-col max-h-[90vh] relative border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+              <div className="w-full max-w-6xl glass rounded-[4rem] overflow-hidden flex flex-col max-h-[90vh] relative border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]" role="dialog" aria-modal="true" aria-labelledby="project-editor-title">
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5 z-50">
                   <motion.div
                     initial={{ width: 0 }}
@@ -921,7 +1291,7 @@ export const Admin = () => {
 
                 <div className="flex justify-between items-center px-10 py-10 bg-brand-bg/60 backdrop-blur-xl border-b border-white/5">
                   <div className="flex items-center gap-12">
-                    <h2 className="text-4xl font-black tracking-tighter uppercase leading-none">{editingProject.id ? 'Edit' : 'Create'}</h2>
+                    <h2 id="project-editor-title" className="text-4xl font-black tracking-tighter uppercase leading-none">{editingProject.id ? 'Edit' : 'Create'}</h2>
                     <div className="flex gap-3">
                       {projectSteps.map((step, idx) => (
                         <button
@@ -939,7 +1309,7 @@ export const Admin = () => {
                       ))}
                     </div>
                   </div>
-                  <button onClick={closeProjectEditor} className="p-4 glass rounded-full hover:bg-red-500 hover:text-white transition-all"><X size={24} /></button>
+                  <button type="button" onClick={closeProjectEditor} className="p-4 glass rounded-full hover:bg-red-500 hover:text-white transition-all" aria-label="Close project editor"><X size={24} /></button>
                 </div>
 
                 <div className="flex-grow overflow-y-auto custom-scrollbar p-12">
@@ -1054,13 +1424,30 @@ export const Admin = () => {
                             </div>
 
                             <div className="space-y-10">
-                              <InputGroup
-                                label={currentProjectPillar === 'Art Direction' ? 'Case study summary' : 'Description'}
-                                description={currentProjectPillar === 'Art Direction' ? 'This appears in the case-study header and the work grid.' : 'A short description for the modal preview.'}
-                                value={editingProject.description || ''}
-                                onChange={v => setEditingProject({ ...editingProject, description: v })}
-                                isTextarea
-                              />
+                                <InputGroup
+                                  label={currentProjectPillar === 'Art Direction' ? 'Case study summary' : 'Description'}
+                                  description={currentProjectPillar === 'Art Direction' ? 'This appears in the case-study header and the work grid.' : 'A short description for the modal preview.'}
+                                  value={editingProject.description || ''}
+                                  onChange={v => setEditingProject({ ...editingProject, description: v })}
+                                  isTextarea
+                                />
+
+                                <div className="space-y-4 pt-4">
+                                  <div className="flex items-center justify-between p-6 rounded-3xl glass border border-white/5">
+                                    <div>
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-white">Feature on Homepage</p>
+                                      <p className="text-[10px] text-brand-muted mt-1 font-mono uppercase tracking-wider">Show this project in the Selected Works grid</p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingProject({ ...editingProject, featured: !editingProject.featured })}
+                                      className={`w-12 h-6 rounded-full transition-colors relative ${editingProject.featured ? 'bg-brand-accent' : 'bg-white/10'}`}
+                                      aria-pressed={editingProject.featured}
+                                    >
+                                      <div className={`w-4 h-4 rounded-full bg-black absolute top-1 transition-transform ${editingProject.featured ? 'left-7 bg-black' : 'left-1 bg-white/70'}`} />
+                                    </button>
+                                  </div>
+                                </div>
 
                               {currentProjectPillar === 'Art Direction' ? (
                                 <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
@@ -1486,15 +1873,15 @@ export const Admin = () => {
                   </div>
                   
                   <div className="flex gap-4">
-                    {Object.keys(uploadProgress).length > 0 && (
+                    {hasActiveUploads && (
                       <button type="button" onClick={() => setUploadProgress({})} className="px-6 py-5 border border-brand-accent/30 text-brand-accent rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-accent/10 transition-all">Clear Sync</button>
                     )}
                     <button 
                       onClick={(e) => { e.preventDefault(); saveProject(); }}
-                      disabled={isSubmitting || Object.keys(uploadProgress).length > 0} 
+                      disabled={isSubmitting || hasActiveUploads} 
                       className={cn(
                         "px-14 py-5 font-black uppercase tracking-widest rounded-2xl transition-all text-[10px] shadow-2xl disabled:opacity-50",
-                        Object.keys(uploadProgress).length > 0 ? "glass text-brand-muted" : "bg-brand-accent text-brand-bg"
+                        hasActiveUploads ? "glass text-brand-muted" : "bg-brand-accent text-brand-bg"
                       )}
                     >
                       {isSubmitting ? 'Syncing...' : 'Commit to Archive'}
@@ -1511,8 +1898,8 @@ export const Admin = () => {
         <AnimatePresence>
           {editingVideo && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-6 backdrop-blur-3xl">
-              <div className="w-full max-w-3xl glass rounded-[3rem] p-12 border border-white/10">
-                <h2 className="text-5xl font-black uppercase tracking-tighter mb-12">Video Node</h2>
+              <div className="w-full max-w-3xl glass rounded-[3rem] p-12 border border-white/10" role="dialog" aria-modal="true" aria-labelledby="video-editor-title">
+                <h2 id="video-editor-title" className="text-5xl font-black uppercase tracking-tighter mb-12">Video Node</h2>
                 <form onSubmit={(e) => { e.preventDefault(); saveToFirestore('videos', editingVideo, editingVideo.id, () => setEditingVideo(null)); }} className="space-y-8">
                   <div className="space-y-4">
                     <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-4 block font-black text-center">Target Discipline</label>
@@ -1529,7 +1916,7 @@ export const Admin = () => {
                   <InputGroup label="Stream URL (.mp4)" value={editingVideo.url || ''} onChange={v => setEditingVideo({...editingVideo, url: v})} />
                   <InputGroup label="Concept Description" value={editingVideo.description || ''} onChange={v => setEditingVideo({...editingVideo, description: v})} isTextarea />
                   <div className="flex gap-4 pt-10 border-t border-white/5">
-                    <button type="submit" disabled={isSubmitting} className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl">Commit Node</button>
+                    <button type="submit" disabled={isSubmitting || hasActiveUploads} className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl disabled:opacity-40">Commit Node</button>
                     <button type="button" onClick={() => setEditingVideo(null)} className="px-10 py-5 glass rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancel</button>
                   </div>
                 </form>
@@ -1542,8 +1929,8 @@ export const Admin = () => {
         <AnimatePresence>
            {editingLab && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-6 backdrop-blur-3xl">
-                 <div className="w-full max-w-4xl glass rounded-[3rem] p-12 border border-white/10 flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <h2 className="text-5xl font-black uppercase tracking-tighter mb-12">Lab Entry</h2>
+                 <div className="w-full max-w-4xl glass rounded-[3rem] p-12 border border-white/10 flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar" role="dialog" aria-modal="true" aria-labelledby="lab-editor-title">
+                    <h2 id="lab-editor-title" className="text-5xl font-black uppercase tracking-tighter mb-12">Lab Entry</h2>
                     <form onSubmit={(e) => { e.preventDefault(); saveToFirestore('labItems', editingLab, editingLab.id, () => setEditingLab(null)); }} className="space-y-10">
                        <InputGroup label="Experiment Title" value={editingLab.title || ''} onChange={v => setEditingLab({...editingLab, title: v})} />
                        <div className="grid md:grid-cols-2 gap-8">
@@ -1563,7 +1950,7 @@ export const Admin = () => {
                        </div>
                        <ListManager label="Tool Integration" items={editingLab.tools || []} onAdd={v => setEditingLab({...editingLab, tools: [...(editingLab.tools || []), v]})} onRemove={i => setEditingLab({...editingLab, tools: editingLab.tools?.filter((_, idx) => idx !== i)})} />
                        <div className="flex gap-4 pt-10 border-t border-white/5">
-                          <button type="submit" disabled={isSubmitting} className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl">Archive Entry</button>
+                          <button type="submit" disabled={isSubmitting || hasActiveUploads} className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl disabled:opacity-40">Archive Entry</button>
                           <button type="button" onClick={() => setEditingLab(null)} className="px-10 py-5 glass rounded-2xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
                        </div>
                     </form>
@@ -1576,8 +1963,8 @@ export const Admin = () => {
         <AnimatePresence>
            {editingGalleryImage && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-6 backdrop-blur-3xl">
-                 <div className="w-full max-w-2xl glass rounded-[3rem] p-12 border border-white/10">
-                    <h2 className="text-5xl font-black uppercase tracking-tighter mb-10">Gallery Asset</h2>
+                 <div className="w-full max-w-2xl glass rounded-[3rem] p-12 border border-white/10" role="dialog" aria-modal="true" aria-labelledby="gallery-editor-title">
+                    <h2 id="gallery-editor-title" className="text-5xl font-black uppercase tracking-tighter mb-10">Gallery Asset</h2>
                     <form onSubmit={(e) => { e.preventDefault(); saveToFirestore('gallery', editingGalleryImage, editingGalleryImage.id, () => setEditingGalleryImage(null)); }} className="space-y-8">
                        <div className="space-y-4">
                           <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black text-center">Pillar Allocation</label>
@@ -1594,7 +1981,7 @@ export const Admin = () => {
                        </div>
                        <ListManager label="Taxonomy Tags" items={editingGalleryImage.tags || []} onAdd={v => setEditingGalleryImage({...editingGalleryImage, tags: [...(editingGalleryImage.tags || []), v]})} onRemove={i => setEditingGalleryImage({...editingGalleryImage, tags: editingGalleryImage.tags?.filter((_, idx) => idx !== i)})} />
                        <div className="flex gap-4 pt-10 border-t border-white/5">
-                          <button type="submit" className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl">Sync Asset</button>
+                          <button type="submit" disabled={isSubmitting || hasActiveUploads} className="flex-grow py-5 bg-brand-accent text-brand-bg font-black uppercase tracking-widest rounded-2xl shadow-xl disabled:opacity-40">Sync Asset</button>
                           <button type="button" onClick={() => setEditingGalleryImage(null)} className="px-10 py-5 glass rounded-2xl text-[10px] font-black uppercase tracking-widest">Discard</button>
                        </div>
                     </form>
@@ -1607,10 +1994,10 @@ export const Admin = () => {
         <AnimatePresence>
           {bulkGalleryQueue.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/99 flex items-center justify-center p-4 md:p-12 backdrop-blur-3xl overflow-hidden">
-               <div className="w-full max-w-7xl h-full flex flex-col bg-brand-bg border border-white/10 rounded-[4rem] shadow-3xl overflow-hidden">
+               <div className="w-full max-w-7xl h-full flex flex-col bg-brand-bg border border-white/10 rounded-[4rem] shadow-3xl overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="batch-sync-title">
                   <header className="p-12 bg-white/[0.02] border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 shrink-0">
                      <div>
-                        <h2 className="text-5xl font-black uppercase tracking-tighter flex items-center gap-6">Batch Sync <span className="text-brand-accent text-2xl font-mono px-4 py-1 bg-brand-accent/10 border border-brand-accent/20 rounded-full">{bulkGalleryQueue.length} items</span></h2>
+                        <h2 id="batch-sync-title" className="text-5xl font-black uppercase tracking-tighter flex items-center gap-6">Batch Sync <span className="text-brand-accent text-2xl font-mono px-4 py-1 bg-brand-accent/10 border border-brand-accent/20 rounded-full">{bulkGalleryQueue.length} items</span></h2>
                         <p className="text-[10px] uppercase tracking-widest text-brand-muted mt-4 font-mono italic">Initiating multi-asset deployment to the global production archive</p>
                      </div>
                      <div className="flex gap-6 w-full md:w-auto">
@@ -1639,7 +2026,7 @@ export const Admin = () => {
                         >
                           {isSubmitting ? 'Syncing Queue...' : 'Initiate Batch Deploy'}
                         </button>
-                        <button onClick={() => { bulkGalleryQueue.forEach(it => { if(it.previewUrl) URL.revokeObjectURL(it.previewUrl); }); setBulkGalleryQueue([]); setBulkTags([]); }} className="p-5 glass rounded-2xl hover:text-red-500 transition-colors"><X size={24} /></button>
+                        <button type="button" onClick={() => { bulkGalleryQueue.forEach(it => { if(it.previewUrl) URL.revokeObjectURL(it.previewUrl); }); setBulkGalleryQueue([]); setBulkTags([]); }} className="p-5 glass rounded-2xl hover:text-red-500 transition-colors" aria-label="Close batch sync"><X size={24} /></button>
                      </div>
                   </header>
 
@@ -1674,13 +2061,64 @@ export const Admin = () => {
                               </div>
                               <ListManager label="Semantic Detail" items={item.tags} onAdd={t => { const nq = [...bulkGalleryQueue]; nq[idx].tags.push(t); setBulkGalleryQueue(nq); }} onRemove={ti => { const nq = [...bulkGalleryQueue]; nq[idx].tags.splice(ti, 1); setBulkGalleryQueue(nq); }} />
                            </div>
-                           {item.status === 'Ready' && <button onClick={() => setBulkGalleryQueue(bulkGalleryQueue.filter((_, bi) => bi !== idx))} className="absolute top-4 right-4 text-white/10 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>}
+                           {item.status === 'Ready' && <button type="button" onClick={() => setBulkGalleryQueue(bulkGalleryQueue.filter((_, bi) => bi !== idx))} className="absolute top-4 right-4 text-white/10 hover:text-red-500 transition-colors" aria-label={`Remove ${item.file.name} from batch`}><Trash2 size={18} /></button>}
                         </div>
                      ))}
                   </div>
                </div>
             </motion.div>
           )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {deleteTarget ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[240] flex items-center justify-center bg-black/90 p-6 backdrop-blur-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-confirm-title"
+              onClick={() => setDeleteTarget(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                className="w-full max-w-lg rounded-[3rem] border border-red-500/20 bg-brand-bg p-10 shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-400">
+                  <AlertTriangle size={28} />
+                </div>
+                <h2 id="delete-confirm-title" className="mb-4 text-4xl font-black uppercase tracking-tighter">
+                  Delete forever?
+                </h2>
+                <p className="text-sm leading-relaxed text-white/65">
+                  This will permanently delete the {COLLECTION_LABELS[deleteTarget.collectionName] || 'item'}{' '}
+                  <span className="text-white">“{deleteTarget.label}”</span> from Firestore. This cannot be undone.
+                </p>
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={confirmDeleteFromFirestore}
+                    disabled={isSubmitting}
+                    className="flex-1 rounded-2xl bg-red-500 px-6 py-5 text-[10px] font-black uppercase tracking-[0.22em] text-white transition-colors hover:bg-red-400 disabled:opacity-40"
+                  >
+                    {isSubmitting ? 'Deleting...' : 'Yes, Delete'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(null)}
+                    className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-[10px] font-black uppercase tracking-[0.22em] text-white/70 transition-colors hover:bg-white hover:text-black"
+                  >
+                    Keep It
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : null}
         </AnimatePresence>
       </div>
     </PageTransition>

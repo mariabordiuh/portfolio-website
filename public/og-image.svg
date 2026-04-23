@@ -12,7 +12,7 @@
   <text
     x="600"
     y="290"
-    font-family="'Space Grotesk', 'DM Sans', 'Inter', sans-serif"
+    font-family="'Space Mono', ui-monospace, monospace"
     font-size="96"
     font-weight="800"
     letter-spacing="-2"
@@ -28,7 +28,7 @@
   <text
     x="600"
     y="362"
-    font-family="'Space Grotesk', 'DM Sans', 'Inter', sans-serif"
+    font-family="'Plus Jakarta Sans', ui-sans-serif, sans-serif"
     font-size="32"
     font-weight="400"
     letter-spacing="1"

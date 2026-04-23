@@ -41,6 +41,7 @@ export interface Project {
   contentType?: ProjectContentType;
   aiSubtype?: AIGeneratedSubtype;
   motionType?: MotionMediaType;
+  featured?: boolean;
   subCategory?: string;
   category: string;
   categories?: string[];
@@ -94,6 +95,7 @@ export interface Video {
   pillar: LegacyProjectPillar;
   thumbnail: string;
   description: string;
+  featured?: boolean;
 }
 
 export interface LabItem {
@@ -115,6 +117,7 @@ export interface GalleryImage {
   tags: string[];
   software?: string;
   info?: string;
+  featured?: boolean;
   createdAt?: any;
 }
 

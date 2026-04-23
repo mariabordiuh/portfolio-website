@@ -23,6 +23,7 @@ const CardMedia = ({ item }: { item: PortfolioItem }) => {
         muted
         loop
         playsInline
+        preload="metadata"
         className="w-full h-full object-cover opacity-85 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
       />
     );

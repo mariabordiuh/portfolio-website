@@ -147,7 +147,7 @@ export const About = () => {
                   View work
                 </Link>
                 <a
-                  href="https://linkedin.com/in/mariabordiuh"
+                  href="https://www.linkedin.com/in/mariia-bordiuh/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 rounded-full border border-white/12 px-7 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-muted transition-all hover:border-brand-accent hover:text-brand-accent"
@@ -333,7 +333,7 @@ export const About = () => {
                 mariabordiuh@gmail.com
               </a>
               <a
-                href="https://linkedin.com/in/mariabordiuh"
+                href="https://www.linkedin.com/in/mariia-bordiuh/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 rounded-full border border-white/12 px-7 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-all hover:bg-white hover:text-black"

@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -29,9 +29,16 @@ export const PortfolioPreviewModal = ({
 }) => {
   const titleId = useId();
   const descriptionId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const isAIItem = item.contentType === 'ai-image' || item.contentType === 'ai-video';
 
   useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -39,7 +46,11 @@ export const PortfolioPreviewModal = ({
     };
 
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
   }, [onClose]);
 
   const galleryImages = item.images.length ? item.images : item.thumbnail ? [item.thumbnail] : [];
@@ -68,6 +79,7 @@ export const PortfolioPreviewModal = ({
             src={mediaUrl}
             controls
             playsInline
+            preload="metadata"
             poster={item.thumbnail || undefined}
             className="h-full w-full object-contain"
           />
@@ -134,8 +146,9 @@ export const PortfolioPreviewModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[120] bg-black/90 p-4 backdrop-blur-2xl md:p-8"
+      className="fixed inset-0 z-[120] overflow-hidden bg-black/90 p-4 backdrop-blur-2xl md:p-8"
       onClick={onClose}
+      role="presentation"
     >
       <motion.div
         initial={{ opacity: 0, y: 32, scale: 0.98 }}
@@ -186,6 +199,7 @@ export const PortfolioPreviewModal = ({
             </div>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/20 hover:text-white"
@@ -195,7 +209,7 @@ export const PortfolioPreviewModal = ({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8 md:py-8">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6 md:px-8 md:py-8">
           <div className="space-y-8">
             {renderMedia()}
 

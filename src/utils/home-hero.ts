@@ -1,20 +1,22 @@
 import { HomeHeroSettings } from '../types';
 
-export const DEFAULT_HOME_HERO_IMAGE = '/media/home-hero-coffee.jpg';
+export const DEFAULT_HOME_HERO_VIDEO = '/media/hero-luminous-cat-mirrored.mp4';
+export const DEFAULT_HOME_HERO_POSTER = '/media/hero-luminous-cat-poster.jpg';
+export const DEFAULT_HOME_HERO_IMAGE = DEFAULT_HOME_HERO_POSTER;
 export const HOME_HERO_SETTINGS_ID = 'homeHero';
 
 const trim = (value?: string) => value?.trim() || '';
 
 export const DEFAULT_HOME_HERO_SETTINGS: HomeHeroSettings = {
   id: HOME_HERO_SETTINGS_ID,
-  mode: 'image',
+  mode: 'video',
   flipHorizontal: false,
   flipPosterHorizontal: false,
-  desktopImage: DEFAULT_HOME_HERO_IMAGE,
+  desktopImage: DEFAULT_HOME_HERO_POSTER,
   mobileImage: '',
-  desktopVideo: '',
+  desktopVideo: DEFAULT_HOME_HERO_VIDEO,
   mobileVideo: '',
-  posterImage: DEFAULT_HOME_HERO_IMAGE,
+  posterImage: DEFAULT_HOME_HERO_POSTER,
 };
 
 export const normalizeHomeHeroSettings = (

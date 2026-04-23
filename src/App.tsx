@@ -1,12 +1,15 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
 import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CircleCursor } from './components/CircleCursor';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
+import { ScrollToTop } from './components/ScrollToTop';
+import { Seo } from './components/Seo';
+import { UnderConstruction } from './pages/UnderConstruction';
 
 const Home = lazy(() => import('./pages/Home').then((module) => ({ default: module.Home })));
 const Work = lazy(() => import('./pages/Work').then((module) => ({ default: module.Work })));
@@ -34,19 +37,26 @@ const AdminDataShell = lazy(() =>
 );
 
 const LoadingFallback = () => (
-  <div className="fixed inset-0 bg-brand-bg flex items-center justify-center z-50">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-2 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin" />
-      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted animate-pulse">
-        brewing...
-      </p>
-    </div>
-  </div>
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}
+    className="fixed inset-0 bg-brand-bg flex items-center justify-center z-[200]"
+  >
+    <motion.div 
+      animate={{ opacity: [0.1, 0.8, 0.1], scale: [0.8, 1, 0.8] }} 
+      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      className="w-1.5 h-1.5 rounded-full bg-white/40" 
+    />
+  </motion.div>
 );
 
 const SuspenseRoute = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
 );
+
+const isUnderConstruction = import.meta.env.VITE_UNDER_CONSTRUCTION === 'true';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -79,16 +89,32 @@ const AnimatedRoutes = () => {
 };
 
 export default function App() {
+  if (isUnderConstruction) {
+    return (
+      <ErrorBoundary>
+        <UnderConstruction />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <Router>
+        <Seo />
         <SmoothScrollProvider>
           <CircleCursor />
           <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[200] focus:rounded-full focus:bg-brand-accent focus:px-5 focus:py-3 focus:text-[10px] focus:font-black focus:uppercase focus:tracking-[0.24em] focus:text-brand-bg"
+            >
+              Skip to content
+            </a>
             <Nav />
-            <main className="flex-grow relative z-10">
+            <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
               <AnimatedRoutes />
             </main>
+            <ScrollToTop />
             <Footer />
           </div>
         </SmoothScrollProvider>

@@ -1,6 +1,8 @@
-import { motion } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
+import { useData } from '../context/DataContext';
 
 export const CatHero = () => {
+  const { homeHero } = useData();
   const headline = "Visuals, motion & systems.";
   const words = headline.split(" ");
 
@@ -13,7 +15,7 @@ export const CatHero = () => {
     },
   };
 
-  const wordVariants = {
+  const wordVariants: Variants = {
     hidden: { y: 40, opacity: 0 },
     visible: {
       y: 0,
@@ -23,22 +25,52 @@ export const CatHero = () => {
   };
 
   return (
-    <section className="min-h-[100svh] w-full bg-[#0a0a0a] flex items-center justify-center p-6 md:p-12 overflow-hidden">
-      <div className="max-w-[1380px] w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
+    <section className="relative min-h-[100svh] w-full bg-[#0a0a0a] overflow-hidden">
+      
+      {/* Background Full-Screen Dynamic Media */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {homeHero.mode === 'video' && (homeHero.desktopVideo || homeHero.mobileVideo) ? (
+          <motion.video
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            src={homeHero.desktopVideo || homeHero.mobileVideo}
+            className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <motion.img
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            src={homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage}
+            alt="Hero Media"
+            className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+          />
+        )}
         
-        {/* Left Column: Text */}
-        <div className="flex flex-col justify-center max-w-2xl">
+        {/* Gradients optimized to shadow only the text area (Bottom + Left) leaving the rest completely exposed */}
+        <div className="absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-y-0 left-0 w-[90%] md:w-[60%] bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+      </div>
+
+      {/* Foreground Typography */}
+      <div className="relative z-10 w-full min-h-[100svh] flex items-end px-6 pb-20 pt-32 md:px-12 md:pb-32 max-w-[1380px] mx-auto">
+        <div className="flex flex-col justify-end max-w-3xl">
           <motion.h1
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="text-white font-sans font-bold text-6xl md:text-7xl leading-[1.1] mb-8 flex flex-wrap gap-x-4 gap-y-2"
+            className="text-white font-mono font-bold tracking-tight text-5xl md:text-7xl leading-[1.1] mb-8 flex flex-wrap gap-x-4 gap-y-2"
           >
             {words.map((word, i) => (
               <motion.span
                 key={i}
                 variants={wordVariants}
-                className={word === "&" ? "text-[#ff9ebb]" : ""}
+                className={word === "&" ? "text-brand-accent tracking-normal" : ""}
               >
                 {word}
               </motion.span>
@@ -49,25 +81,12 @@ export const CatHero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2, delay: 0.9, ease: "easeOut" }}
-            className="text-white/80 font-['DM_Sans'] font-light text-lg md:text-xl leading-relaxed max-w-[34rem]"
+            className="text-white/80 font-sans font-light text-[clamp(1rem,0.65rem+0.9vw,1.3rem)] leading-relaxed max-w-[34rem]"
           >
             i’m an art director blending an advertising background with a love for ai,
             motion, and visual craft. currently based in hamburg, vibecoding and
             building creative systems.
           </motion.p>
-        </div>
-
-        {/* Right Column: 3D Image */}
-        <div className="flex justify-center items-center relative">
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#ff9ebb]/20 to-transparent blur-3xl rounded-full" />
-          <motion.img
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, type: "spring", stiffness: 60 }}
-            src="/media/cat.png"
-            alt="3D Fluffy Cat"
-            className="w-full max-w-[500px] object-contain rounded-3xl shadow-2xl relative z-10"
-          />
         </div>
       </div>
     </section>

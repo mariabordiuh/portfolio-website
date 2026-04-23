@@ -8,6 +8,7 @@ import { LabAdmin } from './admin/lab-admin';
 import { ProjectsAdmin } from './admin/projects-admin';
 import { VideosAdmin } from './admin/videos-admin';
 import { AdminWelcomeCard, CenteredCard, NoticeBanner } from './admin/admin-ui';
+
 import { toReadableGoogleSignInError } from './utils/auth-errors';
 import { cn } from '@/src/lib/utils';
 
@@ -142,6 +143,7 @@ export default function AdminShell() {
       {tab === 'videos' ? <VideosAdmin /> : null}
       {tab === 'labItems' ? <LabAdmin /> : null}
       {tab === 'gallery' ? <GalleryAdmin /> : null}
+
     </section>
   );
 }

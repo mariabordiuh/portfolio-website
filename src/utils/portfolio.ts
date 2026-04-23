@@ -34,10 +34,12 @@ export type PortfolioItem = {
   embedUrl?: string;
   tools: string[];
   categories: string[];
+  subCategory?: string;
   year?: string;
   client?: string;
   role?: string;
   credits?: string[];
+  featured?: boolean;
 };
 
 const trim = (value?: string | null) => value?.trim() ?? '';
@@ -308,10 +310,12 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     embedUrl: normalized.embedUrl,
     tools: normalized.tools,
     categories: normalized.categories ?? [],
+    subCategory: normalized.subCategory,
     year: normalized.year,
     client: normalized.client,
     role: normalized.role,
     credits: isAIItem ? [] : normalized.credits,
+    featured: project.featured,
   };
 };
 
@@ -341,6 +345,8 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     embedUrl,
     tools: [],
     categories: [],
+    subCategory: undefined,
+    featured: video.featured,
   };
 };
 
@@ -368,6 +374,8 @@ export const galleryToPortfolioItem = (image: GalleryImage): PortfolioItem => {
     embedUrl: '',
     tools: uniqueStrings(image.software ? [image.software] : []),
     categories: uniqueStrings(image.tags),
+    subCategory: undefined,
+    featured: image.featured,
   };
 };
 

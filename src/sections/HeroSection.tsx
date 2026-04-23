@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useData } from '../context/DataContext';
 import { RevealText } from '../components/RevealText';
@@ -16,6 +16,10 @@ export const HeroSection = () => {
   const mobileVideoSrc = homeHero.mobileVideo || homeHero.desktopVideo || '';
   const shouldRenderVideo = homeHero.mode === 'video' && Boolean(desktopVideoSrc || mobileVideoSrc);
 
+  useEffect(() => {
+    setIsVideoPlaying(false);
+  }, [desktopVideoSrc, homeHero.mode, mobileVideoSrc, posterImageSrc]);
+
   return (
     <section className="relative min-h-[100svh] overflow-hidden">
       <div className="pointer-events-none absolute inset-0 z-0 bg-brand-bg">
@@ -25,6 +29,9 @@ export const HeroSection = () => {
               <img
                 src={posterImageSrc}
                 alt=""
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className={`absolute inset-0 z-10 h-full w-full object-cover object-[70%_50%] md:object-center transition-opacity duration-[1500ms] ${
                   isVideoPlaying ? 'opacity-0' : 'opacity-100'
                 } ${homeHero.flipPosterHorizontal ? '-scale-x-100' : ''}`}
@@ -64,6 +71,9 @@ export const HeroSection = () => {
             <img
               src={desktopImageSrc}
               alt=""
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className={`h-full w-full object-cover object-[70%_50%] md:object-center ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               aria-hidden="true"
             />
@@ -89,7 +99,7 @@ export const HeroSection = () => {
           >
             <h1
               className="mb-4 pb-[0.1em] text-left font-black leading-[0.84] tracking-[-0.03em] text-white"
-              style={{ fontSize: 'clamp(3.2rem, 8vw, 7.2rem)' }}
+              style={{ fontSize: 'clamp(2.5rem, 6.5vw, 6.2rem)' }}
             >
               <RevealText>Art direction,</RevealText>
               <RevealText>motion, and</RevealText>
@@ -101,7 +111,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[34rem] text-left text-[clamp(1rem,0.65rem+0.9vw,1.3rem)] font-medium leading-relaxed text-white/72"
+            className="max-w-[34rem] text-left text-[clamp(0.9rem,0.5rem+0.8vw,1.1rem)] font-medium leading-relaxed text-white/72"
           >
             Maria Bordiuh. Hamburg-based Art Director and AI Creative Director, working across CGI,
             generative image, motion, and brand systems.
