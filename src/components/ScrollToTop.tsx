@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useLenis } from 'lenis/react';
 
 const SCROLL_THRESHOLD = 600;
 
 export const ScrollToTop = () => {
   const [visible, setVisible] = useState(false);
+  const location = useLocation();
+  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,7 +22,24 @@ export const ScrollToTop = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (location.hash) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      lenis?.scrollTo(0, { immediate: true, force: true });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      setVisible(false);
+    });
+  }, [lenis, location.hash, location.pathname]);
+
   const scrollUp = () => {
+    if (lenis) {
+      lenis.scrollTo(0);
+      return;
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

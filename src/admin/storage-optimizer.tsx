@@ -53,6 +53,8 @@ type ImageEntry = {
 const WARN_THRESHOLD = 500 * 1024;  // 500 KB
 const DANGER_THRESHOLD = 1024 * 1024; // 1 MB
 const WEBP_QUALITY = 0.82;
+const MAX_OPTIMIZED_DIMENSION = 1800;
+const UNSAFE_MEDIA_EXTENSION_PATTERN = /\.(gif|mp4|webm|mov|m4v|ogg)(\?|#|$)/i;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -73,6 +75,8 @@ const sizeTone = (bytes: number): 'green' | 'amber' | 'red' => {
 /** Check if a URL points to Firebase Storage. */
 const isFirebaseStorageUrl = (url: string) =>
   url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com');
+
+const isUnsafeMediaUrl = (url: string) => UNSAFE_MEDIA_EXTENSION_PATTERN.test(url);
 
 /**
  * Extract the storage object path from a Firebase Storage download URL.
@@ -115,7 +119,7 @@ const extractAllImageUrls = (data: CollectionData): Map<string, ImageReference[]
   const map = new Map<string, ImageReference[]>();
 
   const add = (url: string | undefined | null, collection: string, docId: string, field: string) => {
-    if (!url || !url.trim() || !isFirebaseStorageUrl(url)) return;
+    if (!url || !url.trim() || !isFirebaseStorageUrl(url) || isUnsafeMediaUrl(url)) return;
     const refs = map.get(url) ?? [];
     refs.push({ collection, docId, field });
     map.set(url, refs);
@@ -129,8 +133,6 @@ const extractAllImageUrls = (data: CollectionData): Map<string, ImageReference[]
   for (const p of data.projects) {
     add(p.thumbnail, 'projects', p.id, 'thumbnail');
     add(p.heroImage, 'projects', p.id, 'heroImage');
-    add(p.mediaUrl, 'projects', p.id, 'mediaUrl');
-    add(p.videoUrl, 'projects', p.id, 'videoUrl');
     addList(p.images, 'projects', p.id, 'images');
     addList(p.moodboardImages, 'projects', p.id, 'moodboardImages');
     addList(p.sketchImages, 'projects', p.id, 'sketchImages');
@@ -170,15 +172,54 @@ const extractAllImageUrls = (data: CollectionData): Map<string, ImageReference[]
 // Image optimization via Canvas
 // ---------------------------------------------------------------------------
 
+const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
+  new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) {
+          resolve(result);
+          return;
+        }
+
+        reject(new Error('Canvas export failed.'));
+      },
+      type,
+      quality,
+    );
+  });
+
 const optimizeImage = async (blob: Blob): Promise<Blob> => {
   const bitmap = await createImageBitmap(blob);
-  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(bitmap, 0, 0);
+  const scale = Math.min(1, MAX_OPTIMIZED_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  if ('OffscreenCanvas' in window) {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      bitmap.close();
+      throw new Error('Canvas is not available in this browser.');
+    }
+
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    return canvas.convertToBlob({ type: 'image/webp', quality: WEBP_QUALITY });
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    bitmap.close();
+    throw new Error('Canvas is not available in this browser.');
+  }
+
+  ctx.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
-  const webpBlob = await canvas.convertToBlob({ type: 'image/webp', quality: WEBP_QUALITY });
-  return webpBlob;
+  return canvasToBlob(canvas, 'image/webp', WEBP_QUALITY);
 };
 
 // ---------------------------------------------------------------------------

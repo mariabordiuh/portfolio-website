@@ -42,11 +42,14 @@ export interface Project {
   aiSubtype?: AIGeneratedSubtype;
   motionType?: MotionMediaType;
   featured?: boolean;
+  workPriorityRank?: number;
   subCategory?: string;
   category: string;
   categories?: string[];
   description: string;
   thumbnail: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
   heroImage?: string;
   images: string[];
   mediaUrl?: string;
@@ -94,8 +97,11 @@ export interface Video {
   url: string;
   pillar: LegacyProjectPillar;
   thumbnail: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
   description: string;
   featured?: boolean;
+  workPriorityRank?: number;
 }
 
 export interface LabItem {
@@ -113,11 +119,14 @@ export interface GalleryImage {
   id: string;
   url: string;
   image?: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
   pillar?: LegacyProjectPillar;
   tags: string[];
   software?: string;
   info?: string;
   featured?: boolean;
+  workPriorityRank?: number;
   createdAt?: any;
 }
 

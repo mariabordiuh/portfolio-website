@@ -82,16 +82,20 @@ export const Nav = () => {
   }, [isOpen]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
-    clickCountRef.current += 1;
+    const isAdminEasterEggClick = clickCountRef.current + 1 >= 5;
 
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    resetTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 3000);
+    clickCountRef.current += 1;
+    resetTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 3000);
 
-    if (clickCountRef.current >= 5) {
+    if (isAdminEasterEggClick) {
       e.preventDefault();
+      e.stopPropagation();
       clickCountRef.current = 0;
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-      navigate('/admin');
+      navigate('/admin', { replace: false });
     }
   };
 

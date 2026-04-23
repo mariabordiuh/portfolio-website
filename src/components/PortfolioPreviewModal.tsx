@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -30,6 +31,7 @@ export const PortfolioPreviewModal = ({
   const titleId = useId();
   const descriptionId = useId();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const isAIItem = item.contentType === 'ai-image' || item.contentType === 'ai-video';
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export const PortfolioPreviewModal = ({
 
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
+    scrollAreaRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -141,7 +144,7 @@ export const PortfolioPreviewModal = ({
     );
   };
 
-  return (
+  const modal = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -209,7 +212,7 @@ export const PortfolioPreviewModal = ({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6 md:px-8 md:py-8">
+        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto overscroll-contain px-6 py-6 md:px-8 md:py-8">
           <div className="space-y-8">
             {renderMedia()}
 
@@ -257,4 +260,6 @@ export const PortfolioPreviewModal = ({
       </motion.div>
     </motion.div>
   );
+
+  return createPortal(modal, document.body);
 };

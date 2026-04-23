@@ -36,9 +36,13 @@ export const toReadableGoogleSignInError = (error: unknown) => {
   const host = getCurrentHost();
   const origin = getCurrentOrigin();
   const hostHint = buildAuthorizedDomainHint(host);
+  const debugDetails = [
+    authError.code ? `Code: ${authError.code}.` : '',
+    authError.message ? `Raw message: ${authError.message}` : '',
+  ].filter(Boolean).join(' ');
 
   if (authError.code === 'auth/unauthorized-domain' || authError.code === 'auth/app-not-authorized') {
-    return `This app host is not authorized for Firebase Auth.${hostHint}`;
+    return `This app host is not authorized for Firebase Auth.${hostHint}${debugDetails ? ` ${debugDetails}` : ''}`;
   }
 
   if (authError.code === 'auth/operation-not-allowed') {
@@ -62,7 +66,7 @@ export const toReadableGoogleSignInError = (error: unknown) => {
     authError.code === 'auth/network-request-failed' ||
     authError.message?.includes('The requested action is invalid')
   ) {
-    return `Firebase’s auth helper rejected the sign-in request. The most common cause is an unauthorized app domain.${hostHint}${origin ? ` Current origin: ${origin}.` : ''}`;
+    return `Firebase’s auth helper rejected the sign-in request. The most common cause is an unauthorized app domain or blocked popup context.${hostHint}${origin ? ` Current origin: ${origin}.` : ''}${debugDetails ? ` ${debugDetails}` : ''}`;
   }
 
   if (authError.message) {

@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState, useMemo } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Filter } from 'lucide-react';
@@ -13,6 +13,7 @@ import {
   type PortfolioItem,
   WORK_PILLARS,
   galleryToPortfolioItem,
+  getPortfolioImageSrc,
   toPortfolioItem,
   videoToPortfolioItem,
 } from '../utils/portfolio';
@@ -31,6 +32,10 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
   'Art Direction': null,
 };
 
+const INITIAL_VISIBLE_ITEMS = 4;
+const VISIBLE_ITEMS_INCREMENT = 12;
+const PRELOAD_BATCH_SIZE = 12;
+
 const hashString = (value: string) => {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -47,6 +52,18 @@ const shufflePortfolioItems = (items: PortfolioItem[], seed: string) =>
     return leftValue - rightValue;
   });
 
+const sortPriorityItems = (items: PortfolioItem[]) =>
+  [...items].sort((left, right) => {
+    const leftRank = left.workPriorityRank ?? Number.POSITIVE_INFINITY;
+    const rightRank = right.workPriorityRank ?? Number.POSITIVE_INFINITY;
+
+    if (leftRank !== rightRank) {
+      return leftRank - rightRank;
+    }
+
+    return 0;
+  });
+
 export const Work = () => {
   const { projects, videos, galleryImages, loading } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,7 +71,9 @@ export const Work = () => {
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [activePreview, setActivePreview] = useState<PortfolioItem | null>(null);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_ITEMS);
   const [sessionSeed] = useState(() => Math.random().toString(36).slice(2));
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const pillarParam = searchParams.get('pillar');
@@ -109,7 +128,12 @@ export const Work = () => {
       return true;
     });
 
-    const shuffled = shufflePortfolioItems(rawItems, `work-${sessionSeed}`);
+    const priorityItems = sortPriorityItems(rawItems.filter((item) => item.workPriorityRank));
+    const priorityIds = new Set(priorityItems.map((item) => item.id));
+    const shuffled = [
+      ...priorityItems,
+      ...shufflePortfolioItems(rawItems.filter((item) => !priorityIds.has(item.id)), `work-${sessionSeed}`),
+    ];
 
     // If arriving from homepage Selected Works, pin the highlighted item to position 0
     if (highlightId) {
@@ -122,6 +146,94 @@ export const Work = () => {
 
     return shuffled;
   }, [workItems, activePillar, activeSubcategory, activeTool, sessionSeed, highlightId]);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE_ITEMS);
+  }, [activePillar, activeSubcategory, activeTool, filteredItems.length, highlightId]);
+
+  const visibleItems = useMemo(
+    () => filteredItems.slice(0, visibleCount),
+    [filteredItems, visibleCount],
+  );
+
+  const hasMoreItems = visibleCount < filteredItems.length;
+
+  useEffect(() => {
+    const preloadLinks: HTMLLinkElement[] = [];
+
+    for (const item of filteredItems.slice(0, Math.max(visibleCount, 4))) {
+      const imageSrc = getPortfolioImageSrc(item);
+      if (!imageSrc) {
+        continue;
+      }
+
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = imageSrc;
+      link.fetchPriority = 'high';
+      document.head.appendChild(link);
+      preloadLinks.push(link);
+    }
+
+    return () => {
+      preloadLinks.forEach((link) => link.remove());
+    };
+  }, [filteredItems, visibleCount]);
+
+  useEffect(() => {
+    const nextBatch = filteredItems.slice(visibleCount, visibleCount + PRELOAD_BATCH_SIZE);
+    const preloadLinks: HTMLLinkElement[] = [];
+
+    const preloadNextBatch = () => {
+      for (const item of nextBatch) {
+        const imageSrc = getPortfolioImageSrc(item);
+        if (!imageSrc) {
+          continue;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.as = 'image';
+        link.href = imageSrc;
+        document.head.appendChild(link);
+        preloadLinks.push(link);
+      }
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(preloadNextBatch, { timeout: 1200 });
+      return () => {
+        window.cancelIdleCallback(idleId);
+        preloadLinks.forEach((link) => link.remove());
+      };
+    }
+
+    const timeoutId = setTimeout(preloadNextBatch, 250);
+    return () => {
+      clearTimeout(timeoutId);
+      preloadLinks.forEach((link) => link.remove());
+    };
+  }, [filteredItems, visibleCount]);
+
+  useEffect(() => {
+    if (!hasMoreItems || !loadMoreRef.current) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((current) => Math.min(current + VISIBLE_ITEMS_INCREMENT, filteredItems.length));
+        }
+      },
+      { rootMargin: '900px 0px' },
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [filteredItems.length, hasMoreItems, visibleCount]);
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);
@@ -275,7 +387,27 @@ export const Work = () => {
           </div>
         ) : (
           <div className="mt-8 transition-opacity duration-500 will-change-transform">
-            <MasonryPortfolioGrid items={filteredItems} onPreview={setActivePreview} />
+            <MasonryPortfolioGrid items={visibleItems} onPreview={setActivePreview} />
+
+            {hasMoreItems ? (
+              <div ref={loadMoreRef} className="mt-14 flex flex-col items-center gap-5" aria-live="polite">
+                <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.035]"
+                      style={{ aspectRatio: index === 1 ? '1 / 1' : '4 / 5' }}
+                    >
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,158,187,0.14),transparent_34%),radial-gradient(circle_at_72%_72%,rgba(185,122,37,0.12),transparent_30%)]" />
+                      <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/16 to-transparent animate-[shimmer_1.35s_infinite]" />
+                    </div>
+                  ))}
+                </div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">
+                  brewing more work...
+                </p>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

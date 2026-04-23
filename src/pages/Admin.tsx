@@ -9,7 +9,7 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, setDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getRedirectResult, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 
 import { auth } from '../firebase-auth';
 import { db } from '../firebase-firestore';
@@ -144,6 +144,14 @@ export const Admin = () => {
     videos: videos.filter(v => v.featured).length,
     gallery: galleryImages.filter(g => g.featured).length,
   }), [projects, videos, galleryImages]);
+  const topWorkItems = useMemo(
+    () => [
+      ...projects.map((item) => ({ collectionName: 'projects' as const, id: item.id, rank: item.workPriorityRank })),
+      ...videos.map((item) => ({ collectionName: 'videos' as const, id: item.id, rank: item.workPriorityRank })),
+      ...galleryImages.map((item) => ({ collectionName: 'gallery' as const, id: item.id, rank: item.workPriorityRank })),
+    ].filter((item) => typeof item.rank === 'number' && item.rank >= 1 && item.rank <= 6),
+    [projects, videos, galleryImages],
+  );
 
   const galleryFilterTags = useMemo(
     () => ['All', 'Featured', ...uniqueStrings(galleryImages.flatMap(g => g.tags))],
@@ -246,6 +254,13 @@ export const Admin = () => {
     return () => window.clearTimeout(timeout);
   }, [adminNotice]);
 
+  useEffect(() => {
+    getRedirectResult(auth).catch((error) => {
+      console.error("Google redirect sign-in failed", error);
+      setLoginError(toReadableGoogleSignInError(error));
+    });
+  }, []);
+
   const handleFileUpload = async (file: File, field: string, stateSetter: any): Promise<string | undefined> => {
     if (!file) return;
     if (!auth.currentUser) {
@@ -325,12 +340,27 @@ export const Admin = () => {
   };
 
   const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     try {
       setLoginError(null);
-      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Login failed", error);
+      const authError = (error ?? {}) as { code?: string; message?: string };
+      const shouldTryRedirect =
+        authError.code === 'auth/internal-error' ||
+        authError.code === 'auth/network-request-failed' ||
+        authError.code === 'auth/popup-blocked' ||
+        authError.message?.includes('The requested action is invalid');
+
+      if (shouldTryRedirect) {
+        setLoginError('Popup sign-in was blocked by the browser context. Redirecting to Google...');
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
       setLoginError(toReadableGoogleSignInError(error));
     }
   };
@@ -365,6 +395,34 @@ export const Admin = () => {
     } catch (error) {
       console.error(error);
       triggerAdminNotice(`Failed to toggle gallery image feature status`, 'error');
+    }
+  };
+
+  const toggleWorkPriority = async (
+    collectionName: 'projects' | 'videos' | 'gallery',
+    item: Project | Video | GalleryImage,
+  ) => {
+    try {
+      const docRef = doc(db, collectionName, item.id);
+      if (item.workPriorityRank) {
+        await updateDoc(docRef, { workPriorityRank: null, updatedAt: serverTimestamp() });
+        triggerAdminNotice('Removed from Work top 6.', 'success');
+        return;
+      }
+
+      const usedRanks = new Set(topWorkItems.map((entry) => entry.rank));
+      const nextRank = [1, 2, 3, 4, 5, 6].find((rank) => !usedRanks.has(rank));
+
+      if (!nextRank) {
+        triggerAdminNotice('Top 6 is full. Remove one first.', 'error');
+        return;
+      }
+
+      await updateDoc(docRef, { workPriorityRank: nextRank, updatedAt: serverTimestamp() });
+      triggerAdminNotice(`Added to Work top ${nextRank}.`, 'success');
+    } catch (error) {
+      console.error(error);
+      triggerAdminNotice('Failed to update Work top 6.', 'error');
     }
   };
 
@@ -492,6 +550,7 @@ export const Admin = () => {
         outcomeCopy: draft.outcomeCopy?.trim() || draft.outcomeResultCopy?.trim() || '',
         outcomeResultCopy: draft.outcomeCopy?.trim() || draft.outcomeResultCopy?.trim() || '',
         credits: uniqueStrings(draft.credits),
+        workPriorityRank: draft.workPriorityRank ?? null,
       };
     }
 
@@ -515,6 +574,7 @@ export const Admin = () => {
         videoUrl: mediaUrl,
         embedUrl: '',
         tools,
+        workPriorityRank: draft.workPriorityRank ?? null,
       };
     }
 
@@ -535,6 +595,7 @@ export const Admin = () => {
         mediaUrl: '',
         embedUrl: '',
         tools,
+        workPriorityRank: draft.workPriorityRank ?? null,
       };
     }
 
@@ -558,6 +619,7 @@ export const Admin = () => {
       videoUrl: mediaUrl,
       embedUrl,
       tools,
+      workPriorityRank: draft.workPriorityRank ?? null,
     };
   };
 
@@ -1124,6 +1186,19 @@ export const Admin = () => {
                    <div className="flex items-center gap-3">
                      <button
                        type="button"
+                       onClick={() => toggleWorkPriority('projects', p)}
+                       className={cn(
+                         "rounded-full px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] backdrop-blur-md transition-all hover:scale-105",
+                         p.workPriorityRank
+                           ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
+                           : "bg-black/40 text-white/40 hover:text-white"
+                       )}
+                       title={p.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
+                     >
+                       {p.workPriorityRank ? `Top ${p.workPriorityRank}` : 'Top'}
+                     </button>
+                     <button
+                       type="button"
                        onClick={() => toggleProjectFeatured(p)}
                        className={cn(
                          "p-2 rounded-full backdrop-blur-md transition-all hover:scale-110 flex items-center justify-center",
@@ -1181,6 +1256,19 @@ export const Admin = () => {
                 <p className="text-[10px] text-brand-muted line-clamp-2 uppercase tracking-widest italic">{v.description}</p>
               </div>
               <div className="relative z-10 flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => toggleWorkPriority('videos', v)}
+                  className={cn(
+                    "w-16 h-14 rounded-2xl flex items-center justify-center transition-all text-[9px] font-black uppercase tracking-[0.16em]",
+                    v.workPriorityRank
+                      ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
+                      : "glass border border-white/10 hover:bg-white hover:text-black"
+                  )}
+                  title={v.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
+                >
+                  {v.workPriorityRank ? `Top ${v.workPriorityRank}` : 'Top'}
+                </button>
                 <button
                   type="button"
                   onClick={() => toggleVideoFeatured(v)}
@@ -1246,6 +1334,19 @@ export const Admin = () => {
                       {img.tags?.map(t => <span key={t} className="text-[7px] font-black bg-white/10 px-2 py-0.5 rounded-full uppercase tracking-widest">#{t}</span>)}
                     </div>
                     <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleWorkPriority('gallery', img)}
+                        className={cn(
+                          "h-10 rounded-xl px-3 text-[8px] font-black uppercase tracking-[0.14em] transition-all",
+                          img.workPriorityRank
+                            ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
+                            : "bg-white/10 text-white hover:bg-white hover:text-black"
+                        )}
+                        title={img.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
+                      >
+                        {img.workPriorityRank ? `Top ${img.workPriorityRank}` : 'Top'}
+                      </button>
                       <button
                         type="button"
                         onClick={() => toggleGalleryFeatured(img)}

@@ -21,6 +21,12 @@ export const useFeaturedItems = () => {
     let featuredVideos: PortfolioItem[] = [];
     let featuredGallery: PortfolioItem[] = [];
 
+    const handleListenerError = (collectionName: string, markDone: () => void) => (error: unknown) => {
+      console.error(`Failed to load featured ${collectionName}:`, error);
+      markDone();
+      merge();
+    };
+
     const merge = () => {
       if (projectsDone && videosDone && galleryDone) {
         setItems([...featuredProjects, ...featuredVideos, ...featuredGallery]);
@@ -37,6 +43,10 @@ export const useFeaturedItems = () => {
         projectsDone = true;
         merge();
       },
+      handleListenerError('projects', () => {
+        featuredProjects = [];
+        projectsDone = true;
+      }),
     );
 
     const unsubVideos = onSnapshot(
@@ -48,6 +58,10 @@ export const useFeaturedItems = () => {
         videosDone = true;
         merge();
       },
+      handleListenerError('videos', () => {
+        featuredVideos = [];
+        videosDone = true;
+      }),
     );
 
     const unsubGallery = onSnapshot(
@@ -59,6 +73,10 @@ export const useFeaturedItems = () => {
         galleryDone = true;
         merge();
       },
+      handleListenerError('gallery images', () => {
+        featuredGallery = [];
+        galleryDone = true;
+      }),
     );
 
     return () => {

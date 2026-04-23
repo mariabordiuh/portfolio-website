@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { type PortfolioItem, isArtDirectionItem } from '../utils/portfolio';
+import { type PortfolioItem, getPortfolioImageSrc, isArtDirectionItem } from '../utils/portfolio';
 
 const FALLBACK_RATIO = { width: 4, height: 5 };
-
-const imageRatioCache = new Map<string, { width: number; height: number }>();
+const FALLBACK_RATIOS = [
+  { width: 4, height: 5 },
+  { width: 1, height: 1 },
+  { width: 5, height: 7 },
+  { width: 3, height: 4 },
+  { width: 4, height: 3 },
+];
 
 const getColumnCount = (width: number) => {
   if (width >= 1280) {
+    return 4;
+  }
+
+  if (width >= 1024) {
     return 3;
   }
 
@@ -18,36 +27,15 @@ const getColumnCount = (width: number) => {
   return 1;
 };
 
-const getItemImageSrc = (item: PortfolioItem) => item.thumbnail || item.heroImage || item.images[0] || '';
+const getFallbackRatio = (item: PortfolioItem, index: number) =>
+  item.contentType === 'ai-video' || item.contentType === 'motion-video' || item.contentType === 'motion-embed'
+    ? { width: 16, height: 9 }
+    : FALLBACK_RATIOS[index % FALLBACK_RATIOS.length];
 
 const estimateCardHeight = (ratio: { width: number; height: number }) => {
   const visualHeight = ratio.height / ratio.width;
   return visualHeight + 0.42;
 };
-
-const loadImageRatio = (src: string) =>
-  new Promise<{ width: number; height: number }>((resolve) => {
-    const image = new Image();
-    image.decoding = 'async';
-    image.referrerPolicy = 'no-referrer';
-
-    const finalize = () => {
-      if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-        resolve({ width: image.naturalWidth, height: image.naturalHeight });
-        return;
-      }
-
-      resolve(FALLBACK_RATIO);
-    };
-
-    image.onload = finalize;
-    image.onerror = () => resolve(FALLBACK_RATIO);
-    image.src = src;
-
-    if (image.complete) {
-      finalize();
-    }
-  });
 
 export const MasonryPortfolioGrid = ({
   items,
@@ -59,11 +47,10 @@ export const MasonryPortfolioGrid = ({
   const [columnCount, setColumnCount] = useState(() =>
     getColumnCount(typeof window === 'undefined' ? 1440 : window.innerWidth),
   );
-  const [ratios, setRatios] = useState<Record<string, { width: number; height: number }>>({});
-  const [isMeasuring, setIsMeasuring] = useState(true);
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
 
   const ratioSourceKey = useMemo(
-    () => items.map((item) => `${item.id}:${getItemImageSrc(item)}`).join('|'),
+    () => items.map((item) => `${item.id}:${getPortfolioImageSrc(item)}`).join('|'),
     [items],
   );
 
@@ -77,93 +64,45 @@ export const MasonryPortfolioGrid = ({
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadRatios = async () => {
-      setIsMeasuring(true);
-
-      const nextRatios: Record<string, { width: number; height: number }> = {};
-
-      await Promise.all(
-        items.map(async (item) => {
-          const src = getItemImageSrc(item);
-
-          if (!src) {
-            nextRatios[item.id] = FALLBACK_RATIO;
-            return;
-          }
-
-          const cached = imageRatioCache.get(src);
-          if (cached) {
-            nextRatios[item.id] = cached;
-            return;
-          }
-
-          const ratio = await loadImageRatio(src);
-          imageRatioCache.set(src, ratio);
-          nextRatios[item.id] = ratio;
-        }),
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      setRatios(nextRatios);
-      setIsMeasuring(false);
-    };
-
-    void loadRatios();
-
-    return () => {
-      cancelled = true;
-    };
+    const activeImageKeys = new Set(items.map((item) => `${item.id}:${getPortfolioImageSrc(item)}`));
+    setLoadedImages((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([key]) => activeImageKeys.has(key)),
+      ),
+    );
   }, [ratioSourceKey]);
 
   const columns = useMemo(() => {
     const nextColumns = Array.from({ length: columnCount }, () => ({
       height: 0,
-      items: [] as PortfolioItem[],
+      items: [] as Array<{ item: PortfolioItem; index: number }>,
     }));
 
-    for (const item of items) {
-      const ratio = ratios[item.id] ?? FALLBACK_RATIO;
+    for (const [index, item] of items.entries()) {
+      const ratio = getFallbackRatio(item, index);
       const shortestColumn = nextColumns.reduce(
         (smallest, column, index) => (column.height < nextColumns[smallest].height ? index : smallest),
         0,
       );
 
-      nextColumns[shortestColumn].items.push(item);
+      nextColumns[shortestColumn].items.push({ item, index });
       nextColumns[shortestColumn].height += estimateCardHeight(ratio);
     }
 
     return nextColumns.map((column) => column.items);
-  }, [columnCount, items, ratios]);
-
-  if (isMeasuring) {
-    return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: Math.max(columnCount * 2, 1) }).map((_, index) => (
-          <div
-            key={index}
-            className="animate-pulse overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.04]"
-            style={{
-              aspectRatio: index % 3 === 0 ? '4 / 5' : index % 3 === 1 ? '1 / 1' : '5 / 7',
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
+  }, [columnCount, items]);
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {columns.map((columnItems, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-6">
-          {columnItems.map((item) => {
-            const ratio = ratios[item.id] ?? FALLBACK_RATIO;
-            const imageSrc = getItemImageSrc(item);
+          {columnItems.map(({ item, index }, itemIndex) => {
+            const ratio = getFallbackRatio(item, index);
+            const imageSrc = getPortfolioImageSrc(item);
             const isArt = isArtDirectionItem(item) && item.routeId;
+            const imageKey = `${item.id}:${imageSrc}`;
+            const imageLoaded = !imageSrc || loadedImages[imageKey];
+            const isPriorityImage = index < 4;
 
             const Wrapper = isArt ? Link : 'button';
             const extraProps = isArt ? { to: `/work/${item.routeId}` } : { type: 'button' as const, onClick: () => onPreview(item) };
@@ -176,6 +115,17 @@ export const MasonryPortfolioGrid = ({
               >
                 <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03]">
                   <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/28 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div
+                    className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-white/[0.045] transition-opacity duration-700 ${
+                      imageLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,158,187,0.2),transparent_34%),radial-gradient(circle_at_72%_72%,rgba(185,122,37,0.18),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
+                    <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_1.35s_infinite]" />
+                    <div className="absolute bottom-5 left-5 h-2 w-24 rounded-full bg-white/8" />
+                    <div className="absolute bottom-9 left-5 h-2 w-14 rounded-full bg-white/5" />
+                  </div>
                   <div style={{ aspectRatio: `${ratio.width} / ${ratio.height}` }}>
                     {imageSrc ? (
                       <img
@@ -183,9 +133,17 @@ export const MasonryPortfolioGrid = ({
                         alt={item.title}
                         width={ratio.width}
                         height={ratio.height}
-                        loading="lazy"
+                        loading={isPriorityImage ? 'eager' : 'lazy'}
                         decoding="async"
-                        className="block h-full w-full object-cover text-transparent transition-transform duration-700 group-hover:scale-[1.025]"
+                        fetchPriority={isPriorityImage ? 'high' : 'low'}
+                        onLoad={(event) => {
+                          setLoadedImages((current) =>
+                            current[imageKey] ? current : { ...current, [imageKey]: true },
+                          );
+                        }}
+                        className={`block h-full w-full object-cover text-transparent transition-[opacity,transform,filter] duration-700 group-hover:scale-[1.025] ${
+                          imageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+                        }`}
                         referrerPolicy="no-referrer"
                       />
                     ) : null}

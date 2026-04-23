@@ -28,6 +28,8 @@ export type PortfolioItem = {
   contentType: ProjectContentType;
   description: string;
   thumbnail: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
   heroImage: string;
   images: string[];
   mediaUrl?: string;
@@ -40,9 +42,13 @@ export type PortfolioItem = {
   role?: string;
   credits?: string[];
   featured?: boolean;
+  workPriorityRank?: number;
 };
 
 const trim = (value?: string | null) => value?.trim() ?? '';
+
+export const getPortfolioImageSrc = (item: Pick<PortfolioItem, 'thumbnailUrl' | 'previewUrl' | 'thumbnail' | 'heroImage' | 'images'>) =>
+  item.thumbnailUrl || item.previewUrl || item.thumbnail || item.heroImage || item.images[0] || '';
 
 export const normalizePillar = (pillar?: LegacyProjectPillar | string | null): ProjectPillar => {
   switch (pillar) {
@@ -304,6 +310,8 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     contentType,
     description: normalized.description,
     thumbnail: normalized.thumbnail || normalized.heroImage || normalized.mediaUrl || images[0] || '',
+    thumbnailUrl: trim(project.thumbnailUrl) || trim(project.previewUrl),
+    previewUrl: trim(project.previewUrl) || trim(project.thumbnailUrl),
     heroImage: normalized.heroImage || normalized.thumbnail || images[0] || '',
     images,
     mediaUrl: normalized.mediaUrl || normalized.videoUrl,
@@ -316,6 +324,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     role: normalized.role,
     credits: isAIItem ? [] : normalized.credits,
     featured: project.featured,
+    workPriorityRank: project.workPriorityRank,
   };
 };
 
@@ -339,6 +348,8 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     contentType,
     description: trim(video.description),
     thumbnail: trim(video.thumbnail) || trim(video.url),
+    thumbnailUrl: trim(video.thumbnailUrl) || trim(video.previewUrl),
+    previewUrl: trim(video.previewUrl) || trim(video.thumbnailUrl),
     heroImage: trim(video.thumbnail) || trim(video.url),
     images: trim(video.thumbnail) ? [trim(video.thumbnail)] : [],
     mediaUrl: embedUrl ? '' : trim(video.url),
@@ -347,6 +358,7 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     categories: [],
     subCategory: undefined,
     featured: video.featured,
+    workPriorityRank: video.workPriorityRank,
   };
 };
 
@@ -368,6 +380,8 @@ export const galleryToPortfolioItem = (image: GalleryImage): PortfolioItem => {
     contentType,
     description: trim(image.info),
     thumbnail: trim(image.url || (image as any).image),
+    thumbnailUrl: trim(image.thumbnailUrl) || trim(image.previewUrl),
+    previewUrl: trim(image.previewUrl) || trim(image.thumbnailUrl),
     heroImage: trim(image.url || (image as any).image),
     images: trim(image.url || (image as any).image) ? [trim(image.url || (image as any).image)] : [],
     mediaUrl: '',
@@ -376,6 +390,7 @@ export const galleryToPortfolioItem = (image: GalleryImage): PortfolioItem => {
     categories: uniqueStrings(image.tags),
     subCategory: undefined,
     featured: image.featured,
+    workPriorityRank: image.workPriorityRank,
   };
 };
 
