@@ -649,3 +649,76 @@ export function StorageImageField({
     </label>
   );
 }
+
+export function ToggleField({
+  label,
+  hint,
+  value,
+  onChange,
+  className,
+}: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  className?: string;
+}) {
+  return (
+    <label className={cn('flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3', className)}>
+      <div>
+        <p className="text-sm font-medium text-white">{label}</p>
+        {hint ? <p className="mt-0.5 text-xs text-brand-muted">{hint}</p> : null}
+      </div>
+      <div
+        className={cn(
+          'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200',
+          value ? 'bg-brand-accent' : 'bg-white/10',
+        )}
+      >
+        <div
+          className={cn(
+            'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200',
+            value ? 'translate-x-5' : 'translate-x-0.5',
+          )}
+        />
+        <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
+      </div>
+    </label>
+  );
+}
+
+export function NumberField({
+  label,
+  hint,
+  placeholder,
+  value,
+  onChange,
+  min,
+  max,
+  className,
+}: {
+  label: string;
+  hint?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+  className?: string;
+}) {
+  return (
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} />
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
+      />
+      {hint ? <p className="text-xs text-brand-muted">{hint}</p> : null}
+    </div>
+  );
+}

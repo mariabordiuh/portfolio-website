@@ -21,6 +21,10 @@ import { toReadableGoogleSignInError } from '../utils/auth-errors';
 import { PageTransition } from '../components/PageTransition';
 import { StorageOptimizer } from '../admin/storage-optimizer';
 
+import { GalleryAdmin } from '../admin/gallery-admin';
+import { LabAdmin } from '../admin/lab-admin';
+import { ProjectsAdmin } from '../admin/projects-admin';
+import { VideosAdmin } from '../admin/videos-admin';
 import { cn } from '../lib/utils';
 import { Project, Video, LabItem, GalleryImage, ProjectPillar, HomeHeroSettings } from '../types';
 import { 
@@ -1173,207 +1177,29 @@ export const Admin = () => {
             />
           )}
 
-          {activeTab === 'projects' && projects
-            .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map(p => (
-            <div key={p.id} className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col justify-between group h-80 overflow-hidden relative shadow-2xl">
-              <div className="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity">
-                <img src={p.thumbnail} className="w-full h-full object-cover grayscale" alt="" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent">{p.pillar}</span>
-                   <div className="flex items-center gap-3">
-                     <button
-                       type="button"
-                       onClick={() => toggleWorkPriority('projects', p)}
-                       className={cn(
-                         "rounded-full px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] backdrop-blur-md transition-all hover:scale-105",
-                         p.workPriorityRank
-                           ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
-                           : "bg-black/40 text-white/40 hover:text-white"
-                       )}
-                       title={p.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
-                     >
-                       {p.workPriorityRank ? `Top ${p.workPriorityRank}` : 'Top'}
-                     </button>
-                     <button
-                       type="button"
-                       onClick={() => toggleProjectFeatured(p)}
-                       className={cn(
-                         "p-2 rounded-full backdrop-blur-md transition-all hover:scale-110 flex items-center justify-center",
-                         p.featured 
-                           ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]" 
-                           : "bg-black/40 text-white/40 hover:text-white"
-                       )}
-                       title={p.featured ? "Remove from Selected Works" : "Add to Selected Works"}
-                     >
-                       <Star size={14} className={p.featured ? "fill-black" : ""} />
-                     </button>
-                     <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                   </div>
-                </div>
-                <h3 className="text-4xl font-black uppercase tracking-tighter leading-none mb-3">{p.title}</h3>
-                <p className="text-[10px] text-brand-muted uppercase tracking-[0.3em] font-mono">{p.category}</p>
-              </div>
-              <div className="relative z-10 flex gap-4 pt-10">
-                <button
-                  onClick={() =>
-                    setEditingProject({
-                      ...p,
-                      pillar: normalizePillar(p.pillar),
-                      heroImage: p.heroImage || p.thumbnail,
-                      categories: p.categories?.length ? p.categories : splitTagLikeString(p.category),
-                      outcomeImages: p.outcomeImages?.length ? p.outcomeImages : p.outcomeVisuals || [],
-                      outcomeCopy: p.outcomeCopy || p.outcomeResultCopy || '',
-                    })
-                  }
-                  className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest shadow-xl"
-                >
-                  <Edit3 size={14}/> Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => requestDeleteFromFirestore('projects', p.id, p.title)}
-                  className="w-14 h-14 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
-                  aria-label={`Delete ${p.title}`}
-                >
-                  <Trash2 size={18}/>
-                </button>
-              </div>
+          {activeTab === 'projects' && (
+            <div className="col-span-full">
+              <ProjectsAdmin />
             </div>
-          ))}
+          )}
 
-          {activeTab === 'videos' && videos
-            .filter(v => v.title.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map(v => (
-            <div key={v.id} className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col justify-between group h-80 overflow-hidden relative shadow-2xl">
-              <div className="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity">
-                <img src={v.thumbnail} className="w-full h-full object-cover grayscale" alt="" />
-              </div>
-              <div className="relative z-10">
-                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-3">{v.title}</h3>
-                <p className="text-[10px] text-brand-muted line-clamp-2 uppercase tracking-widest italic">{v.description}</p>
-              </div>
-              <div className="relative z-10 flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => toggleWorkPriority('videos', v)}
-                  className={cn(
-                    "w-16 h-14 rounded-2xl flex items-center justify-center transition-all text-[9px] font-black uppercase tracking-[0.16em]",
-                    v.workPriorityRank
-                      ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
-                      : "glass border border-white/10 hover:bg-white hover:text-black"
-                  )}
-                  title={v.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
-                >
-                  {v.workPriorityRank ? `Top ${v.workPriorityRank}` : 'Top'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleVideoFeatured(v)}
-                  className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
-                    v.featured
-                      ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                      : "glass border border-white/10 hover:bg-white hover:text-black"
-                  )}
-                  title={v.featured ? "Remove from Selected Works" : "Add to Selected Works"}
-                >
-                  <Star size={18} className={v.featured ? "fill-black" : ""} />
-                </button>
-                <button onClick={() => setEditingVideo(v)} className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all font-black uppercase text-[10px] tracking-widest shadow-xl">Edit</button>
-                <button
-                  type="button"
-                  onClick={() => requestDeleteFromFirestore('videos', v.id, v.title)}
-                  className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"
-                  aria-label={`Delete ${v.title}`}
-                >
-                  <Trash2 size={18}/>
-                </button>
-              </div>
+          {activeTab === 'videos' && (
+            <div className="col-span-full">
+              <VideosAdmin />
             </div>
-          ))}
+          )}
 
-          {activeTab === 'lab' && labItems
-            .filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map(l => (
-            <div key={l.id} className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col justify-between group h-80 shadow-2xl">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-brand-accent mb-4 block font-mono">{l.type} // {l.date}</span>
-                <h3 className="text-3xl font-black uppercase tracking-tighter leading-none mb-4">{l.title}</h3>
-                <p className="text-[10px] text-brand-muted uppercase tracking-widest line-clamp-4 italic leading-relaxed">{l.content}</p>
-              </div>
-              <div className="flex gap-4 pt-6">
-                <button onClick={() => setEditingLab(l)} className="flex-1 py-4 glass border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all font-black uppercase text-[10px] tracking-widest shadow-xl">Edit Entry</button>
-                <button
-                  type="button"
-                  onClick={() => requestDeleteFromFirestore('labItems', l.id, l.title)}
-                  className="w-14 h-14 text-red-500/40 hover:text-red-500 transition-colors"
-                  aria-label={`Delete ${l.title}`}
-                >
-                  <Trash2 size={18}/>
-                </button>
-              </div>
+          {activeTab === 'lab' && (
+            <div className="col-span-full">
+              <LabAdmin />
             </div>
-          ))}
+          )}
 
-          {activeTab === 'gallery' && galleryImages
-            .filter(img => {
-              const matchesSearch = !searchQuery || img.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-              if (activeGalleryFilter === 'All') return matchesSearch;
-              if (activeGalleryFilter === 'Featured') return matchesSearch && img.featured;
-              return matchesSearch && img.tags?.includes(activeGalleryFilter);
-            })
-            .map(img => (
-            <div key={img.id} className="glass rounded-[2rem] border border-white/5 overflow-hidden group shadow-2xl relative aspect-square">
-                <img src={img.url} className="absolute inset-0 w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" alt="" referrerPolicy="no-referrer" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-8 opacity-0 group-hover:opacity-100 transition-all">
-                  <div className="space-y-4 translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
-                    <div className="flex flex-wrap gap-2">
-                      {img.tags?.map(t => <span key={t} className="text-[7px] font-black bg-white/10 px-2 py-0.5 rounded-full uppercase tracking-widest">#{t}</span>)}
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleWorkPriority('gallery', img)}
-                        className={cn(
-                          "h-10 rounded-xl px-3 text-[8px] font-black uppercase tracking-[0.14em] transition-all",
-                          img.workPriorityRank
-                            ? "bg-brand-accent text-black shadow-[0_0_15px_rgba(var(--accent-rgb),0.35)]"
-                            : "bg-white/10 text-white hover:bg-white hover:text-black"
-                        )}
-                        title={img.workPriorityRank ? "Remove from Work top 6" : "Add to Work top 6"}
-                      >
-                        {img.workPriorityRank ? `Top ${img.workPriorityRank}` : 'Top'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleGalleryFeatured(img)}
-                        className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                          img.featured
-                            ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                            : "bg-white/10 text-white hover:bg-white hover:text-black"
-                        )}
-                        title={img.featured ? "Remove from Selected Works" : "Add to Selected Works"}
-                      >
-                        <Star size={16} className={img.featured ? "fill-black" : ""} />
-                      </button>
-                      <button onClick={() => setEditingGalleryImage(img)} className="flex-1 py-3 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-brand-accent transition-colors">Edit</button>
-                      <button
-                        type="button"
-                        onClick={() => requestDeleteFromFirestore('gallery', img.id, img.tags?.join(', ') || 'gallery image')}
-                        className="w-10 h-10 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
-                        aria-label="Delete gallery image"
-                      >
-                        <Trash2 size={16}/>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+          {activeTab === 'gallery' && (
+            <div className="col-span-full">
+              <GalleryAdmin />
             </div>
-          ))}
+          )}
 
         </div>
 

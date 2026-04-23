@@ -7,7 +7,7 @@ import { RevealOnScroll } from '../components/RevealOnScroll';
 import { RevealText } from '../components/RevealText';
 import { Tag } from '../components/Tag';
 import { LabSkeleton } from '../components/Skeleton';
-import { LabItem } from '../types';
+import { LabItem, LabSection } from '../types';
 
 export const Lab = () => {
   const { labItems, loading } = useData();
@@ -41,7 +41,7 @@ export const Lab = () => {
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
           ) : !labItems.length ? (
             <div className="col-span-full py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
-              nothing here yet. come back with coffee.
+              Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
             </div>
           ) : (
             labItems.map((item, index) => (
@@ -107,47 +107,116 @@ export const Lab = () => {
               >
                 <X size={32} />
               </button>
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto glass rounded-[3rem] p-8 md:p-12"
                 onClick={e => e.stopPropagation()}
               >
+                {/* Header */}
                 <div className="flex justify-between items-start mb-8">
                   <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-xs uppercase tracking-widest font-bold font-mono">
                     {activeItem.type}
                   </span>
                   <span className="text-sm font-mono text-brand-muted">{activeItem.date}</span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-6 leading-none">{activeItem.title}</h2>
-                <div className="grid md:grid-cols-2 gap-12 items-start">
-                  <div>
-                    <p className="whitespace-pre-line text-brand-muted text-base md:text-lg leading-relaxed mb-8">{activeItem.content}</p>
-                    <div className="flex flex-wrap gap-2 mb-8">
-                      {activeItem.tools.map(tool => (
-                        <Tag 
-                          key={tool} 
-                          name={tool} 
-                          onClick={() => {
-                            window.location.href = `/work?tool=${tool}`;
-                          }}
-                        />
-                      ))}
-                    </div>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-3 leading-none">{activeItem.title}</h2>
+                <p className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.content}</p>
+
+                {/* Case study meta row */}
+                {(activeItem.timeline || activeItem.role) && (
+                  <div className="flex flex-wrap gap-6 mb-10 pb-8 border-b border-white/10">
+                    {activeItem.timeline && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Timeline</p>
+                        <p className="font-semibold text-sm">{activeItem.timeline}</p>
+                      </div>
+                    )}
+                    {activeItem.role && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Role</p>
+                        <p className="font-semibold text-sm">{activeItem.role}</p>
+                      </div>
+                    )}
+                    {activeItem.tools.length > 0 && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-2">Tools</p>
+                        <div className="flex flex-wrap gap-2">
+                          {activeItem.tools.map(tool => (
+                            <Tag key={tool} name={tool} onClick={() => { window.location.href = `/work?tool=${tool}`; }} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  {activeItem.image && (
-                    <div className="rounded-2xl overflow-hidden bg-white/5 aspect-square relative">
-                      <div className="grain-overlay" />
-                      <img 
-                        src={activeItem.image} 
-                        alt={activeItem.title} 
-                        className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" 
-                        referrerPolicy="no-referrer" 
-                      />
+                )}
+
+                {/* Case study sections */}
+                {(activeItem.brief || activeItem.context || activeItem.problem || activeItem.insights || activeItem.solution || activeItem.outcome) ? (
+                  (() => {
+                    const sectionImages = (key: LabSection) =>
+                      (activeItem.labImages ?? []).filter(img => img.after === key);
+                    const galleryImages = (activeItem.labImages ?? []).filter(img => !img.after);
+                    const sections: { key: LabSection; label: string; value?: string }[] = [
+                      { key: 'brief', label: 'The brief', value: activeItem.brief },
+                      { key: 'context', label: 'Context', value: activeItem.context },
+                      { key: 'problem', label: 'The problem', value: activeItem.problem },
+                      { key: 'insights', label: 'Insights', value: activeItem.insights },
+                      { key: 'solution', label: 'Solution', value: activeItem.solution },
+                      { key: 'outcome', label: 'Outcome', value: activeItem.outcome },
+                    ];
+                    return (
+                      <div className="space-y-10">
+                        {sections.filter(s => s.value || sectionImages(s.key).length > 0).map(section => (
+                          <div key={section.key}>
+                            {section.value && (
+                              <>
+                                <h3 className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-3">{section.label}</h3>
+                                <p className="whitespace-pre-line text-white/80 text-base leading-relaxed">{section.value}</p>
+                              </>
+                            )}
+                            {sectionImages(section.key).map((img, i) => (
+                              <div key={img.url + i} className="mt-6 rounded-2xl overflow-hidden bg-white/5">
+                                <img src={img.url} alt="" className="w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                        {galleryImages.length > 0 && (
+                          <div className="pt-4 border-t border-white/10">
+                            <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-4">Gallery</p>
+                            <div className="columns-2 gap-3 space-y-3">
+                              {galleryImages.map((img, i) => (
+                                <div key={img.url + i} className="break-inside-avoid rounded-xl overflow-hidden bg-white/5">
+                                  <img src={img.url} alt="" className="w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  /* Simple note layout — no case study fields */
+                  <div className="grid md:grid-cols-2 gap-12 items-start">
+                    <div>
+                      <div className="flex flex-wrap gap-2 mb-8">
+                        {activeItem.tools.map(tool => (
+                          <Tag key={tool} name={tool} onClick={() => { window.location.href = `/work?tool=${tool}`; }} />
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
+                    {activeItem.image && (
+                      <div className="rounded-2xl overflow-hidden bg-white/5 aspect-square relative">
+                        <div className="grain-overlay" />
+                        <img src={activeItem.image} alt={activeItem.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" referrerPolicy="no-referrer" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeItem.code && (
                   <div className="mt-8 p-6 bg-black/40 rounded-2xl font-mono text-xs text-brand-accent overflow-x-auto border border-white/5 selection:bg-brand-accent selection:text-brand-bg">
                     <pre><code>{activeItem.code}</code></pre>

@@ -104,6 +104,13 @@ export interface Video {
   workPriorityRank?: number;
 }
 
+export type LabSection = 'brief' | 'context' | 'problem' | 'insights' | 'solution' | 'outcome';
+
+export interface LabImage {
+  url: string;
+  after?: LabSection;
+}
+
 export interface LabItem {
   id: string;
   title: string;
@@ -113,6 +120,16 @@ export interface LabItem {
   code?: string;
   tools: string[];
   date: string;
+  // Case study fields — render as named sections when populated
+  timeline?: string;
+  role?: string;
+  brief?: string;
+  context?: string;
+  problem?: string;
+  insights?: string;
+  solution?: string;
+  outcome?: string;
+  labImages?: LabImage[];
 }
 
 export interface GalleryImage {

@@ -91,7 +91,7 @@ const MasonryCard = memo(({
               width={imageRatio.width}
               height={imageRatio.height}
               loading={isPriorityImage ? 'eager' : 'lazy'}
-              fetchPriority={isPriorityImage ? 'high' : 'low'}
+              fetchPriority={isPriorityImage ? 'high' : 'auto'}
               onImageLoad={(size) => onImageLoad(imageKey, size)}
               className="block h-full w-full object-cover text-transparent group-hover:scale-[1.025]"
             />

@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
+import { GripVertical, ImagePlus, LoaderCircle, Trash2, X } from 'lucide-react';
 import { db } from '../firebase-firestore';
-import { LabItem } from '../types';
+import { storage } from '../firebase-storage';
+import { LabImage, LabItem, LabSection } from '../types';
 import {
   ChecklistItem,
   LAB_TYPES,
@@ -28,6 +31,105 @@ import {
   StorageImageField,
   TextField,
 } from './admin-ui';
+
+const SECTION_OPTIONS: { value: LabSection | ''; label: string }[] = [
+  { value: '', label: 'Gallery (bottom)' },
+  { value: 'brief', label: 'After Brief' },
+  { value: 'context', label: 'After Context' },
+  { value: 'problem', label: 'After Problem' },
+  { value: 'insights', label: 'After Insights' },
+  { value: 'solution', label: 'After Solution' },
+  { value: 'outcome', label: 'After Outcome' },
+];
+
+function DraggableImageList({
+  images,
+  onChange,
+  onError,
+}: {
+  images: LabImage[];
+  onChange: (images: LabImage[]) => void;
+  onError: (msg: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const dragIndex = useRef<number | null>(null);
+
+  const handleFiles = async (files: FileList) => {
+    if (!storage) { onError('Storage not configured.'); return; }
+    setUploading(true);
+    try {
+      const uploaded: LabImage[] = [];
+      for (const file of Array.from(files)) {
+        const r = storageRef(storage, `lab/images/${Date.now()}-${file.name}`);
+        await uploadBytes(r, file);
+        const url = await getDownloadURL(r);
+        uploaded.push({ url });
+      }
+      onChange([...images, ...uploaded]);
+    } catch (e) {
+      onError(toReadableError('Upload failed.', e));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const updateImage = (index: number, patch: Partial<LabImage>) => {
+    const next = images.map((img, i) => i === index ? { ...img, ...patch } : img);
+    onChange(next);
+  };
+
+  const removeImage = (index: number) => {
+    onChange(images.filter((_, i) => i !== index));
+  };
+
+  const onDragStart = (index: number) => { dragIndex.current = index; };
+  const onDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragIndex.current === null || dragIndex.current === index) return;
+    const next = [...images];
+    const [moved] = next.splice(dragIndex.current, 1);
+    next.splice(index, 0, moved);
+    dragIndex.current = index;
+    onChange(next);
+  };
+  const onDragEnd = () => { dragIndex.current = null; };
+
+  return (
+    <div className="space-y-3">
+      {images.map((img, i) => (
+        <div
+          key={img.url + i}
+          draggable
+          onDragStart={() => onDragStart(i)}
+          onDragOver={(e) => onDragOver(e, i)}
+          onDragEnd={onDragEnd}
+          className="flex gap-3 items-center rounded-2xl border border-white/10 bg-white/5 p-3 cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical size={16} className="shrink-0 text-brand-muted" />
+          <img src={img.url} alt="" className="h-14 w-20 rounded-xl object-cover shrink-0 border border-white/10" />
+          <select
+            value={img.after ?? ''}
+            onChange={(e) => updateImage(i, { after: (e.target.value as LabSection) || undefined })}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand-accent"
+          >
+            {SECTION_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value} className="bg-black">{opt.label}</option>
+            ))}
+          </select>
+          <button type="button" onClick={() => removeImage(i)} className="shrink-0 text-brand-muted hover:text-red-400 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+
+      <label className="flex items-center gap-2 cursor-pointer rounded-2xl border border-dashed border-white/15 px-4 py-3 text-sm text-brand-muted hover:border-brand-accent hover:text-white transition-colors">
+        {uploading ? <LoaderCircle size={16} className="animate-spin" /> : <ImagePlus size={16} />}
+        {uploading ? 'Uploading…' : 'Upload images'}
+        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && handleFiles(e.target.files)} disabled={uploading} />
+      </label>
+    </div>
+  );
+}
 
 export function LabAdmin() {
   const [items, setItems] = useState<LabItem[]>([]);
@@ -66,11 +168,8 @@ export function LabAdmin() {
     }
 
     return toLabDraft(selectedItem);
-  }, [draft, isCreatingNew, selectedId, selectedItem]);
-
-  useEffect(() => {
-    setDraft(baselineDraft);
-  }, [baselineDraft]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreatingNew, selectedItem]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -85,6 +184,13 @@ export function LabAdmin() {
     baselineDraft,
     checklist,
   });
+  const isDirtyRef = useRef(false);
+  useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+  useEffect(() => {
+    if (!isDirtyRef.current) {
+      setDraft(baselineDraft);
+    }
+  }, [baselineDraft]);
   const payload = useMemo(
     () => ({
       title: trimValue(draft.title),
@@ -94,6 +200,15 @@ export function LabAdmin() {
       code: trimValue(draft.code) || undefined,
       tools: splitList(draft.tools),
       date: trimValue(draft.date),
+      timeline: trimValue(draft.timeline) || undefined,
+      role: trimValue(draft.role) || undefined,
+      brief: trimValue(draft.brief) || undefined,
+      context: trimValue(draft.context) || undefined,
+      problem: trimValue(draft.problem) || undefined,
+      insights: trimValue(draft.insights) || undefined,
+      solution: trimValue(draft.solution) || undefined,
+      outcome: trimValue(draft.outcome) || undefined,
+      labImages: draft.labImages.length ? draft.labImages : undefined,
     }),
     [draft],
   );
@@ -228,20 +343,91 @@ export function LabAdmin() {
                 onChange={(value) => setDraft((prev) => ({ ...prev, date: value }))}
               />
               <LongField
-                label="Content"
+                label="Teaser"
                 required
                 className="md:col-span-2"
-                placeholder="Write the idea, observation, or result in plain language."
+                placeholder="One-liner shown on the card (e.g. A premium Hanseatic bakery experience.)"
                 value={draft.content}
                 onChange={(value) => setDraft((prev) => ({ ...prev, content: value }))}
               />
             </div>
           </EditorSection>
 
+          <EditorSection
+            title="Case study"
+            description="Fill what you have — leave the rest empty. Only populated sections show on the site."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextField
+                label="Timeline"
+                placeholder="e.g. 48 hours"
+                value={draft.timeline}
+                onChange={(value) => setDraft((prev) => ({ ...prev, timeline: value }))}
+              />
+              <TextField
+                label="Role"
+                placeholder="e.g. Art Director & Brand Designer"
+                value={draft.role}
+                onChange={(value) => setDraft((prev) => ({ ...prev, role: value }))}
+              />
+              <LongField
+                label="Brief"
+                className="md:col-span-2"
+                placeholder="What was the challenge or goal?"
+                value={draft.brief}
+                onChange={(value) => setDraft((prev) => ({ ...prev, brief: value }))}
+              />
+              <LongField
+                label="Context"
+                className="md:col-span-2"
+                placeholder="Background, why this matters"
+                value={draft.context}
+                onChange={(value) => setDraft((prev) => ({ ...prev, context: value }))}
+              />
+              <LongField
+                label="Problem"
+                className="md:col-span-2"
+                placeholder="What made this hard?"
+                value={draft.problem}
+                onChange={(value) => setDraft((prev) => ({ ...prev, problem: value }))}
+              />
+              <LongField
+                label="Insights"
+                className="md:col-span-2"
+                placeholder="Key learnings"
+                value={draft.insights}
+                onChange={(value) => setDraft((prev) => ({ ...prev, insights: value }))}
+              />
+              <LongField
+                label="Solution"
+                className="md:col-span-2"
+                placeholder="What you built and how"
+                value={draft.solution}
+                onChange={(value) => setDraft((prev) => ({ ...prev, solution: value }))}
+              />
+              <LongField
+                label="Outcome"
+                className="md:col-span-2"
+                placeholder="Result, reflection, what you'd do differently"
+                value={draft.outcome}
+                onChange={(value) => setDraft((prev) => ({ ...prev, outcome: value }))}
+              />
+              <div className="md:col-span-2 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand-muted">Images</p>
+                <p className="text-xs text-brand-muted">Upload and reorder. Choose where each image appears, or leave as gallery at the bottom.</p>
+                <DraggableImageList
+                  images={draft.labImages}
+                  onChange={(imgs) => setDraft((prev) => ({ ...prev, labImages: imgs }))}
+                  onError={setError}
+                />
+              </div>
+            </div>
+          </EditorSection>
+
           {!focusMode ? (
             <EditorSection
-              title="Optional support"
-              description="Add these only when they help the note stand on its own."
+              title="Extras"
+              description="Image, tools, and code snippets."
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <StorageImageField

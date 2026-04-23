@@ -28,6 +28,8 @@ export type ProjectDraft = {
   moodboardImages: string;
   outcomeVisuals: string;
   outcomeResultCopy: string;
+  featured: boolean;
+  workPriorityRank: string;
 };
 
 export type VideoDraft = {
@@ -36,6 +38,8 @@ export type VideoDraft = {
   url: string;
   thumbnail: string;
   description: string;
+  featured: boolean;
+  workPriorityRank: string;
 };
 
 export type LabDraft = {
@@ -46,6 +50,16 @@ export type LabDraft = {
   code: string;
   tools: string;
   date: string;
+  // Case study fields
+  timeline: string;
+  role: string;
+  brief: string;
+  context: string;
+  problem: string;
+  insights: string;
+  solution: string;
+  outcome: string;
+  labImages: import('../types').LabImage[];
 };
 
 export type GalleryDraft = {
@@ -54,6 +68,8 @@ export type GalleryDraft = {
   tags: string;
   software: string;
   info: string;
+  featured: boolean;
+  workPriorityRank: string;
 };
 
 export type EditorNotice = {
@@ -81,6 +97,8 @@ export const defaultProjectDraft = (): ProjectDraft => ({
   moodboardImages: '',
   outcomeVisuals: '',
   outcomeResultCopy: '',
+  featured: false,
+  workPriorityRank: '',
 });
 
 export const defaultVideoDraft = (): VideoDraft => ({
@@ -89,6 +107,8 @@ export const defaultVideoDraft = (): VideoDraft => ({
   url: '',
   thumbnail: '',
   description: '',
+  featured: false,
+  workPriorityRank: '',
 });
 
 export const defaultLabDraft = (): LabDraft => ({
@@ -99,6 +119,15 @@ export const defaultLabDraft = (): LabDraft => ({
   code: '',
   tools: '',
   date: new Date().toISOString().slice(0, 10),
+  timeline: '',
+  role: '',
+  brief: '',
+  context: '',
+  problem: '',
+  insights: '',
+  solution: '',
+  outcome: '',
+  labImages: [],
 });
 
 export const defaultGalleryDraft = (): GalleryDraft => ({
@@ -107,6 +136,8 @@ export const defaultGalleryDraft = (): GalleryDraft => ({
   tags: '',
   software: '',
   info: '',
+  featured: false,
+  workPriorityRank: '',
 });
 
 export const splitList = (value: string) =>
@@ -287,6 +318,8 @@ export function toProjectDraft(project?: Project): ProjectDraft {
     moodboardImages: joinList(project.moodboardImages),
     outcomeVisuals: joinList(project.outcomeVisuals),
     outcomeResultCopy: project.outcomeResultCopy ?? '',
+    featured: project.featured ?? false,
+    workPriorityRank: project.workPriorityRank ? String(project.workPriorityRank) : '',
   };
 }
 
@@ -301,6 +334,8 @@ export function toVideoDraft(video?: Video): VideoDraft {
     url: video.url ?? '',
     thumbnail: video.thumbnail ?? '',
     description: video.description ?? '',
+    featured: video.featured ?? false,
+    workPriorityRank: video.workPriorityRank ? String(video.workPriorityRank) : '',
   };
 }
 
@@ -317,6 +352,15 @@ export function toLabDraft(item?: LabItem): LabDraft {
     code: item.code ?? '',
     tools: joinList(item.tools),
     date: item.date ?? new Date().toISOString().slice(0, 10),
+    timeline: item.timeline ?? '',
+    role: item.role ?? '',
+    brief: item.brief ?? '',
+    context: item.context ?? '',
+    problem: item.problem ?? '',
+    insights: item.insights ?? '',
+    solution: item.solution ?? '',
+    outcome: item.outcome ?? '',
+    labImages: item.labImages ?? [],
   };
 }
 
@@ -331,6 +375,8 @@ export function toGalleryDraft(item?: GalleryImage): GalleryDraft {
     tags: joinList(item.tags),
     software: item.software ?? '',
     info: item.info ?? '',
+    featured: item.featured ?? false,
+    workPriorityRank: item.workPriorityRank ? String(item.workPriorityRank) : '',
   };
 }
 

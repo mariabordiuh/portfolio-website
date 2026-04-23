@@ -32,7 +32,7 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
   'Art Direction': null,
 };
 
-const INITIAL_VISIBLE_ITEMS = 4;
+const INITIAL_VISIBLE_ITEMS = 12;
 const VISIBLE_ITEMS_INCREMENT = 12;
 const PRELOAD_BATCH_SIZE = 12;
 
@@ -379,11 +379,8 @@ export const Work = () => {
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] py-32 text-center">
-            <h3 className="mb-4 text-2xl font-black uppercase tracking-tighter opacity-60">
-              No work matches this filter
-            </h3>
-            <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">
-              Try a different pillar or clear the active tool filter.
+            <p className="text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
+              Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
             </p>
           </div>
         ) : (

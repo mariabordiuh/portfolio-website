@@ -63,7 +63,7 @@ export const WorkSection = () => {
           <MasonryPortfolioGrid items={featuredItems} onPreview={handlePreview} />
         ) : (
           <div className="py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono bg-white/5 border border-white/5 rounded-3xl glass">
-            nothing here yet. come back with coffee.
+            Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
           </div>
         )}
       </RevealOnScroll>

@@ -24,9 +24,11 @@ import {
   EditorStatusPanel,
   FormActions,
   LongField,
+  NumberField,
   SelectField,
   StorageImageField,
   TextField,
+  ToggleField,
 } from './admin-ui';
 
 export function GalleryAdmin() {
@@ -91,6 +93,8 @@ export function GalleryAdmin() {
       tags: splitList(draft.tags),
       software: trimValue(draft.software) || undefined,
       info: trimValue(draft.info) || undefined,
+      featured: draft.featured,
+      workPriorityRank: draft.workPriorityRank ? Number(draft.workPriorityRank) : null,
     }),
     [draft],
   );
@@ -255,6 +259,29 @@ export function GalleryAdmin() {
               </div>
             </EditorSection>
           ) : null}
+
+          <EditorSection
+            title="Visibility"
+            description="Controls whether this image appears in Selected Works and the Work page priority grid."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <ToggleField
+                label="Featured"
+                hint="Show in Selected Works on the homepage"
+                value={draft.featured}
+                onChange={(value) => setDraft((prev) => ({ ...prev, featured: value }))}
+              />
+              <NumberField
+                label="Work priority rank"
+                hint="1–6 sets position in the priority grid, empty = not ranked"
+                placeholder="Leave empty or enter 1–6"
+                value={draft.workPriorityRank}
+                min={1}
+                max={6}
+                onChange={(value) => setDraft((prev) => ({ ...prev, workPriorityRank: value }))}
+              />
+            </div>
+          </EditorSection>
         </div>
       }
       actions={
