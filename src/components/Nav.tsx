@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { PrefetchLink } from './PrefetchLink';
 
 const MariaLogo = () => (
   <svg
@@ -113,19 +114,19 @@ export const Nav = () => {
       scrolled ? "py-4" : "py-6"
     )}>
 
-      <Link 
+      <PrefetchLink
         to="/" 
         onClick={handleLogoClick}
         className="block hover:opacity-70 transition-opacity"
         aria-label="Maria Bordiuh home"
       >
         <MariaLogo />
-      </Link>
+      </PrefetchLink>
 
       {/* Desktop Nav */}
       <div className="hidden md:flex gap-8 items-center">
         {navLinks.map((link) => (
-          <Link
+          <PrefetchLink
             key={link.path}
             to={link.path}
             aria-current={
@@ -141,7 +142,7 @@ export const Nav = () => {
             )}
           >
             {link.name}
-          </Link>
+          </PrefetchLink>
         ))}
       </div>
 
@@ -178,7 +179,7 @@ export const Nav = () => {
             </button>
             
             {navLinks.map((link) => (
-              <Link
+              <PrefetchLink
                 key={link.path}
                 to={link.path}
                 aria-current={
@@ -189,7 +190,7 @@ export const Nav = () => {
                 className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
               >
                 {link.name}
-              </Link>
+              </PrefetchLink>
             ))}
           </motion.div>
         )}

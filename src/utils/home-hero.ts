@@ -1,22 +1,19 @@
 import { HomeHeroSettings } from '../types';
 
-export const DEFAULT_HOME_HERO_VIDEO = '/media/hero-luminous-cat-mirrored.mp4';
-export const DEFAULT_HOME_HERO_POSTER = '/media/hero-luminous-cat-poster.jpg';
-export const DEFAULT_HOME_HERO_IMAGE = DEFAULT_HOME_HERO_POSTER;
 export const HOME_HERO_SETTINGS_ID = 'homeHero';
 
 const trim = (value?: string) => value?.trim() || '';
 
 export const DEFAULT_HOME_HERO_SETTINGS: HomeHeroSettings = {
   id: HOME_HERO_SETTINGS_ID,
-  mode: 'video',
+  mode: 'image',
   flipHorizontal: false,
   flipPosterHorizontal: false,
-  desktopImage: DEFAULT_HOME_HERO_POSTER,
+  desktopImage: '',
   mobileImage: '',
-  desktopVideo: DEFAULT_HOME_HERO_VIDEO,
+  desktopVideo: '',
   mobileVideo: '',
-  posterImage: DEFAULT_HOME_HERO_POSTER,
+  posterImage: '',
 };
 
 export const normalizeHomeHeroSettings = (
@@ -26,11 +23,11 @@ export const normalizeHomeHeroSettings = (
   mode: settings?.mode === 'video' ? 'video' : 'image',
   flipHorizontal: Boolean(settings?.flipHorizontal),
   flipPosterHorizontal: Boolean(settings?.flipPosterHorizontal),
-  desktopImage: trim(settings?.desktopImage) || DEFAULT_HOME_HERO_SETTINGS.desktopImage,
+  desktopImage: trim(settings?.desktopImage),
   mobileImage: trim(settings?.mobileImage),
   desktopVideo: trim(settings?.desktopVideo),
   mobileVideo: trim(settings?.mobileVideo),
-  posterImage: trim(settings?.posterImage) || trim(settings?.desktopImage) || DEFAULT_HOME_HERO_SETTINGS.posterImage,
+  posterImage: trim(settings?.posterImage) || trim(settings?.desktopImage),
   createdAt: settings?.createdAt,
   updatedAt: settings?.updatedAt,
 });

@@ -3,14 +3,15 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase-firestore';
 import { Project, Video, GalleryImage } from '../types';
 import { normalizeProject, toPortfolioItem, videoToPortfolioItem, galleryToPortfolioItem, PortfolioItem } from '../utils/portfolio';
+import { readSessionCache, writeSessionCache } from '../utils/session-cache';
 
 /**
  * Lightweight hook that only fetches documents where `featured == true`.
  * This avoids downloading entire collections on the homepage.
  */
 export const useFeaturedItems = () => {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<PortfolioItem[]>(() => readSessionCache<PortfolioItem[]>('featured-items') || []);
+  const [loading, setLoading] = useState(() => !readSessionCache<PortfolioItem[]>('featured-items'));
 
   useEffect(() => {
     let projectsDone = false;
@@ -29,7 +30,9 @@ export const useFeaturedItems = () => {
 
     const merge = () => {
       if (projectsDone && videosDone && galleryDone) {
-        setItems([...featuredProjects, ...featuredVideos, ...featuredGallery]);
+        const nextItems = [...featuredProjects, ...featuredVideos, ...featuredGallery];
+        setItems(nextItems);
+        writeSessionCache('featured-items', nextItems);
         setLoading(false);
       }
     };

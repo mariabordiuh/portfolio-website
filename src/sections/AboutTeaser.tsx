@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { RevealOnScroll } from '../components/RevealOnScroll';
+import { PrefetchLink } from '../components/PrefetchLink';
 
 export const AboutTeaser = () => {
   return (
@@ -24,13 +24,13 @@ export const AboutTeaser = () => {
 
         <RevealOnScroll delay={0.12}>
           <div className="mt-12 flex flex-wrap items-center gap-5">
-            <Link
+            <PrefetchLink
               to="/about"
               className="group inline-flex items-center gap-3 rounded-full border border-white/10 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-white hover:text-black font-mono"
             >
               More about me
               <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </Link>
+            </PrefetchLink>
             <a
               href="mailto:mariabordiuh@gmail.com"
               className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-brand-accent font-mono"

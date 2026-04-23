@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const packageNameFromId = (id: string) => {
   const normalizedId = id.split('\\').join('/');
@@ -23,8 +24,20 @@ const packageNameFromId = (id: string) => {
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const shouldAnalyze = env.ANALYZE === 'true';
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      shouldAnalyze
+        ? visualizer({
+            filename: 'dist/bundle-analysis.html',
+            gzipSize: true,
+            brotliSize: true,
+            template: 'treemap',
+          })
+        : null,
+    ].filter(Boolean),
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },

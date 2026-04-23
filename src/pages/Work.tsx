@@ -110,6 +110,7 @@ export const Work = () => {
         if (item.pillar === 'AI Generated') return !isAiVideo;
         if (item.pillar === 'Illustration & Design') return !isSketchbook;
         if (item.pillar === 'Animation & Motion') return !isCutOut && !isMotion;
+        if (item.pillar === 'Art Direction') return false;
         return true;
       }
 

@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { Project } from '../types';
+import { PrefetchLink } from './PrefetchLink';
 
 interface StackedProjectCardProps {
   project: Project;
@@ -22,7 +22,7 @@ export const StackedProjectCard = ({ project, index }: StackedProjectCardProps) 
           <h3 className="text-5xl md:text-7xl font-bold tracking-tighter uppercase mb-6 leading-none">{project.title}</h3>
           <p className="text-xl text-brand-muted max-w-md leading-relaxed">{project.description}</p>
         </div>
-        <Link 
+        <PrefetchLink
           to={`/work/${project.id}`}
           className="group flex items-center gap-4 text-sm uppercase tracking-widest w-fit"
         >
@@ -30,7 +30,7 @@ export const StackedProjectCard = ({ project, index }: StackedProjectCardProps) 
           <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-brand-accent group-hover:text-brand-bg transition-all">
             <ArrowUpRight size={16} />
           </div>
-        </Link>
+        </PrefetchLink>
       </div>
       <div className="flex-1 aspect-video md:aspect-auto bg-white/5 rounded-2xl overflow-hidden relative">
         <div className="grain-overlay" />

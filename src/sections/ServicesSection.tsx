@@ -90,7 +90,7 @@ export const ServicesSection = () => {
               {group.services.map((service) => (
                 <li
                   key={service}
-                  className="text-[11px] text-white/55 uppercase tracking-[0.15em] leading-relaxed font-medium hover:text-white transition-colors duration-300 cursor-default whitespace-nowrap"
+                  className="text-[11px] text-white/55 uppercase tracking-[0.15em] leading-relaxed font-medium whitespace-nowrap"
                 >
                   {service}
                 </li>

@@ -5,6 +5,7 @@ import { handleFirestoreError, OperationType } from '../utils/error-handlers';
 import { Project, Video, LabItem, GalleryImage, HomeHeroSettings } from '../types';
 import { DEFAULT_HOME_HERO_SETTINGS, HOME_HERO_SETTINGS_ID, normalizeHomeHeroSettings } from '../utils/home-hero';
 import { normalizeProject } from '../utils/portfolio';
+import { readSessionCache, writeSessionCache } from '../utils/session-cache';
 
 type DataCollectionKey = 'projects' | 'videos' | 'labItems' | 'galleryImages' | 'homeHero';
 type DataCollectionConfig = Partial<Record<DataCollectionKey, boolean>>;
@@ -37,6 +38,14 @@ const DEFAULT_COLLECTIONS: Record<DataCollectionKey, boolean> = {
   homeHero: false,
 };
 
+const CACHE_KEYS: Record<DataCollectionKey, string> = {
+  projects: 'projects',
+  videos: 'videos',
+  labItems: 'lab-items',
+  galleryImages: 'gallery-images',
+  homeHero: 'home-hero',
+};
+
 const resolveCollections = (collections?: DataCollectionConfig) => ({
   projects: collections?.projects ?? DEFAULT_COLLECTIONS.projects,
   videos: collections?.videos ?? DEFAULT_COLLECTIONS.videos,
@@ -64,12 +73,28 @@ export const DataProvider = ({
 
   useEffect(() => {
     setLoading(true);
-    setProjects([]);
-    setVideos([]);
-    setLabItems([]);
-    setGalleryImages([]);
-    setHomeHero(DEFAULT_HOME_HERO_SETTINGS);
-    setHomeHeroReady(!enabledCollections.homeHero);
+    const cachedProjects = enabledCollections.projects
+      ? readSessionCache<Project[]>(CACHE_KEYS.projects)
+      : null;
+    const cachedVideos = enabledCollections.videos
+      ? readSessionCache<Video[]>(CACHE_KEYS.videos)
+      : null;
+    const cachedLabItems = enabledCollections.labItems
+      ? readSessionCache<LabItem[]>(CACHE_KEYS.labItems)
+      : null;
+    const cachedGalleryImages = enabledCollections.galleryImages
+      ? readSessionCache<GalleryImage[]>(CACHE_KEYS.galleryImages)
+      : null;
+    const cachedHomeHero = enabledCollections.homeHero
+      ? readSessionCache<HomeHeroSettings>(CACHE_KEYS.homeHero)
+      : null;
+
+    setProjects(cachedProjects || []);
+    setVideos(cachedVideos || []);
+    setLabItems(cachedLabItems || []);
+    setGalleryImages(cachedGalleryImages || []);
+    setHomeHero(cachedHomeHero || DEFAULT_HOME_HERO_SETTINGS);
+    setHomeHeroReady(!enabledCollections.homeHero || Boolean(cachedHomeHero));
 
     const unsubscribers: Array<() => void> = [];
 
@@ -110,9 +135,11 @@ export const DataProvider = ({
 
     if (enabledCollections.projects) {
       const unsubProjects = onSnapshot(collection(db, 'projects'), (snapshot) => {
-        setProjects(
-          snapshot.docs.map((entry) => normalizeProject({ id: entry.id, ...entry.data() } as Project)),
+        const nextProjects = snapshot.docs.map((entry) =>
+          normalizeProject({ id: entry.id, ...entry.data() } as Project),
         );
+        setProjects(nextProjects);
+        writeSessionCache(CACHE_KEYS.projects, nextProjects);
         projectsLoaded = true;
         checkAllLoaded();
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'projects'));
@@ -121,7 +148,9 @@ export const DataProvider = ({
 
     if (enabledCollections.videos) {
       const unsubVideos = onSnapshot(collection(db, 'videos'), (snapshot) => {
-        setVideos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Video)));
+        const nextVideos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Video));
+        setVideos(nextVideos);
+        writeSessionCache(CACHE_KEYS.videos, nextVideos);
         videosLoaded = true;
         checkAllLoaded();
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'videos'));
@@ -130,7 +159,9 @@ export const DataProvider = ({
 
     if (enabledCollections.labItems) {
       const unsubLab = onSnapshot(collection(db, 'labItems'), (snapshot) => {
-        setLabItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LabItem)));
+        const nextLabItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LabItem));
+        setLabItems(nextLabItems);
+        writeSessionCache(CACHE_KEYS.labItems, nextLabItems);
         labItemsLoaded = true;
         checkAllLoaded();
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'labItems'));
@@ -139,7 +170,9 @@ export const DataProvider = ({
 
     if (enabledCollections.galleryImages) {
       const unsubGallery = onSnapshot(collection(db, 'gallery'), (snapshot) => {
-        setGalleryImages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryImage)));
+        const nextGalleryImages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryImage));
+        setGalleryImages(nextGalleryImages);
+        writeSessionCache(CACHE_KEYS.galleryImages, nextGalleryImages);
         galleryLoaded = true;
         checkAllLoaded();
       }, (err) => handleFirestoreError(err, OperationType.LIST, 'gallery'));
@@ -150,11 +183,11 @@ export const DataProvider = ({
       const unsubHomeHero = onSnapshot(
         doc(db, 'settings', HOME_HERO_SETTINGS_ID),
         (snapshot) => {
-          setHomeHero(
-            snapshot.exists()
-              ? normalizeHomeHeroSettings({ id: snapshot.id, ...snapshot.data() } as Partial<HomeHeroSettings>)
-              : DEFAULT_HOME_HERO_SETTINGS,
-          );
+          const nextHomeHero = snapshot.exists()
+            ? normalizeHomeHeroSettings({ id: snapshot.id, ...snapshot.data() } as Partial<HomeHeroSettings>)
+            : DEFAULT_HOME_HERO_SETTINGS;
+          setHomeHero(nextHomeHero);
+          writeSessionCache(CACHE_KEYS.homeHero, nextHomeHero);
           setHomeHeroReady(true);
           homeHeroLoaded = true;
           checkAllLoaded();

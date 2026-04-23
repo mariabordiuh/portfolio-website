@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
+import { PrefetchLink } from './PrefetchLink';
 
 const ASCII_COFFEE_STYLES = `
   .ascii-coffee-footer {
@@ -166,21 +167,8 @@ const ASCII_COFFEE_STYLES = `
   }
 
   @media (max-width: 860px) {
-    .ascii-coffee-stage {
-      height: 250px;
-    }
-
-    .ascii-cup {
+    .ascii-coffee-footer {
       display: none;
-    }
-
-    .ascii-coffee-cluster {
-      gap: 0;
-    }
-
-    .ascii-carafe {
-      transform: scale(0.72);
-      transform-origin: center bottom;
     }
   }
 
@@ -436,45 +424,39 @@ const FooterAsciiCoffee = () => {
   );
 };
 
+const MobileCoffeeMark = () => (
+  <div className="border-t border-white/5 px-6 py-10 md:hidden" aria-hidden="true">
+    <div className="font-mono text-[10px] uppercase leading-loose tracking-[0.28em] text-brand-muted/70">
+      <span className="text-brand-accent">coffee</span>
+      <span className="mx-3 text-white/20">/</span>
+      chaos
+      <span className="mx-3 text-white/20">/</span>
+      pixels
+    </div>
+  </div>
+);
+
 export const Footer = () => {
   const { pathname } = useLocation();
-  const showCta = pathname === '/' || pathname === '/about';
 
   return (
     <footer className="bg-brand-bg border-t border-white/5">
       <style>{ASCII_COFFEE_STYLES}</style>
 
-      {showCta && (
-        <div className="max-w-lg px-6 pb-14 pt-20">
-          <h3 className="mb-4 text-4xl font-bold leading-none tracking-tighter">
-            Let's build something amazing together.
-          </h3>
-          <p className="mb-8 text-sm text-brand-muted">
-            Available for freelance projects and creative collaborations worldwide.
-          </p>
-          <a
-            href="mailto:mariabordiuh@gmail.com"
-            className="border-b border-brand-accent pb-1 text-xl font-medium transition-colors hover:text-brand-accent"
-          >
-            mariabordiuh@gmail.com
-          </a>
-        </div>
-      )}
-
       <div
-        className={`flex flex-wrap items-center justify-between gap-6 border-t border-white/5 px-6 py-8 ${
-          !showCta ? 'pt-16' : ''
+        className={`flex flex-wrap items-center justify-between gap-6 px-6 py-8 md:px-12 ${
+          pathname === '/' || pathname === '/about' ? '' : 'pt-16'
         }`}
       >
         <nav className="flex flex-wrap items-center gap-6">
           {FOOTER_LINKS.map((link) => (
-            <Link
+            <PrefetchLink
               key={link.path}
               to={link.path}
               className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted transition-colors hover:text-white"
             >
               {link.name}
-            </Link>
+            </PrefetchLink>
           ))}
           <a
             href="mailto:mariabordiuh@gmail.com"
@@ -505,8 +487,9 @@ export const Footer = () => {
       </div>
 
       <FooterAsciiCoffee />
+      <MobileCoffeeMark />
 
-      <div className="border-t border-white/5 px-6 py-6 flex flex-col gap-2">
+      <div className="border-t border-white/5 px-6 py-6 md:px-12 flex flex-col gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">
           © 2026 Maria Bordiuh
         </span>

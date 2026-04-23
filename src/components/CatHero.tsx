@@ -1,10 +1,20 @@
+import { useEffect, useState } from 'react';
 import { motion, type Variants } from 'motion/react';
 import { useData } from '../context/DataContext';
 
 export const CatHero = () => {
-  const { homeHero } = useData();
+  const { homeHero, homeHeroReady } = useData();
+  const [mediaLoaded, setMediaLoaded] = useState(false);
   const headline = "Visuals, motion & systems.";
   const words = headline.split(" ");
+  const heroVideoSrc = homeHero.desktopVideo || homeHero.mobileVideo || '';
+  const heroImageSrc = homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage || '';
+  const hasHeroVideo = homeHeroReady && homeHero.mode === 'video' && Boolean(heroVideoSrc);
+  const hasHeroImage = homeHeroReady && !hasHeroVideo && Boolean(heroImageSrc);
+
+  useEffect(() => {
+    setMediaLoaded(false);
+  }, [heroImageSrc, heroVideoSrc, homeHero.mode]);
 
   const containerVariants = {
     hidden: {},
@@ -29,28 +39,31 @@ export const CatHero = () => {
       
       {/* Background Full-Screen Dynamic Media */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {homeHero.mode === 'video' && (homeHero.desktopVideo || homeHero.mobileVideo) ? (
+        {hasHeroVideo ? (
           <motion.video
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            src={homeHero.desktopVideo || homeHero.mobileVideo}
+            animate={{ opacity: mediaLoaded ? 1 : 0 }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            src={heroVideoSrc}
             className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
             autoPlay
             muted
             loop
             playsInline
+            onCanPlay={() => setMediaLoaded(true)}
+            onPlaying={() => setMediaLoaded(true)}
           />
-        ) : (
+        ) : hasHeroImage ? (
           <motion.img
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            src={homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage}
+            animate={{ opacity: mediaLoaded ? 1 : 0 }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            src={heroImageSrc}
             alt="Hero Media"
             className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+            onLoad={() => setMediaLoaded(true)}
           />
-        )}
+        ) : null}
         
         {/* Gradients optimized to shadow only the text area (Bottom + Left) leaving the rest completely exposed */}
         <div className="absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent" />

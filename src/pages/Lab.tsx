@@ -111,7 +111,7 @@ export const Lab = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="w-full max-w-4xl glass rounded-[3rem] overflow-hidden p-8 md:p-12 relative"
+                className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto glass rounded-[3rem] p-8 md:p-12"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="flex justify-between items-start mb-8">
@@ -123,7 +123,7 @@ export const Lab = () => {
                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-6 leading-none">{activeItem.title}</h2>
                 <div className="grid md:grid-cols-2 gap-12 items-start">
                   <div>
-                    <p className="text-brand-muted text-lg leading-relaxed mb-8 italic">{activeItem.content}</p>
+                    <p className="whitespace-pre-line text-brand-muted text-base md:text-lg leading-relaxed mb-8">{activeItem.content}</p>
                     <div className="flex flex-wrap gap-2 mb-8">
                       {activeItem.tools.map(tool => (
                         <Tag 

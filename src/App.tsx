@@ -10,30 +10,43 @@ import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
 import { UnderConstruction } from './pages/UnderConstruction';
+import {
+  loadAboutRoute,
+  loadAdminDataShell,
+  loadAdminRoute,
+  loadHomeRoute,
+  loadLabDataShell,
+  loadLabRoute,
+  loadNotFoundRoute,
+  loadPortfolioDataShell,
+  loadProjectDetailRoute,
+  loadProjectsDataShell,
+  loadWorkRoute,
+} from './utils/route-prefetch';
 
-const Home = lazy(() => import('./pages/Home').then((module) => ({ default: module.Home })));
-const Work = lazy(() => import('./pages/Work').then((module) => ({ default: module.Work })));
+const Home = lazy(() => loadHomeRoute().then((module) => ({ default: module.Home })));
+const Work = lazy(() => loadWorkRoute().then((module) => ({ default: module.Work })));
 const ProjectDetail = lazy(() =>
-  import('./pages/ProjectDetail').then((module) => ({ default: module.ProjectDetail })),
+  loadProjectDetailRoute().then((module) => ({ default: module.ProjectDetail })),
 );
-const Lab = lazy(() => import('./pages/Lab').then((module) => ({ default: module.Lab })));
-const About = lazy(() => import('./pages/About').then((module) => ({ default: module.About })));
-const Admin = lazy(() => import('./pages/Admin').then((module) => ({ default: module.Admin })));
+const Lab = lazy(() => loadLabRoute().then((module) => ({ default: module.Lab })));
+const About = lazy(() => loadAboutRoute().then((module) => ({ default: module.About })));
+const Admin = lazy(() => loadAdminRoute().then((module) => ({ default: module.Admin })));
 const NotFound = lazy(() =>
-  import('./pages/NotFound').then((module) => ({ default: module.NotFound })),
+  loadNotFoundRoute().then((module) => ({ default: module.NotFound })),
 );
 
 const ProjectsDataShell = lazy(() =>
-  import('./route-shells/ProjectsDataShell').then((module) => ({ default: module.ProjectsDataShell })),
+  loadProjectsDataShell().then((module) => ({ default: module.ProjectsDataShell })),
 );
 const PortfolioDataShell = lazy(() =>
-  import('./route-shells/PortfolioDataShell').then((module) => ({ default: module.PortfolioDataShell })),
+  loadPortfolioDataShell().then((module) => ({ default: module.PortfolioDataShell })),
 );
 const LabDataShell = lazy(() =>
-  import('./route-shells/LabDataShell').then((module) => ({ default: module.LabDataShell })),
+  loadLabDataShell().then((module) => ({ default: module.LabDataShell })),
 );
 const AdminDataShell = lazy(() =>
-  import('./route-shells/AdminDataShell').then((module) => ({ default: module.AdminDataShell })),
+  loadAdminDataShell().then((module) => ({ default: module.AdminDataShell })),
 );
 
 const LoadingFallback = () => (
