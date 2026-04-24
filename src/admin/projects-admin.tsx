@@ -68,8 +68,24 @@ export function ProjectsAdmin() {
     }
 
     return toProjectDraft(selectedItem);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCreatingNew, selectedItem]);
+
+  const previousSelectionRef = useRef<{ selectedId: string | null; isCreatingNew: boolean }>({
+    selectedId,
+    isCreatingNew,
+  });
+  useEffect(() => {
+    const previousSelection = previousSelectionRef.current;
+    const selectionChanged =
+      previousSelection.selectedId !== selectedId ||
+      previousSelection.isCreatingNew !== isCreatingNew;
+
+    if (selectionChanged || !isDirtyRef.current) {
+      setDraft(baselineDraft);
+    }
+
+    previousSelectionRef.current = { selectedId, isCreatingNew };
+  }, [baselineDraft, isCreatingNew, selectedId]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -87,11 +103,6 @@ export function ProjectsAdmin() {
   });
   const isDirtyRef = useRef(false);
   useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
-  useEffect(() => {
-    if (!isDirtyRef.current) {
-      setDraft(baselineDraft);
-    }
-  }, [baselineDraft]);
   const payload = useMemo(
     () => ({
       title: trimValue(draft.title),

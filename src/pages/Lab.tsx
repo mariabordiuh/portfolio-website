@@ -46,9 +46,10 @@ export const Lab = () => {
           ) : (
             labItems.map((item, index) => (
               <RevealOnScroll key={item.id} delay={index * 0.05}>
-                <div 
+                <button
+                  type="button"
                   onClick={() => setActiveItem(item)}
-                  className="p-8 bg-white/5 rounded-3xl border border-white/10 flex flex-col gap-6 hover:bg-white/10 transition-colors cursor-pointer group relative overflow-hidden"
+                  className="group relative flex w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
                 >
                   <div className="flex justify-between items-start z-10">
                     <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
@@ -86,7 +87,7 @@ export const Lab = () => {
                       ))}
                     </div>
                   </div>
-                </div>
+                </button>
               </RevealOnScroll>
             ))
           )}
