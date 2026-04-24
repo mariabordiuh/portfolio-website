@@ -476,7 +476,7 @@ export const Footer = () => {
 
       <FooterAsciiCoffee />
 
-      <div className="border-t border-white/5 px-6 py-6 md:px-12 flex flex-col gap-2">
+      <div className="border-t border-white/5 px-6 pt-6 pb-10 md:px-12 md:pb-12 flex flex-col gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">
           © 2026 Maria Bordiuh
         </span>
