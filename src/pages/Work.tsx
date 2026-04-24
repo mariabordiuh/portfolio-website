@@ -279,7 +279,7 @@ export const Work = () => {
           </motion.h1>
 
           <div className="mt-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-t border-white/5 pt-8">
-            <div className="flex w-full items-center gap-3 overflow-x-auto pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex w-full flex-wrap items-center gap-2 md:flex-nowrap md:gap-3 md:overflow-x-auto md:pb-0 md:[&::-webkit-scrollbar]:hidden md:[-ms-overflow-style:none] md:[scrollbar-width:none]">
               <button
                 type="button"
                 onClick={() => handlePillarChange('All')}

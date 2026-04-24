@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { useLenis } from 'lenis/react';
 
 const SCROLL_THRESHOLD = 600;
+const FOOTER_BUFFER = 80;
 
 export const ScrollToTop = () => {
   const [visible, setVisible] = useState(false);
@@ -13,13 +14,22 @@ export const ScrollToTop = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setVisible(window.scrollY > SCROLL_THRESHOLD);
+      const scrolledEnough = window.scrollY > SCROLL_THRESHOLD;
+      const footer = document.querySelector('footer');
+      const footerEncroaching = footer
+        ? footer.getBoundingClientRect().top < window.innerHeight - FOOTER_BUFFER
+        : false;
+      setVisible(scrolledEnough && !footerEncroaching);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     handleScroll();
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   useEffect(() => {
