@@ -424,18 +424,6 @@ const FooterAsciiCoffee = () => {
   );
 };
 
-const MobileCoffeeMark = () => (
-  <div className="border-t border-white/5 px-6 py-10 md:hidden" aria-hidden="true">
-    <div className="font-mono text-[10px] uppercase leading-loose tracking-[0.28em] text-brand-muted/70">
-      <span className="text-brand-accent">coffee</span>
-      <span className="mx-3 text-white/20">/</span>
-      chaos
-      <span className="mx-3 text-white/20">/</span>
-      pixels
-    </div>
-  </div>
-);
-
 export const Footer = () => {
   const { pathname } = useLocation();
 
@@ -487,7 +475,6 @@ export const Footer = () => {
       </div>
 
       <FooterAsciiCoffee />
-      <MobileCoffeeMark />
 
       <div className="border-t border-white/5 px-6 py-6 md:px-12 flex flex-col gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">

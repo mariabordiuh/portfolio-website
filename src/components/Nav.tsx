@@ -108,6 +108,7 @@ export const Nav = () => {
   ];
 
   return (
+    <>
     <nav className={cn(
       "fixed top-0 left-0 w-full z-50 px-6 md:px-12 xl:px-20 flex justify-between items-center transition-all duration-500",
       "bg-black/40 backdrop-blur-xl border-b border-white/5",
@@ -156,45 +157,46 @@ export const Nav = () => {
       >
         {isOpen ? <X /> : <Menu />}
       </button>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            id="mobile-navigation"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Main navigation"
-            className="fixed inset-0 bg-brand-bg flex flex-col items-center justify-center gap-8 z-40"
-          >
-            <button 
-              className="absolute top-8 right-6 text-white" 
-              onClick={() => setIsOpen(false)}
-              aria-label="Close menu"
-            >
-              <X size={32} />
-            </button>
-            
-            {navLinks.map((link) => (
-              <PrefetchLink
-                key={link.path}
-                to={link.path}
-                aria-current={
-                  location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
-                    ? 'page'
-                    : undefined
-                }
-                className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
-              >
-                {link.name}
-              </PrefetchLink>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
+
+    {/* Mobile Menu — rendered outside <nav> because backdrop-blur creates a containing block for fixed descendants */}
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          id="mobile-navigation"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Main navigation"
+          className="fixed inset-0 bg-brand-bg flex flex-col items-center justify-center gap-8 z-[60] px-6 pt-24 pb-16 overflow-y-auto md:hidden"
+        >
+          <button
+            className="absolute top-8 right-6 text-white"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={32} />
+          </button>
+
+          {navLinks.map((link) => (
+            <PrefetchLink
+              key={link.path}
+              to={link.path}
+              aria-current={
+                location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
+                  ? 'page'
+                  : undefined
+              }
+              className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
+            >
+              {link.name}
+            </PrefetchLink>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 };
