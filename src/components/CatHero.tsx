@@ -8,7 +8,9 @@ export const CatHero = () => {
   const headline = "Visuals, motion & systems.";
   const words = headline.split(" ");
   const heroVideoSrc = homeHero.desktopVideo || homeHero.mobileVideo || '';
-  const heroImageSrc = homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage || '';
+  const desktopImageSrc = homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage || '';
+  const mobileImageSrc = homeHero.mobileImage || homeHero.posterImage || desktopImageSrc;
+  const heroImageSrc = desktopImageSrc || mobileImageSrc;
   const hasHeroVideo = homeHeroReady && homeHero.mode === 'video' && Boolean(heroVideoSrc);
   const hasHeroImage = homeHeroReady && !hasHeroVideo && Boolean(heroImageSrc);
 
@@ -54,15 +56,23 @@ export const CatHero = () => {
             onPlaying={() => setMediaLoaded(true)}
           />
         ) : hasHeroImage ? (
-          <motion.img
+          <motion.picture
             initial={{ opacity: 0 }}
             animate={{ opacity: mediaLoaded ? 1 : 0 }}
             transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-            src={heroImageSrc}
-            alt="Hero Media"
-            className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
-            onLoad={() => setMediaLoaded(true)}
-          />
+            className="block h-full w-full"
+          >
+            <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
+            <img
+              src={desktopImageSrc}
+              alt="Hero Media"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              onLoad={() => setMediaLoaded(true)}
+            />
+          </motion.picture>
         ) : null}
         
         {/* Gradients optimized to shadow only the text area (Bottom + Left) leaving the rest completely exposed */}
