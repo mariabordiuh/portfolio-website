@@ -22,9 +22,9 @@ const ModalImage = ({ src, alt, className }: { src: string; alt: string; classNa
 );
 
 const videoFrameStyle = {
-  width: 'min(100%, 960px, calc((100vh - 320px) * 16 / 9))',
+  width: 'min(100%, 920px, calc((100svh - 260px) * 16 / 9))',
   maxWidth: '100%',
-  maxHeight: 'calc(100vh - 320px)',
+  maxHeight: 'calc(100svh - 260px)',
 } as const;
 
 export const PortfolioPreviewModal = ({
@@ -162,7 +162,7 @@ export const PortfolioPreviewModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[120] overflow-hidden bg-black/90 p-4 backdrop-blur-2xl md:p-8"
+      className="fixed inset-0 z-[120] overflow-hidden bg-black/90 p-2 backdrop-blur-2xl sm:p-4 md:p-8"
       onClick={onClose}
       role="presentation"
     >
@@ -171,14 +171,14 @@ export const PortfolioPreviewModal = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.98 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
-        className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[2.75rem] border border-white/10 bg-brand-bg shadow-2xl"
+        className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[1.8rem] border border-white/10 bg-brand-bg shadow-2xl sm:rounded-[2.2rem] md:rounded-[2.75rem]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={item.description ? descriptionId : undefined}
       >
-        <header className="flex items-start justify-between gap-6 border-b border-white/5 px-6 py-6 md:px-8">
+        <header className="flex items-start justify-between gap-4 border-b border-white/5 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 md:px-8">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-brand-accent/30 bg-brand-accent/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
@@ -191,7 +191,7 @@ export const PortfolioPreviewModal = ({
               ) : null}
             </div>
             <div>
-              <h2 id={titleId} className="text-3xl font-black uppercase tracking-tight md:text-5xl">
+              <h2 id={titleId} className="text-2xl font-black uppercase tracking-tight sm:text-3xl md:text-5xl">
                 {item.title}
               </h2>
               {item.description ? (
@@ -214,19 +214,19 @@ export const PortfolioPreviewModal = ({
               ))}
             </div>
           </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/20 hover:text-white"
-            aria-label="Close preview"
-          >
-            <X size={18} />
-          </button>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/20 hover:text-white sm:h-12 sm:w-12"
+              aria-label="Close preview"
+            >
+              <X size={18} />
+            </button>
         </header>
 
-        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto overscroll-contain px-6 py-6 md:px-8 md:py-8">
-          <div className="space-y-8">
+        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8">
+          <div className="space-y-6 sm:space-y-8">
             {renderMedia()}
 
             {!isAIItem && (item.categories.length || item.credits?.length) ? (

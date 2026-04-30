@@ -83,7 +83,7 @@ export const HeroSection = () => {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.24)_0%,rgba(5,5,5,0)_26%,rgba(5,5,5,0.12)_60%,rgba(5,5,5,0.72)_100%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] items-end px-6 pb-14 pt-28 md:px-8 md:pb-18 md:pt-36">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] items-end px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28 md:px-8 md:pb-18 md:pt-36">
         <div className="w-full max-w-[760px]">
           <motion.div
             initial="hidden"
@@ -95,11 +95,11 @@ export const HeroSection = () => {
                 },
               },
             }}
-            className="mb-6 md:mb-8"
+            className="mb-5 sm:mb-6 md:mb-8"
           >
             <h1
               className="mb-4 pb-[0.1em] text-left font-black leading-[0.84] tracking-[-0.03em] text-white"
-              style={{ fontSize: 'clamp(2.5rem, 6.5vw, 6.2rem)' }}
+              style={{ fontSize: 'clamp(2.35rem, 8vw, 6.2rem)' }}
             >
               <RevealText>Art direction,</RevealText>
               <RevealText>motion, and</RevealText>
@@ -111,7 +111,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[34rem] text-left text-[clamp(0.9rem,0.5rem+0.8vw,1.1rem)] font-medium leading-relaxed text-white/72"
+            className="max-w-[34rem] text-left text-[clamp(0.92rem,0.68rem+0.8vw,1.1rem)] font-medium leading-relaxed text-white/72"
           >
             Maria Bordiuh. Hamburg-based Art Director and AI Creative Director, working across CGI,
             generative image, motion, and brand systems.

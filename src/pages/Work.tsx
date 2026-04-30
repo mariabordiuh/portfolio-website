@@ -35,7 +35,7 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
 const INITIAL_VISIBLE_ITEMS = 12;
 const VISIBLE_ITEMS_INCREMENT = 12;
 const PRELOAD_BATCH_SIZE = 12;
-const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-4 sm:px-6 md:px-8 xl:px-12';
 
 const normalizeSubcategory = (value?: string | null) =>
   (value ?? '')
@@ -304,8 +304,8 @@ export const Work = () => {
 
   return (
     <PageTransition>
-      <div className={`${SITE_SHELL_CLASS} pb-32 pt-40`}>
-        <header className="mb-14">
+      <div className={`${SITE_SHELL_CLASS} pb-24 pt-32 sm:pb-28 sm:pt-36 md:pb-32 md:pt-40`}>
+        <header className="mb-12 sm:mb-14">
           <motion.h1
             initial="hidden"
             animate="visible"
@@ -320,12 +320,12 @@ export const Work = () => {
             </RevealText>
           </motion.h1>
 
-          <div className="mt-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-t border-white/5 pt-8">
+          <div className="mt-10 flex flex-col gap-5 border-t border-white/5 pt-6 md:mt-12 md:flex-row md:items-center md:justify-between md:gap-6 md:pt-8">
             <div className="flex w-full flex-wrap items-center gap-2 md:flex-nowrap md:gap-3 md:overflow-x-auto md:pb-0 md:[&::-webkit-scrollbar]:hidden md:[-ms-overflow-style:none] md:[scrollbar-width:none]">
               <button
                 type="button"
                 onClick={() => handlePillarChange('All')}
-                className={`flex-shrink-0 rounded-full border px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] transition-all sm:px-5 sm:tracking-[0.2em] ${
                   activePillar === 'All'
                     ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
                     : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
@@ -342,7 +342,7 @@ export const Work = () => {
                     key={pillar}
                     type="button"
                     onClick={() => handlePillarChange(isActive ? 'All' : pillar)}
-                    className={`flex-shrink-0 rounded-full border px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                    className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] transition-all sm:px-5 sm:tracking-[0.2em] ${
                       isActive
                         ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
                         : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
@@ -388,7 +388,7 @@ export const Work = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="mt-4 flex w-full items-center gap-2 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <div className="mt-4 flex w-full items-center gap-2 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:pb-4">
                   <div className="h-4 w-px bg-white/20 ml-2 mr-1 flex-shrink-0" />
                   {SUB_CATEGORIES[activePillar].map((sub) => {
                     const isActive = activeSubcategory === sub;
@@ -397,7 +397,7 @@ export const Work = () => {
                         key={sub}
                         type="button"
                         onClick={() => setActiveSubcategory(sub)}
-                        className={`flex-shrink-0 rounded-full border px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] transition-all ${
+                        className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.16em] transition-all sm:px-4 sm:tracking-[0.2em] ${
                           isActive
                             ? 'border-brand-accent/50 bg-brand-accent/20 text-brand-accent shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]'
                             : 'border-white/5 bg-white/[0.02] text-white/40 hover:border-white/10 hover:text-white/80'

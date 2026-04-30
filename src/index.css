@@ -34,12 +34,17 @@
 @layer base {
   html {
     scroll-behavior: auto;
+    overflow-x: clip;
+    overscroll-behavior-x: none;
   }
 
   body {
     @apply bg-brand-bg text-brand-ink font-sans antialiased selection:bg-brand-accent selection:text-brand-bg;
     min-height: 100vh;
     letter-spacing: 0.008em;
+    overflow-x: clip;
+    overscroll-behavior-x: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   a:focus-visible,

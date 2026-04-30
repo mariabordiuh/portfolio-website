@@ -6,7 +6,7 @@ import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { isEmbeddableVideoUrl, isVideoFileUrl, normalizeProject, toEmbedUrl } from '../utils/portfolio';
 
-const PAGE_SHELL_CLASS = 'mx-auto max-w-[1380px] px-6 md:px-8 xl:px-10';
+const PAGE_SHELL_CLASS = 'mx-auto max-w-[1380px] px-4 sm:px-6 md:px-8 xl:px-10';
 const ARTICLE_TEXT_CLASS = 'max-w-5xl';
 const ARTICLE_MEDIA_CLASS = 'max-w-6xl';
 
@@ -20,14 +20,14 @@ const SectionHeader = ({
   description?: string;
 }) => (
   <div className={ARTICLE_TEXT_CLASS}>
-    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">
       {eyebrow}
     </p>
-    <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+    <h2 className="text-xl font-black uppercase tracking-tight text-white sm:text-2xl md:text-3xl">
       {title}
     </h2>
     {description ? (
-      <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/65">{description}</p>
+      <p className="mt-4 max-w-none text-sm leading-relaxed text-white/65 sm:text-base md:max-w-2xl">{description}</p>
     ) : null}
   </div>
 );
@@ -110,14 +110,14 @@ const TextSection = ({
     <section id={id} className="scroll-mt-28">
       <div className={ARTICLE_TEXT_CLASS}>
         {showEyebrow ? (
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+        <h2 className="text-xl font-black uppercase tracking-tight text-white sm:text-2xl md:text-3xl">
           {title}
         </h2>
-        <p className="mt-4 text-base leading-relaxed text-white/74 md:text-[1.02rem]">{body}</p>
+        <p className="mt-4 text-sm leading-relaxed text-white/74 sm:text-base md:text-[1.02rem]">{body}</p>
       </div>
     </section>
   );
@@ -401,7 +401,7 @@ const MetaBlock = ({
 
   return (
     <div className="space-y-2 border-t border-white/8 pt-4 first:border-t-0 first:pt-0">
-      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">{label}</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">{label}</p>
       <div className="space-y-2 text-sm leading-relaxed text-white/74">{value}</div>
     </div>
   );
@@ -564,15 +564,15 @@ export const ProjectDetail = () => {
 
   return (
     <PageTransition>
-      <article className="bg-brand-bg text-white">
-        <div className={`${PAGE_SHELL_CLASS} grid gap-10 md:grid-cols-[140px_minmax(0,1fr)] md:gap-12`}>
+      <article className="overflow-x-hidden bg-brand-bg text-white">
+        <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[140px_minmax(0,1fr)] md:gap-12`}>
           <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">
             <SideRail links={caseStudyLinks} />
           </div>
 
           <div>
             <section id="overview" className="border-b border-white/5">
-              <div className="pb-16 pt-28 md:pt-32">
+              <div className="pb-14 pt-24 sm:pb-16 sm:pt-28 md:pt-32">
                 <Link
                   to="/work"
                   className="mb-10 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/60 transition-colors hover:text-white md:hidden"
@@ -610,19 +610,19 @@ export const ProjectDetail = () => {
                   transition={{ duration: 0.6, delay: 0.08, ease: 'easeOut' }}
                   className="mt-10 space-y-8"
                 >
-                  <div className="max-w-3xl">
+                  <div className="max-w-5xl">
                     <h1 className="text-fluid-xl font-black uppercase leading-[0.92] tracking-tighter text-white">
                       {normalized.title}
                     </h1>
                     {normalized.description ? (
-                      <p className="mt-6 text-lg leading-relaxed text-white/74 md:text-xl">
+                      <p className="mt-5 max-w-4xl text-base leading-relaxed text-white/74 sm:text-lg md:mt-6 md:text-xl">
                         {normalized.description}
                       </p>
                     ) : null}
                   </div>
 
                   {hasMeta ? (
-                    <div className="grid gap-8 border-t border-white/8 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-6 border-t border-white/8 pt-8 sm:grid-cols-2 lg:grid-cols-4">
                       {metaEntries.map((entry) => (
                         <div
                           key={entry.label}
@@ -637,7 +637,7 @@ export const ProjectDetail = () => {
               </div>
             </section>
 
-            <div className="space-y-20 py-16 md:space-y-24 md:py-20">
+            <div className="space-y-14 py-14 sm:space-y-16 md:space-y-24 md:py-20">
               {sections[0] ? <TextSection {...sections[0]} /> : null}
               {sections[1] ? <TextSection {...sections[1]} /> : null}
 

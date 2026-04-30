@@ -3,7 +3,7 @@ import { RevealOnScroll } from '../components/RevealOnScroll';
 
 export const ContactCTA = () => {
   return (
-    <section className="px-6 py-32 md:px-12 md:py-44">
+    <section className="px-4 py-24 sm:px-6 sm:py-28 md:px-12 md:py-44">
       <div className="mx-auto max-w-7xl">
         <RevealOnScroll>
           <div className="hidden min-h-[34rem] grid-cols-[minmax(0,1fr)_19rem] items-center gap-16 md:grid">
@@ -74,7 +74,7 @@ export const ContactCTA = () => {
           </div>
 
           <div className="md:hidden">
-            <p className="mb-8 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">
+            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.32em] text-brand-muted sm:mb-8 sm:tracking-[0.4em]">
               Studio note
             </p>
             <h2 className="text-4xl font-black uppercase leading-[0.9] tracking-tighter">
@@ -82,15 +82,15 @@ export const ContactCTA = () => {
               <br />
               selected projects<span className="text-brand-accent">.</span>
             </h2>
-            <p className="mt-8 text-sm leading-relaxed text-white/62">
+            <p className="mt-6 text-sm leading-relaxed text-white/62 sm:mt-8">
               I collaborate with brands, agencies, and creative teams on art direction,
               generative image systems, motion, and visual production.
             </p>
 
-            <div className="mt-10 flex flex-col gap-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]">
+            <div className="mt-8 flex flex-col gap-3 font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:mt-10 sm:gap-4 sm:tracking-[0.22em]">
               <a
                 href="mailto:mariabordiuh@gmail.com"
-                className="inline-flex items-center justify-between rounded-full bg-white px-7 py-4 text-black"
+                className="inline-flex items-center justify-between rounded-full bg-white px-6 py-3.5 text-black sm:px-7 sm:py-4"
               >
                 Email me
                 <ArrowUpRight size={14} />
@@ -99,7 +99,7 @@ export const ContactCTA = () => {
                 href="https://www.linkedin.com/in/mariia-bordiuh/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-between rounded-full border border-white/10 px-7 py-4 text-white"
+                className="inline-flex items-center justify-between rounded-full border border-white/10 px-6 py-3.5 text-white sm:px-7 sm:py-4"
               >
                 LinkedIn
                 <ArrowUpRight size={14} />

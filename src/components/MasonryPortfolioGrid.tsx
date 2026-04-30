@@ -121,7 +121,7 @@ const MasonryCard = memo(({
         </div>
         {isArt ? (
           <div className="px-1">
-            <p className="text-xl font-black uppercase tracking-tight text-white md:text-2xl">
+            <p className="text-base font-black uppercase tracking-tight text-white sm:text-lg md:text-2xl">
               {item.title}
             </p>
           </div>
