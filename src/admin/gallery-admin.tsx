@@ -1,7 +1,9 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { DataContext } from '../context/DataContext';
 import { db } from '../firebase-firestore';
+import { storage } from '../firebase-storage';
 import { GalleryImage, ProjectPillar } from '../types';
 import {
   ChecklistItem,
@@ -40,6 +42,13 @@ import {
 
 const dedupe = (values: string[]) =>
   Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+
+const filenameToInfo = (filename: string) =>
+  filename
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export function GalleryAdmin() {
   const { projects, videos, labItems, galleryImages } = useContext(DataContext);
@@ -417,6 +426,52 @@ export function GalleryAdmin() {
     }
   }, [bulkPillar, bulkSoftware, bulkStatus, bulkTags, bulkUrls, busy, clear, setError, setSuccess]);
 
+  const handleBulkFileImport = useCallback(
+    async (files: FileList | null) => {
+      if (busy || !files?.length) {
+        return;
+      }
+
+      if (!storage) {
+        setError('Image uploads are not available right now.');
+        return;
+      }
+
+      setBusy(true);
+      try {
+        clear();
+        const tags = splitList(bulkTags);
+        const uploads = Array.from(files);
+
+        for (const file of uploads) {
+          const path = `gallery/images/${Date.now()}-${file.name}`;
+          const ref = storageRef(storage, path);
+          await uploadBytes(ref, file);
+          const url = await getDownloadURL(ref);
+
+          await addDoc(collection(db, 'gallery'), {
+            url,
+            status: bulkStatus,
+            pillar: bulkPillar,
+            tags,
+            software: trimValue(bulkSoftware) || undefined,
+            info: filenameToInfo(file.name) || undefined,
+            featured: false,
+            workPriorityRank: null,
+            createdAt: serverTimestamp(),
+          });
+        }
+
+        setSuccess(`Uploaded ${uploads.length} image${uploads.length === 1 ? '' : 's'} from your laptop.`);
+      } catch (error) {
+        setError(toReadableError('Could not upload the gallery images.', error));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [bulkPillar, bulkSoftware, bulkStatus, bulkTags, busy, clear, setError, setSuccess],
+  );
+
   const previewHref =
     !selectedId || isCreatingNew || draft.status !== 'published'
       ? null
@@ -567,7 +622,7 @@ export function GalleryAdmin() {
       sidebarFooter={
         <EditorSection
           title="Bulk import"
-          description="Paste several image URLs at once, then stamp shared defaults before saving them to the gallery."
+          description="Paste several image URLs or upload several local images at once, then stamp shared defaults before saving them to the gallery."
         >
           <div className="space-y-3">
             <LongField
@@ -605,14 +660,29 @@ export function GalleryAdmin() {
               quickPicks={quickTagPicks}
               suggestionMode="list"
             />
-            <button
-              type="button"
-              disabled={busy || !trimValue(bulkUrls)}
-              onClick={() => void handleBulkImport()}
-              className="w-full rounded-full bg-white px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-black disabled:opacity-50"
-            >
-              Import queue
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy || !trimValue(bulkUrls)}
+                onClick={() => void handleBulkImport()}
+                className="flex-1 rounded-full bg-white px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-black disabled:opacity-50"
+              >
+                Import URLs
+              </button>
+              <label className="flex-1 cursor-pointer rounded-full border border-white/10 px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:border-brand-accent/40 hover:text-brand-accent">
+                Upload files
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(event) => {
+                    void handleBulkFileImport(event.target.files);
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+            </div>
           </div>
         </EditorSection>
       }
