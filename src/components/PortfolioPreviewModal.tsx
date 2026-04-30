@@ -21,6 +21,12 @@ const ModalImage = ({ src, alt, className }: { src: string; alt: string; classNa
   />
 );
 
+const videoFrameStyle = {
+  width: 'min(100%, 960px, calc((100vh - 320px) * 16 / 9))',
+  maxWidth: '100%',
+  maxHeight: 'calc(100vh - 320px)',
+} as const;
+
 export const PortfolioPreviewModal = ({
   item,
   onClose,
@@ -61,14 +67,18 @@ export const PortfolioPreviewModal = ({
   const mediaUrl = item.mediaUrl || item.thumbnail;
 
   const renderMedia = () => {
-    if (item.contentType === 'motion-embed' && embedUrl) {
+    if ((item.contentType === 'motion-embed' || item.contentType === 'ai-video') && embedUrl) {
       return (
-        <div className="mx-auto aspect-video max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
+        <div
+          className="mx-auto aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-white/5"
+          style={videoFrameStyle}
+        >
           <iframe
             src={embedUrl}
             title={item.title}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
         </div>
@@ -77,7 +87,10 @@ export const PortfolioPreviewModal = ({
 
     if ((item.contentType === 'ai-video' || item.contentType === 'motion-video') && mediaUrl) {
       return (
-        <div className="mx-auto aspect-video max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
+        <div
+          className="mx-auto aspect-video overflow-hidden rounded-[2rem] border border-white/10 bg-white/5"
+          style={videoFrameStyle}
+        >
           <video
             src={mediaUrl}
             controls

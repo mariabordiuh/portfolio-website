@@ -35,6 +35,34 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
 const INITIAL_VISIBLE_ITEMS = 12;
 const VISIBLE_ITEMS_INCREMENT = 12;
 const PRELOAD_BATCH_SIZE = 12;
+const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+
+const normalizeSubcategory = (value?: string | null) =>
+  (value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[‐‑‒–—]/g, '-');
+
+const itemHasCategory = (item: PortfolioItem, value: string) =>
+  item.categories?.some((category) => normalizeSubcategory(category) === value) ?? false;
+
+const getMotionSubtype = (item: PortfolioItem) => {
+  const subCategory = normalizeSubcategory(item.subCategory);
+
+  if (subCategory === 'cut-out' || itemHasCategory(item, 'cut-out')) {
+    return 'cut-out';
+  }
+
+  if (subCategory === 'motion' || itemHasCategory(item, 'motion')) {
+    return 'motion';
+  }
+
+  if (subCategory === 'traditional' || itemHasCategory(item, 'traditional')) {
+    return 'traditional';
+  }
+
+  return '';
+};
 
 const hashString = (value: string) => {
   let hash = 2166136261;
@@ -95,6 +123,7 @@ export const Work = () => {
   ], [projects, videos, galleryImages]);
 
   const highlightId = searchParams.get('highlight');
+  const previewId = searchParams.get('preview');
 
   const filteredItems = useMemo(() => {
     const rawItems = workItems.filter((item) => {
@@ -103,13 +132,15 @@ export const Work = () => {
 
       const isAiVideo = item.contentType === 'ai-video';
       const isSketchbook = item.subCategory?.toLowerCase() === 'sketchbook' || item.categories?.some(c => c.toLowerCase() === 'sketchbook');
-      const isCutOut = item.subCategory?.toLowerCase() === 'cut-out' || item.categories?.some(c => c.toLowerCase() === 'cut-out');
-      const isMotion = item.subCategory?.toLowerCase() === 'motion' || item.categories?.some(c => c.toLowerCase() === 'motion');
+      const motionSubtype = getMotionSubtype(item);
+      const isTraditional = motionSubtype === 'traditional';
+      const isCutOut = motionSubtype === 'cut-out';
+      const isMotion = motionSubtype === 'motion';
 
       if (activePillar === 'All') {
         if (item.pillar === 'AI Generated') return !isAiVideo;
         if (item.pillar === 'Illustration & Design') return !isSketchbook;
-        if (item.pillar === 'Animation & Motion') return !isCutOut && !isMotion;
+        if (item.pillar === 'Animation & Motion') return isTraditional || !motionSubtype;
         if (item.pillar === 'Art Direction') return false;
         return true;
       }
@@ -122,7 +153,7 @@ export const Work = () => {
         if (activePillar === 'Animation & Motion') {
           if (activeSubcategory === 'Cut-Out') return isCutOut;
           if (activeSubcategory === 'Motion') return isMotion;
-          return !isCutOut && !isMotion;
+          return isTraditional || !motionSubtype;
         }
       }
 
@@ -151,6 +182,17 @@ export const Work = () => {
   useEffect(() => {
     setVisibleCount(INITIAL_VISIBLE_ITEMS);
   }, [activePillar, activeSubcategory, activeTool, filteredItems.length, highlightId]);
+
+  useEffect(() => {
+    if (!previewId) {
+      return;
+    }
+
+    const match = workItems.find((item) => item.id === previewId);
+    if (match && !match.routeId) {
+      setActivePreview(match);
+    }
+  }, [previewId, workItems]);
 
   const visibleItems = useMemo(
     () => filteredItems.slice(0, visibleCount),
@@ -262,7 +304,7 @@ export const Work = () => {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-7xl px-6 pb-32 pt-40">
+      <div className={`${SITE_SHELL_CLASS} pb-32 pt-40`}>
         <header className="mb-14">
           <motion.h1
             initial="hidden"
@@ -412,7 +454,15 @@ export const Work = () => {
 
       <AnimatePresence>
         {activePreview ? (
-          <PortfolioPreviewModal item={activePreview} onClose={() => setActivePreview(null)} />
+          <PortfolioPreviewModal
+            item={activePreview}
+            onClose={() => {
+              setActivePreview(null);
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.delete('preview');
+              setSearchParams(nextParams, { replace: true });
+            }}
+          />
         ) : null}
       </AnimatePresence>
     </PageTransition>

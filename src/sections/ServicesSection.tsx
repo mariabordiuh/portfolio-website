@@ -61,43 +61,45 @@ const SERVICE_GROUPS = [
 export const ServicesSection = () => {
   return (
     <section className="px-6 md:px-12 py-40">
-      <RevealOnScroll className="mb-20">
-        <h4 className="text-[10px] uppercase tracking-[0.4em] text-brand-muted mb-4 font-mono">
-          Sequence // 02
-        </h4>
-        <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none">
-          Services<span className="text-brand-accent">.</span>
-        </h2>
-      </RevealOnScroll>
+      <div className="mx-auto max-w-7xl">
+        <RevealOnScroll className="mb-20">
+          <h4 className="text-[10px] uppercase tracking-[0.4em] text-brand-muted mb-4 font-mono">
+            Sequence // 02
+          </h4>
+          <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none">
+            Services<span className="text-brand-accent">.</span>
+          </h2>
+        </RevealOnScroll>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden">
-        {SERVICE_GROUPS.map((group, groupIndex) => (
-          <RevealOnScroll
-            key={group.tag}
-            delay={groupIndex * 0.06}
-            className="bg-brand-bg p-8 md:p-10 flex flex-col"
-          >
-            <div className="mb-8">
-              <span className="text-[10px] font-mono text-brand-accent uppercase tracking-[0.3em] block mb-3">
-                {group.tag}
-              </span>
-              <h3 className="text-sm font-black uppercase tracking-wider leading-tight">
-                {group.title}
-              </h3>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden">
+          {SERVICE_GROUPS.map((group, groupIndex) => (
+            <RevealOnScroll
+              key={group.tag}
+              delay={groupIndex * 0.06}
+              className="bg-brand-bg p-8 md:p-10 flex flex-col"
+            >
+              <div className="mb-8">
+                <span className="text-[10px] font-mono text-brand-accent uppercase tracking-[0.3em] block mb-3">
+                  {group.tag}
+                </span>
+                <h3 className="text-sm font-black uppercase tracking-wider leading-tight">
+                  {group.title}
+                </h3>
+              </div>
 
-            <ul className="space-y-3 mt-auto">
-              {group.services.map((service) => (
-                <li
-                  key={service}
-                  className="text-[11px] text-white/55 uppercase tracking-[0.15em] leading-relaxed font-medium whitespace-nowrap"
-                >
-                  {service}
-                </li>
-              ))}
-            </ul>
-          </RevealOnScroll>
-        ))}
+              <ul className="space-y-3 mt-auto">
+                {group.services.map((service) => (
+                  <li
+                    key={service}
+                    className="text-[11px] text-white/55 uppercase tracking-[0.15em] leading-relaxed font-medium whitespace-nowrap"
+                  >
+                    {service}
+                  </li>
+                ))}
+              </ul>
+            </RevealOnScroll>
+          ))}
+        </div>
       </div>
     </section>
   );

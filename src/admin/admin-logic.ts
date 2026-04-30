@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { GalleryImage, LabItem, Project, ProjectPillar, Video } from '../types';
-import { normalizePillar } from '../utils/portfolio';
+import { EntryStatus, GalleryImage, LabItem, Project, ProjectPillar, Video } from '../types';
+import { normalizePillar, uniqueStrings } from '../utils/portfolio';
 
 export const ADMIN_EMAIL = 'helloveo333@gmail.com';
 export const PROJECT_PILLARS: ProjectPillar[] = [
@@ -10,24 +10,52 @@ export const PROJECT_PILLARS: ProjectPillar[] = [
   'Art Direction',
 ];
 export const LAB_TYPES: LabItem['type'][] = ['Experiment', 'Learning', 'AI', 'Vibe'];
+export const VIDEO_TYPES = ['Traditional', 'Cut-Out', 'Motion'] as const;
+export const ENTRY_STATUS_OPTIONS: EntryStatus[] = ['draft', 'published'];
 
 export type AdminTab = 'projects' | 'videos' | 'labItems' | 'gallery';
 
 export type ProjectDraft = {
   title: string;
   pillar: ProjectPillar;
+  status: EntryStatus;
   subCategory: string;
   category: string;
   description: string;
-  thumbnail: string;
   tools: string;
+  heroImage: string;
+  heroZoom: string;
+  heroPositionX: string;
+  heroPositionY: string;
+  thumbnail: string;
+  thumbnailZoom: string;
+  year: string;
   client: string;
+  timeline: string;
+  role: string;
+  brief: string;
+  context: string;
+  problem: string;
+  insights: string;
+  solution: string;
+  outcome: string;
   globalContext: string;
   creativeTension: string;
-  mariaRole: string;
+  approach: string;
   moodboardImages: string;
-  outcomeVisuals: string;
+  sketchImages: string;
+  childhoodImages: string;
+  universityImages: string;
+  workImages: string;
+  explorationType: 'masonry' | 'slot-machine';
+  slotMachineGridSize: string;
+  slotMachineFps: string;
+  explorationImages: string;
+  explorationVideos: string;
+  animaticVideoUrls: string;
+  outcomeImages: string;
   outcomeResultCopy: string;
+  credits: string;
   featured: boolean;
   workPriorityRank: string;
 };
@@ -35,15 +63,21 @@ export type ProjectDraft = {
 export type VideoDraft = {
   title: string;
   pillar: ProjectPillar;
+  status: EntryStatus;
+  subCategory: string;
   url: string;
+  sourceUrl: string;
   thumbnail: string;
   description: string;
+  tools: string;
+  tags: string;
   featured: boolean;
   workPriorityRank: string;
 };
 
 export type LabDraft = {
   title: string;
+  status: EntryStatus;
   type: LabItem['type'];
   content: string;
   image: string;
@@ -64,6 +98,7 @@ export type LabDraft = {
 
 export type GalleryDraft = {
   url: string;
+  status: EntryStatus;
   pillar: ProjectPillar | '';
   tags: string;
   software: string;
@@ -85,18 +120,44 @@ export type ChecklistItem = {
 export const defaultProjectDraft = (): ProjectDraft => ({
   title: '',
   pillar: 'Art Direction',
+  status: 'draft',
   subCategory: '',
   category: '',
   description: '',
-  thumbnail: '',
   tools: '',
+  heroImage: '',
+  heroZoom: '100',
+  heroPositionX: '50',
+  heroPositionY: '50',
+  thumbnail: '',
+  thumbnailZoom: '100',
+  year: '',
   client: '',
+  timeline: '',
+  role: '',
+  brief: '',
+  context: '',
+  problem: '',
+  insights: '',
+  solution: '',
+  outcome: '',
   globalContext: '',
   creativeTension: '',
-  mariaRole: '',
+  approach: '',
   moodboardImages: '',
-  outcomeVisuals: '',
+  sketchImages: '',
+  childhoodImages: '',
+  universityImages: '',
+  workImages: '',
+  explorationType: 'masonry',
+  slotMachineGridSize: '4',
+  slotMachineFps: '12',
+  explorationImages: '',
+  explorationVideos: '',
+  animaticVideoUrls: '',
+  outcomeImages: '',
   outcomeResultCopy: '',
+  credits: '',
   featured: false,
   workPriorityRank: '',
 });
@@ -104,15 +165,21 @@ export const defaultProjectDraft = (): ProjectDraft => ({
 export const defaultVideoDraft = (): VideoDraft => ({
   title: '',
   pillar: 'AI Generated',
+  status: 'draft',
+  subCategory: '',
   url: '',
+  sourceUrl: '',
   thumbnail: '',
   description: '',
+  tools: '',
+  tags: '',
   featured: false,
   workPriorityRank: '',
 });
 
 export const defaultLabDraft = (): LabDraft => ({
   title: '',
+  status: 'draft',
   type: 'Experiment',
   content: '',
   image: '',
@@ -132,6 +199,7 @@ export const defaultLabDraft = (): LabDraft => ({
 
 export const defaultGalleryDraft = (): GalleryDraft => ({
   url: '',
+  status: 'draft',
   pillar: '',
   tags: '',
   software: '',
@@ -150,6 +218,30 @@ export const splitList = (value: string) =>
 export const joinList = (values?: string[]) => (values ?? []).join('\n');
 
 export const trimValue = (value: string) => value.trim();
+
+export const rankSuggestions = (values: Array<string | null | undefined>, limit = 12) => {
+  const counts = new Map<string, number>();
+
+  for (const rawValue of values) {
+    const value = rawValue?.trim();
+    if (!value) {
+      continue;
+    }
+
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .sort((left, right) => {
+      if (right[1] !== left[1]) {
+        return right[1] - left[1];
+      }
+
+      return left[0].localeCompare(right[0]);
+    })
+    .slice(0, limit)
+    .map(([value]) => value);
+};
 
 export const toReadableError = (fallback: string, error: unknown) => {
   if (error instanceof Error && error.message) {
@@ -176,6 +268,7 @@ export const keepSelectedId = <T extends { id: string }>(
 };
 
 const serializeDraft = <T,>(draft: T) => JSON.stringify(draft);
+const DRAFT_STORAGE_PREFIX = 'portfolio-admin-draft';
 
 export const confirmDiscardChanges = () =>
   typeof window === 'undefined'
@@ -184,6 +277,69 @@ export const confirmDiscardChanges = () =>
 
 export const confirmDelete = (label: string) =>
   typeof window === 'undefined' ? true : window.confirm(`Delete ${label}? This cannot be undone.`);
+
+export const getEditorDraftStorageKey = (
+  editor: string,
+  selectedId: string | null,
+  isCreatingNew: boolean,
+) => `${DRAFT_STORAGE_PREFIX}:${editor}:${isCreatingNew ? 'new' : selectedId ?? 'none'}`;
+
+type PersistedEditorDraft<T> = {
+  draft: T;
+  savedAt: number;
+};
+
+export function readPersistedEditorDraft<T>(storageKey: string): PersistedEditorDraft<T> | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as PersistedEditorDraft<T>;
+    if (!parsed || typeof parsed !== 'object' || !('draft' in parsed)) {
+      return null;
+    }
+
+    return parsed;
+  } catch (_error) {
+    return null;
+  }
+}
+
+export function writePersistedEditorDraft<T>(storageKey: string, draft: T) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        draft,
+        savedAt: Date.now(),
+      } satisfies PersistedEditorDraft<T>),
+    );
+  } catch (_error) {
+    // Ignore local draft write failures.
+  }
+}
+
+export function clearPersistedEditorDraft(storageKey: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch (_error) {
+    // Ignore local draft cleanup failures.
+  }
+}
 
 export function formatRelativeTime(timestamp: number | null) {
   if (!timestamp) {
@@ -303,21 +459,73 @@ export function toProjectDraft(project?: Project): ProjectDraft {
     return defaultProjectDraft();
   }
 
+  const rawCredits = (project.credits ?? []) as unknown[];
+  const credits = rawCredits.map((entry) => {
+    if (typeof entry === 'string') {
+      return entry;
+    }
+
+    const credit = entry as { name?: string; role?: string };
+    return [credit.name?.trim(), credit.role?.trim()].filter(Boolean).join(' - ');
+  });
+
+  const primaryImage =
+    project.heroImage ||
+    project.thumbnail ||
+    project.images?.[0] ||
+    project.moodboardImages?.[0] ||
+    project.outcomeImages?.[0] ||
+    project.outcomeVisuals?.[0] ||
+    '';
+
   return {
     title: project.title ?? '',
     pillar: project.pillar ?? 'Art Direction',
+    status: project.status ?? 'published',
     subCategory: project.subCategory ?? '',
-    category: project.category ?? '',
-    description: project.description ?? '',
-    thumbnail: project.thumbnail ?? '',
+    category: project.category || project.categories?.join(', ') || '',
+    description: project.description || project.approach || '',
     tools: joinList(project.tools),
-    client: project.client ?? '',
-    globalContext: project.globalContext ?? '',
-    creativeTension: project.creativeTension ?? '',
-    mariaRole: joinList(project.mariaRole),
+    heroImage: project.heroImage || project.thumbnail || primaryImage,
+    heroZoom: String(project.heroZoom ?? 100),
+    heroPositionX: String(project.heroPositionX ?? 50),
+    heroPositionY: String(project.heroPositionY ?? 50),
+    thumbnail: project.thumbnail || project.heroImage || primaryImage,
+    thumbnailZoom: String(project.thumbnailZoom ?? 100),
+    year: project.year || '',
+    client: project.client || '',
+    timeline: project.timelineText || '',
+    role: project.role || uniqueStrings(project.mariaRole).join(' / '),
+    brief: project.brief || '',
+    context: project.context || project.globalContext || '',
+    problem: project.problem || project.creativeTension || '',
+    insights: project.insights || '',
+    solution: project.solution || project.approach || '',
+    outcome:
+      project.outcome || project.outcomeCopy || project.outcomeResultCopy || project.result || '',
+    globalContext: project.globalContext || '',
+    creativeTension: project.creativeTension || '',
+    approach: project.approach || project.description || '',
     moodboardImages: joinList(project.moodboardImages),
-    outcomeVisuals: joinList(project.outcomeVisuals),
-    outcomeResultCopy: project.outcomeResultCopy ?? '',
+    sketchImages: joinList(project.sketchImages),
+    childhoodImages: joinList(project.childhoodImages),
+    universityImages: joinList(project.universityImages),
+    workImages: joinList(project.workImages),
+    explorationType: project.explorationType ?? 'masonry',
+    slotMachineGridSize: String(project.slotMachineGridSize ?? 4),
+    slotMachineFps: String(project.slotMachineFps ?? 12),
+    explorationImages: joinList(project.explorationImages),
+    explorationVideos: joinList(project.explorationVideos),
+    animaticVideoUrls: joinList(
+      project.animaticVideoUrls?.length
+        ? project.animaticVideoUrls
+        : project.animaticVideoUrl
+          ? [project.animaticVideoUrl]
+          : [],
+    ),
+    outcomeImages: joinList(project.outcomeImages?.length ? project.outcomeImages : project.outcomeVisuals),
+    outcomeResultCopy: project.outcomeCopy || project.outcomeResultCopy || project.result || '',
+    credits: joinList(credits),
     featured: project.featured ?? false,
     workPriorityRank: project.workPriorityRank ? String(project.workPriorityRank) : '',
   };
@@ -331,9 +539,14 @@ export function toVideoDraft(video?: Video): VideoDraft {
   return {
     title: video.title ?? '',
     pillar: normalizePillar(video.pillar),
+    status: video.status ?? 'published',
+    subCategory: video.subCategory ?? '',
     url: video.url ?? '',
+    sourceUrl: video.sourceUrl ?? '',
     thumbnail: video.thumbnail ?? '',
     description: video.description ?? '',
+    tools: joinList(video.tools),
+    tags: joinList(video.tags),
     featured: video.featured ?? false,
     workPriorityRank: video.workPriorityRank ? String(video.workPriorityRank) : '',
   };
@@ -346,6 +559,7 @@ export function toLabDraft(item?: LabItem): LabDraft {
 
   return {
     title: item.title ?? '',
+    status: item.status ?? 'published',
     type: item.type ?? 'Experiment',
     content: item.content ?? '',
     image: item.image ?? '',
@@ -371,6 +585,7 @@ export function toGalleryDraft(item?: GalleryImage): GalleryDraft {
 
   return {
     url: item.url ?? '',
+    status: item.status ?? 'published',
     pillar: item.pillar ? normalizePillar(item.pillar) : '',
     tags: joinList(item.tags),
     software: item.software ?? '',
@@ -388,12 +603,21 @@ export type EditorLayoutProps<T extends { id: string }> = {
   hasUnsavedChanges: boolean;
   onSelect: (id: string | null) => void;
   onCreate: () => void;
+  createOptions?: Array<{
+    label: string;
+    description?: string;
+    onSelect: () => void;
+  }>;
   getLabel: (item: T) => string;
   getMeta?: (item: T) => string | undefined;
   notice?: EditorNotice | null;
   statusPanel: ReactNode;
   form: ReactNode;
   actions: ReactNode;
+  sidebarFooter?: ReactNode;
+  batchSelection?: string[];
+  onBatchSelectionChange?: (ids: string[]) => void;
+  batchPanel?: ReactNode;
 };
 
 export type EditorStatusPanelProps = {
@@ -408,4 +632,6 @@ export type EditorStatusPanelProps = {
   hasOptionalFields?: boolean;
   focusMode?: boolean;
   onToggleFocusMode?: () => void;
+  localDraftSavedAt?: number | null;
+  publishStatus?: EntryStatus;
 };

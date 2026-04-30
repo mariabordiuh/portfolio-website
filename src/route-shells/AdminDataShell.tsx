@@ -4,7 +4,10 @@ import { DataProvider } from '../context/DataContext';
 
 export const AdminDataShell = () => (
   <AuthProvider>
-    <DataProvider collections={{ projects: true, videos: true, labItems: true, galleryImages: true, homeHero: true }}>
+    <DataProvider
+      collections={{ projects: true, videos: true, labItems: true, galleryImages: true, homeHero: true }}
+      includeDrafts
+    >
       <Outlet />
     </DataProvider>
   </AuthProvider>

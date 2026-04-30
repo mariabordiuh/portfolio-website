@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
 import { PrefetchLink } from './PrefetchLink';
 
+const SHOW_ASCII_FOOTER = false;
+
 const ASCII_COFFEE_STYLES = `
   .ascii-coffee-footer {
     --ascii-bg: #050505;
@@ -10,6 +12,7 @@ const ASCII_COFFEE_STYLES = `
     --ascii-steam: rgba(230, 230, 230, 0.58);
     --ascii-bean: #6B4226;
     --ascii-line: rgba(255, 255, 255, 0.05);
+    --ascii-scene-unit: clamp(7px, calc((100vw - 4rem) / 110), 14px);
     background: var(--ascii-bg);
     border-top: 1px solid var(--ascii-line);
     overflow: hidden;
@@ -19,21 +22,24 @@ const ASCII_COFFEE_STYLES = `
   .ascii-coffee-stage {
     position: relative;
     width: min(1600px, 100%);
-    height: 380px;
+    height: clamp(190px, 28vw, 340px);
     margin: 0 auto;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      "Liberation Mono", monospace;
-  }
-
-  .ascii-coffee-cluster {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: clamp(2rem, 4vw, 4.5rem);
-    transform: translateX(calc(-50% - 5ch));
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", monospace;
+    font-size: var(--ascii-scene-unit);
+  }
+
+  .ascii-coffee-cluster {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4.5em;
+    width: max-content;
+    margin-inline: auto;
   }
 
   .ascii-brew {
@@ -53,7 +59,7 @@ const ASCII_COFFEE_STYLES = `
 
   .ascii-art {
     color: var(--ascii-pink);
-    font-size: clamp(10px, 0.72vw + 5px, 16px);
+    font-size: 1em;
     position: relative;
     z-index: 2;
   }
@@ -118,7 +124,7 @@ const ASCII_COFFEE_STYLES = `
     min-width: 11ch;
     text-align: center;
     color: var(--ascii-steam);
-    font-size: clamp(10px, 0.72vw + 5px, 16px);
+    font-size: 1em;
     pointer-events: none;
     z-index: 1;
     opacity: 0.92;
@@ -146,27 +152,37 @@ const ASCII_COFFEE_STYLES = `
     }
   }
 
-  @media (max-width: 1200px) {
-    .ascii-coffee-stage {
-      height: 320px;
-    }
-
+  @media (max-width: 1280px) {
     .ascii-coffee-cluster {
-      gap: clamp(1.4rem, 3vw, 3rem);
+      gap: 3.8em;
     }
 
     .ascii-cup {
-      transform: scale(0.9);
-      transform-origin: center bottom;
-    }
-
-    .ascii-carafe {
-      transform: scale(0.92);
-      transform-origin: center bottom;
+      margin-bottom: 4em;
     }
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 1080px) {
+    .ascii-coffee-cluster {
+      gap: 2.8em;
+    }
+
+    .ascii-cup {
+      margin-bottom: 3.5em;
+    }
+  }
+
+  @media (max-width: 920px) {
+    .ascii-coffee-cluster {
+      gap: 1.8em;
+    }
+
+    .ascii-cup {
+      margin-bottom: 3em;
+    }
+  }
+
+  @media (max-width: 760px) {
     .ascii-coffee-footer {
       display: none;
     }
@@ -428,11 +444,23 @@ export const Footer = () => {
   const { pathname } = useLocation();
 
   return (
-    <footer className="bg-brand-bg border-t border-white/5">
-      <style>{ASCII_COFFEE_STYLES}</style>
+    <footer className="relative overflow-hidden bg-brand-bg border-t border-white/5">
+      {SHOW_ASCII_FOOTER ? <style>{ASCII_COFFEE_STYLES}</style> : null}
 
       <div
-        className={`flex flex-wrap items-center justify-between gap-6 px-6 py-8 md:px-12 ${
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 opacity-80"
+        style={{
+          background: `
+            radial-gradient(70% 120% at 78% 100%, rgba(243, 154, 198, 0.3) 0%, rgba(243, 154, 198, 0.14) 34%, rgba(243, 154, 198, 0) 72%),
+            radial-gradient(52% 95% at 18% 100%, rgba(243, 154, 198, 0.18) 0%, rgba(243, 154, 198, 0.08) 38%, rgba(243, 154, 198, 0) 78%),
+            linear-gradient(180deg, rgba(5, 5, 5, 0) 0%, rgba(243, 154, 198, 0.08) 100%)
+          `,
+        }}
+      />
+
+      <div
+        className={`relative z-10 flex flex-wrap items-center justify-between gap-6 px-6 py-8 md:px-12 ${
           pathname === '/' || pathname === '/about' ? '' : 'pt-16'
         }`}
       >
@@ -474,9 +502,9 @@ export const Footer = () => {
         </div>
       </div>
 
-      <FooterAsciiCoffee />
+      {SHOW_ASCII_FOOTER ? <FooterAsciiCoffee /> : null}
 
-      <div className="border-t border-white/5 px-6 pt-6 pb-10 md:px-12 md:pb-12 flex flex-col gap-2">
+      <div className="relative z-10 border-t border-white/5 px-6 pt-6 pb-10 md:px-12 md:pb-12 flex flex-col gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">
           © 2026 Maria Bordiuh
         </span>

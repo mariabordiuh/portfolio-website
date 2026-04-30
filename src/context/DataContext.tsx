@@ -57,9 +57,11 @@ const resolveCollections = (collections?: DataCollectionConfig) => ({
 export const DataProvider = ({
   children,
   collections,
+  includeDrafts = false,
 }: {
   children: React.ReactNode;
   collections?: DataCollectionConfig;
+  includeDrafts?: boolean;
 }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -70,6 +72,8 @@ export const DataProvider = ({
   const [loading, setLoading] = useState(true);
 
   const enabledCollections = resolveCollections(collections);
+  const filterLiveItems = <T extends { status?: string }>(items: T[]) =>
+    includeDrafts ? items : items.filter((item) => item.status !== 'draft');
 
   useEffect(() => {
     setLoading(true);
@@ -89,10 +93,10 @@ export const DataProvider = ({
       ? readSessionCache<HomeHeroSettings>(CACHE_KEYS.homeHero)
       : null;
 
-    setProjects(cachedProjects || []);
-    setVideos(cachedVideos || []);
-    setLabItems(cachedLabItems || []);
-    setGalleryImages(cachedGalleryImages || []);
+    setProjects(filterLiveItems(cachedProjects || []));
+    setVideos(filterLiveItems(cachedVideos || []));
+    setLabItems(filterLiveItems(cachedLabItems || []));
+    setGalleryImages(filterLiveItems(cachedGalleryImages || []));
     setHomeHero(cachedHomeHero || DEFAULT_HOME_HERO_SETTINGS);
     setHomeHeroReady(!enabledCollections.homeHero || Boolean(cachedHomeHero));
 
@@ -144,7 +148,7 @@ export const DataProvider = ({
         const nextProjects = snapshot.docs.map((entry) =>
           normalizeProject({ id: entry.id, ...entry.data() } as Project),
         );
-        setProjects(nextProjects);
+        setProjects(filterLiveItems(nextProjects));
         writeSessionCache(CACHE_KEYS.projects, nextProjects);
         projectsLoaded = true;
         checkAllLoaded();
@@ -155,7 +159,7 @@ export const DataProvider = ({
     if (enabledCollections.videos) {
       const unsubVideos = onSnapshot(collection(db!, 'videos'), (snapshot) => {
         const nextVideos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Video));
-        setVideos(nextVideos);
+        setVideos(filterLiveItems(nextVideos));
         writeSessionCache(CACHE_KEYS.videos, nextVideos);
         videosLoaded = true;
         checkAllLoaded();
@@ -166,7 +170,7 @@ export const DataProvider = ({
     if (enabledCollections.labItems) {
       const unsubLab = onSnapshot(collection(db!, 'labItems'), (snapshot) => {
         const nextLabItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LabItem));
-        setLabItems(nextLabItems);
+        setLabItems(filterLiveItems(nextLabItems));
         writeSessionCache(CACHE_KEYS.labItems, nextLabItems);
         labItemsLoaded = true;
         checkAllLoaded();
@@ -177,7 +181,7 @@ export const DataProvider = ({
     if (enabledCollections.galleryImages) {
       const unsubGallery = onSnapshot(collection(db!, 'gallery'), (snapshot) => {
         const nextGalleryImages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryImage));
-        setGalleryImages(nextGalleryImages);
+        setGalleryImages(filterLiveItems(nextGalleryImages));
         writeSessionCache(CACHE_KEYS.galleryImages, nextGalleryImages);
         galleryLoaded = true;
         checkAllLoaded();
@@ -214,6 +218,7 @@ export const DataProvider = ({
     enabledCollections.labItems,
     enabledCollections.projects,
     enabledCollections.videos,
+    includeDrafts,
   ]);
 
   return (

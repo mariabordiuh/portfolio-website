@@ -28,6 +28,10 @@ export type PortfolioItem = {
   contentType: ProjectContentType;
   description: string;
   thumbnail: string;
+  thumbnailZoom?: number;
+  heroZoom?: number;
+  heroPositionX?: number;
+  heroPositionY?: number;
   thumbnailUrl?: string;
   previewUrl?: string;
   heroImage: string;
@@ -98,17 +102,54 @@ export const isGifUrl = (url?: string | null) => {
   return /\.gif(\?|#|$)/.test(value);
 };
 
+export const isEmbeddableVideoUrl = (url?: string | null) => {
+  const value = trim(url);
+  if (!value || isVideoFileUrl(value) || isGifUrl(value)) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(value);
+    const hostname = parsed.hostname.toLowerCase();
+    return (
+      hostname.includes('youtube.com') ||
+      hostname.includes('youtu.be') ||
+      hostname.includes('vimeo.com')
+    );
+  } catch (_error) {
+    return false;
+  }
+};
+
 const toYouTubeEmbed = (url: string) => {
+  const buildYouTubeEmbed = (videoId: string) => {
+    const params = new URLSearchParams({
+      rel: '0',
+      modestbranding: '1',
+      playsinline: '1',
+      iv_load_policy: '3',
+      cc_load_policy: '0',
+      fs: '0',
+    });
+
+    return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+  };
+
   try {
     const parsed = new URL(url);
     if (parsed.hostname.includes('youtu.be')) {
       const videoId = parsed.pathname.replace('/', '').trim();
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      return videoId ? buildYouTubeEmbed(videoId) : null;
     }
 
     if (parsed.hostname.includes('youtube.com')) {
+      if (parsed.pathname.startsWith('/shorts/')) {
+        const videoId = parsed.pathname.split('/').filter(Boolean)[1];
+        return videoId ? buildYouTubeEmbed(videoId) : null;
+      }
+
       const videoId = parsed.searchParams.get('v');
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      return videoId ? buildYouTubeEmbed(videoId) : null;
     }
   } catch (_error) {
     return null;
@@ -204,6 +245,14 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
   );
   const tools = uniqueStrings(project.tools);
   const role = trim(project.role) || uniqueStrings(project.mariaRole).join(' / ');
+  const timelineText = trim(project.timelineText);
+  const brief = trim(project.brief);
+  const context = trim(project.context) || trim(project.globalContext);
+  const problem = trim(project.problem) || trim(project.creativeTension);
+  const insights = trim(project.insights);
+  const solution = trim(project.solution) || trim(project.approach);
+  const outcome =
+    trim(project.outcome) || trim(project.outcomeCopy) || trim(project.outcomeResultCopy) || trim(project.result);
   const heroImage =
     trim(project.heroImage) ||
     trim(project.thumbnail) ||
@@ -235,6 +284,7 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     id: project.id,
     title: trim(project.title),
     pillar,
+    status: project.status ?? 'published',
     contentType,
     aiSubtype,
     motionType,
@@ -243,6 +293,10 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     categories,
     description: trim(project.description),
     thumbnail: trim(project.thumbnail) || heroImage || mediaUrl,
+    thumbnailZoom: project.thumbnailZoom ?? 100,
+    heroZoom: project.heroZoom ?? 100,
+    heroPositionX: project.heroPositionX ?? 50,
+    heroPositionY: project.heroPositionY ?? 50,
     heroImage,
     images,
     mediaUrl,
@@ -251,6 +305,7 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     tools,
     year: trim(project.year),
     role,
+    timelineText,
     credits,
     team: project.team ?? [],
     timeline: project.timeline ?? [],
@@ -263,9 +318,18 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     client: trim(project.client),
     globalContext: trim(project.globalContext),
     creativeTension: trim(project.creativeTension),
+    brief,
+    context,
+    problem,
+    insights,
+    solution,
+    outcome,
     mariaRole: uniqueStrings(project.mariaRole),
     moodboardImages: uniqueStrings(project.moodboardImages),
     sketchImages: uniqueStrings(project.sketchImages),
+    childhoodImages: uniqueStrings(project.childhoodImages),
+    universityImages: uniqueStrings(project.universityImages),
+    workImages: uniqueStrings(project.workImages),
     explorationType: project.explorationType ?? 'masonry',
     slotMachineGridSize: project.slotMachineGridSize ?? 4,
     slotMachineFps: project.slotMachineFps ?? 12,
@@ -275,7 +339,16 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     decisionMomentCopy: trim(project.decisionMomentCopy),
     colorSystem: project.colorSystem ?? [],
     animaticVideoUrl: trim(project.animaticVideoUrl),
+    animaticVideoUrls: uniqueStrings(
+      project.animaticVideoUrls?.length
+        ? project.animaticVideoUrls
+        : trim(project.animaticVideoUrl)
+          ? [trim(project.animaticVideoUrl)]
+          : [],
+    ),
     animaticCaption: trim(project.animaticCaption),
+    processVideoTitle: trim(project.processVideoTitle),
+    processVideoEyebrow: trim(project.processVideoEyebrow),
     hybridizationImages: uniqueStrings(project.hybridizationImages),
     hybridizationCaption: trim(project.hybridizationCaption),
     outcomeVisuals: outcomeImages,
@@ -310,6 +383,10 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     contentType,
     description: normalized.description,
     thumbnail: normalized.thumbnail || normalized.heroImage || normalized.mediaUrl || images[0] || '',
+    thumbnailZoom: normalized.thumbnailZoom ?? 100,
+    heroZoom: normalized.heroZoom ?? 100,
+    heroPositionX: normalized.heroPositionX ?? 50,
+    heroPositionY: normalized.heroPositionY ?? 50,
     thumbnailUrl: trim(project.thumbnailUrl) || trim(project.previewUrl),
     previewUrl: trim(project.previewUrl) || trim(project.thumbnailUrl),
     heroImage: normalized.heroImage || normalized.thumbnail || images[0] || '',
@@ -330,8 +407,8 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
 
 export const videoToPortfolioItem = (video: Video): PortfolioItem => {
   const pillar = normalizePillar(video.pillar);
-  const embedUrl =
-    pillar === 'Animation & Motion' && !isVideoFileUrl(video.url) ? toEmbedUrl(video.url) : '';
+  const rawUrl = trim(video.url);
+  const embedUrl = isEmbeddableVideoUrl(rawUrl) ? toEmbedUrl(rawUrl) : '';
   const contentType =
     pillar === 'Animation & Motion'
       ? embedUrl
@@ -347,16 +424,16 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     pillar,
     contentType,
     description: trim(video.description),
-    thumbnail: trim(video.thumbnail) || trim(video.url),
+    thumbnail: trim(video.thumbnail) || rawUrl,
     thumbnailUrl: trim(video.thumbnailUrl) || trim(video.previewUrl),
     previewUrl: trim(video.previewUrl) || trim(video.thumbnailUrl),
-    heroImage: trim(video.thumbnail) || trim(video.url),
+    heroImage: trim(video.thumbnail) || rawUrl,
     images: trim(video.thumbnail) ? [trim(video.thumbnail)] : [],
-    mediaUrl: embedUrl ? '' : trim(video.url),
+    mediaUrl: embedUrl ? '' : rawUrl,
     embedUrl,
-    tools: [],
-    categories: [],
-    subCategory: undefined,
+    tools: uniqueStrings(video.tools),
+    categories: uniqueStrings(video.tags),
+    subCategory: trim(video.subCategory),
     featured: video.featured,
     workPriorityRank: video.workPriorityRank,
   };

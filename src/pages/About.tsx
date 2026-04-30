@@ -1,6 +1,8 @@
 import { ArrowUpRight } from 'lucide-react';
 import { PageTransition } from '../components/PageTransition';
 
+const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+
 const CONTACT_LINKS = [
   {
     label: 'Email',
@@ -17,8 +19,9 @@ const CONTACT_LINKS = [
 export const About = () => {
   return (
     <PageTransition>
-      <section className="min-h-[100svh] bg-brand-bg px-6 pt-32 pb-24 md:px-12 md:pt-40 md:pb-32">
-        <div className="mx-auto w-full max-w-md">
+      <section className="min-h-[100svh] bg-brand-bg pb-24 pt-32 md:pb-32 md:pt-40">
+        <div className={SITE_SHELL_CLASS}>
+          <div className="w-full max-w-md">
           <h1 className="font-display text-[11px] font-bold uppercase tracking-[0.32em] text-white">
             Maria Bordiuh
           </h1>
@@ -53,9 +56,9 @@ export const About = () => {
               </li>
             ))}
           </ul>
+          </div>
         </div>
       </section>
     </PageTransition>
   );
 };
-

@@ -4,6 +4,8 @@ export type ProjectPillar =
   | 'Illustration & Design'
   | 'Art Direction';
 
+export type EntryStatus = 'draft' | 'published';
+
 export type LegacyProjectPillar = ProjectPillar | 'Animations & Motion';
 
 export type AIGeneratedSubtype = 'ai-image' | 'ai-video';
@@ -38,6 +40,7 @@ export interface Project {
   id: string;
   title: string;
   pillar: ProjectPillar;
+  status?: EntryStatus;
   contentType?: ProjectContentType;
   aiSubtype?: AIGeneratedSubtype;
   motionType?: MotionMediaType;
@@ -48,6 +51,10 @@ export interface Project {
   categories?: string[];
   description: string;
   thumbnail: string;
+  thumbnailZoom?: number;
+  heroZoom?: number;
+  heroPositionX?: number;
+  heroPositionY?: number;
   thumbnailUrl?: string;
   previewUrl?: string;
   heroImage?: string;
@@ -61,6 +68,7 @@ export interface Project {
   credits?: string[];
   team?: TeamMember[];
   timeline?: TimelineEntry[];
+  timelineText?: string;
   drafts?: string[];
   result?: string;
   approach?: string;
@@ -70,9 +78,18 @@ export interface Project {
   client?: string;
   globalContext?: string;
   creativeTension?: string;
+  brief?: string;
+  context?: string;
+  problem?: string;
+  insights?: string;
+  solution?: string;
+  outcome?: string;
   mariaRole?: string[];
   moodboardImages?: string[];
   sketchImages?: string[];
+  childhoodImages?: string[];
+  universityImages?: string[];
+  workImages?: string[];
   explorationType?: 'masonry' | 'slot-machine';
   slotMachineGridSize?: number;
   slotMachineFps?: number;
@@ -82,7 +99,10 @@ export interface Project {
   decisionMomentCopy?: string;
   colorSystem?: ColorSwatch[];
   animaticVideoUrl?: string;
+  animaticVideoUrls?: string[];
   animaticCaption?: string;
+  processVideoTitle?: string;
+  processVideoEyebrow?: string;
   hybridizationImages?: string[];
   hybridizationCaption?: string;
   outcomeVisuals?: string[];
@@ -95,11 +115,16 @@ export interface Video {
   id: string;
   title: string;
   url: string;
+  sourceUrl?: string;
   pillar: LegacyProjectPillar;
+  status?: EntryStatus;
+  subCategory?: string;
   thumbnail: string;
   thumbnailUrl?: string;
   previewUrl?: string;
   description: string;
+  tools?: string[];
+  tags?: string[];
   featured?: boolean;
   workPriorityRank?: number;
 }
@@ -114,6 +139,7 @@ export interface LabImage {
 export interface LabItem {
   id: string;
   title: string;
+  status?: EntryStatus;
   type: 'Experiment' | 'Learning' | 'AI' | 'Vibe';
   content: string;
   image?: string;
@@ -136,6 +162,7 @@ export interface GalleryImage {
   id: string;
   url: string;
   image?: string;
+  status?: EntryStatus;
   thumbnailUrl?: string;
   previewUrl?: string;
   pillar?: LegacyProjectPillar;

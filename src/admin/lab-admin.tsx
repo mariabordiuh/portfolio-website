@@ -1,17 +1,23 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { GripVertical, ImagePlus, LoaderCircle, Trash2, X } from 'lucide-react';
+import { DataContext } from '../context/DataContext';
 import { db } from '../firebase-firestore';
 import { storage } from '../firebase-storage';
 import { LabImage, LabItem, LabSection } from '../types';
 import {
   ChecklistItem,
+  ENTRY_STATUS_OPTIONS,
   LAB_TYPES,
   LabDraft,
+  clearPersistedEditorDraft,
   confirmDelete,
   defaultLabDraft,
+  getEditorDraftStorageKey,
   keepSelectedId,
+  rankSuggestions,
+  readPersistedEditorDraft,
   splitList,
   toLabDraft,
   toReadableError,
@@ -20,6 +26,7 @@ import {
   useEditorProgress,
   useSaveShortcut,
   useUnsavedChangesWarning,
+  writePersistedEditorDraft,
 } from './admin-logic';
 import {
   EditorLayout,
@@ -31,6 +38,9 @@ import {
   StorageImageField,
   TextField,
 } from './admin-ui';
+
+const dedupe = (values: string[]) =>
+  Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 
 const SECTION_OPTIONS: { value: LabSection | ''; label: string }[] = [
   { value: '', label: 'Gallery (bottom)' },
@@ -132,6 +142,7 @@ function DraggableImageList({
 }
 
 export function LabAdmin() {
+  const { projects, videos, labItems, galleryImages } = useContext(DataContext);
   const [items, setItems] = useState<LabItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -139,6 +150,11 @@ export function LabAdmin() {
   const [busy, setBusy] = useState(false);
   const [focusMode, setFocusMode] = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [localDraftSavedAt, setLocalDraftSavedAt] = useState<number | null>(null);
+  const [batchSelection, setBatchSelection] = useState<string[]>([]);
+  const [batchType, setBatchType] = useState('');
+  const [batchStatus, setBatchStatus] = useState('');
+  const [batchTools, setBatchTools] = useState('');
   const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
@@ -158,6 +174,10 @@ export function LabAdmin() {
   }, [isCreatingNew, setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
+  const draftStorageKey = useMemo(
+    () => getEditorDraftStorageKey('labItems', selectedId, isCreatingNew),
+    [isCreatingNew, selectedId],
+  );
   const baselineDraft = useMemo(() => {
     if (isCreatingNew) {
       return defaultLabDraft();
@@ -181,11 +201,21 @@ export function LabAdmin() {
       previousSelection.isCreatingNew !== isCreatingNew;
 
     if (selectionChanged || !isDirtyRef.current) {
-      setDraft(baselineDraft);
+      const persisted = readPersistedEditorDraft<LabDraft>(draftStorageKey);
+      if (persisted) {
+        setDraft(persisted.draft);
+        setLocalDraftSavedAt(persisted.savedAt);
+        if (selectionChanged) {
+          setSuccess('Recovered a local draft so you can keep going.');
+        }
+      } else {
+        setDraft(baselineDraft);
+        setLocalDraftSavedAt(null);
+      }
     }
 
     previousSelectionRef.current = { selectedId, isCreatingNew };
-  }, [baselineDraft, isCreatingNew, selectedId]);
+  }, [baselineDraft, draftStorageKey, isCreatingNew, selectedId, setSuccess]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -202,9 +232,20 @@ export function LabAdmin() {
   });
   const isDirtyRef = useRef(false);
   useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+  useEffect(() => {
+    if (!isDirty) {
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
+      return;
+    }
+
+    writePersistedEditorDraft(draftStorageKey, draft);
+    setLocalDraftSavedAt(Date.now());
+  }, [draft, draftStorageKey, isDirty]);
   const payload = useMemo(
     () => ({
       title: trimValue(draft.title),
+      status: draft.status,
       type: draft.type,
       content: trimValue(draft.content),
       image: trimValue(draft.image) || undefined,
@@ -223,19 +264,41 @@ export function LabAdmin() {
     }),
     [draft],
   );
-  const disabledReason = missingFields.length
-    ? `Add ${missingFields.join(', ')} to save.`
+  const publishMissingFields = draft.status === 'published' ? missingFields : [];
+  const disabledReason = publishMissingFields.length
+    ? `Add ${publishMissingFields.join(', ')} to publish.`
     : isDirty
       ? null
       : 'Make a change to enable save.';
+  const toolSuggestions = useMemo(
+    () =>
+      dedupe(
+        [
+          ...projects.flatMap((item) => item.tools ?? []),
+          ...videos.flatMap((item) => item.tools ?? []),
+          ...labItems.flatMap((item) => item.tools ?? []),
+          ...galleryImages.map((item) => item.software ?? '').filter(Boolean),
+        ],
+      ).sort((a, b) => a.localeCompare(b)),
+    [galleryImages, labItems, projects, videos],
+  );
+  const quickToolPicks = useMemo(
+    () =>
+      rankSuggestions([
+        ...labItems.flatMap((item) => item.tools ?? []),
+        ...projects.flatMap((item) => item.tools ?? []),
+        ...videos.flatMap((item) => item.tools ?? []),
+      ]),
+    [labItems, projects, videos],
+  );
 
   const handleSave = useCallback(async () => {
     if (busy) {
       return;
     }
 
-    if (missingFields.length) {
-      setError(`Add ${missingFields.join(', ')} before saving.`);
+    if (publishMissingFields.length) {
+      setError(`Add ${publishMissingFields.join(', ')} before publishing.`);
       return;
     }
 
@@ -253,13 +316,25 @@ export function LabAdmin() {
         setSuccess('Lab note created.');
       }
 
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
       setLastSavedAt(Date.now());
     } catch (error) {
       setError(toReadableError('Could not save the lab note.', error));
     } finally {
       setBusy(false);
     }
-  }, [busy, clear, isCreatingNew, missingFields, payload, selectedId, setError, setSuccess]);
+  }, [
+    busy,
+    clear,
+    draftStorageKey,
+    isCreatingNew,
+    payload,
+    publishMissingFields,
+    selectedId,
+    setError,
+    setSuccess,
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedId || isCreatingNew) {
@@ -274,6 +349,8 @@ export function LabAdmin() {
     try {
       clear();
       await deleteDoc(doc(db, 'labItems', selectedId));
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
       setSelectedId(null);
       setIsCreatingNew(false);
       setDraft(defaultLabDraft());
@@ -283,9 +360,74 @@ export function LabAdmin() {
     } finally {
       setBusy(false);
     }
-  }, [clear, isCreatingNew, selectedId, setError, setSuccess]);
+  }, [clear, draftStorageKey, isCreatingNew, selectedId, setError, setSuccess]);
 
-  useSaveShortcut(!busy && !missingFields.length && isDirty, handleSave);
+  const handleDuplicate = useCallback(() => {
+    if (!selectedItem) {
+      return;
+    }
+
+    clear();
+    setFocusMode(true);
+    setIsCreatingNew(true);
+    setSelectedId(null);
+    setDraft({
+      ...toLabDraft(selectedItem),
+      title: `${selectedItem.title || 'Untitled lab note'} copy`,
+      status: 'draft',
+    });
+    setSuccess('Duplicated into a new draft.');
+  }, [clear, selectedItem, setSuccess]);
+
+  const handleBatchApply = useCallback(async () => {
+    if (!batchSelection.length || busy) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      clear();
+      const toolAdds = splitList(batchTools);
+      const batch = writeBatch(db);
+
+      batchSelection.forEach((id) => {
+        const current = items.find((item) => item.id === id);
+        if (!current) {
+          return;
+        }
+
+        const patch: Partial<LabItem> = {};
+        if (batchType) {
+          patch.type = batchType as LabItem['type'];
+        }
+        if (batchStatus) {
+          patch.status = batchStatus as LabDraft['status'];
+        }
+        if (toolAdds.length) {
+          patch.tools = dedupe([...(current.tools ?? []), ...toolAdds]);
+        }
+        batch.update(doc(db, 'labItems', id), patch);
+      });
+
+      await batch.commit();
+      setBatchSelection([]);
+      setBatchType('');
+      setBatchStatus('');
+      setBatchTools('');
+      setSuccess(`Updated ${batchSelection.length} lab notes.`);
+    } catch (error) {
+      setError(toReadableError('Could not update the selected lab notes.', error));
+    } finally {
+      setBusy(false);
+    }
+  }, [batchSelection, batchStatus, batchTools, batchType, busy, clear, items, setError, setSuccess]);
+
+  const previewHref =
+    !selectedId || isCreatingNew || draft.status !== 'published'
+      ? null
+      : `/lab?preview=${encodeURIComponent(selectedId)}`;
+
+  useSaveShortcut(!busy && !publishMissingFields.length && isDirty, handleSave);
   useUnsavedChangesWarning(isDirty);
 
   return (
@@ -295,6 +437,21 @@ export function LabAdmin() {
       list={items}
       selectedId={selectedId}
       hasUnsavedChanges={isDirty}
+      createOptions={LAB_TYPES.map((type) => ({
+        label: type,
+        description: `Start a ${type.toLowerCase()} lab draft.`,
+        onSelect: () => {
+          clear();
+          setFocusMode(true);
+          setIsCreatingNew(true);
+          setSelectedId(null);
+          setDraft({
+            ...defaultLabDraft(),
+            type,
+            status: 'draft',
+          });
+        },
+      }))}
       onSelect={(nextId) => {
         clear();
         setIsCreatingNew(false);
@@ -320,10 +477,56 @@ export function LabAdmin() {
           missingFields={missingFields}
           isDirty={isDirty}
           lastSavedAt={lastSavedAt}
+          localDraftSavedAt={localDraftSavedAt}
+          publishStatus={draft.status}
           hasOptionalFields
           focusMode={focusMode}
           onToggleFocusMode={() => setFocusMode((value) => !value)}
         />
+      }
+      batchSelection={batchSelection}
+      onBatchSelectionChange={setBatchSelection}
+      batchPanel={
+        <EditorSection
+          title="Batch edit"
+          description={
+            batchSelection.length
+              ? `Apply shared changes to ${batchSelection.length} selected lab notes.`
+              : 'Select lab notes from the list to update them together.'
+          }
+        >
+          <div className="space-y-3">
+            <SelectField
+              label="Type"
+              value={batchType}
+              options={['', ...LAB_TYPES]}
+              onChange={setBatchType}
+            />
+            <SelectField
+              label="Status"
+              value={batchStatus}
+              options={['', ...ENTRY_STATUS_OPTIONS]}
+              onChange={setBatchStatus}
+            />
+            <LongField
+              label="Add tools"
+              value={batchTools}
+              onChange={setBatchTools}
+              placeholder="One per line or comma-separated"
+              suggestions={toolSuggestions}
+              quickPicks={quickToolPicks}
+              suggestionMode="list"
+            />
+            <button
+              type="button"
+              disabled={!batchSelection.length || busy}
+              onClick={() => void handleBatchApply()}
+              className="rounded-full bg-brand-accent px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-bg disabled:opacity-50"
+            >
+              Apply to selected
+            </button>
+          </div>
+        </EditorSection>
       }
       form={
         <div className="space-y-4">
@@ -339,6 +542,12 @@ export function LabAdmin() {
                 placeholder="What did you explore?"
                 value={draft.title}
                 onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))}
+              />
+              <SelectField
+                label="Status"
+                value={draft.status}
+                options={ENTRY_STATUS_OPTIONS}
+                onChange={(value) => setDraft((prev) => ({ ...prev, status: value as LabDraft['status'] }))}
               />
               <SelectField
                 label="Type"
@@ -461,6 +670,9 @@ export function LabAdmin() {
                   placeholder="Runway, Blender, ChatGPT"
                   value={draft.tools}
                   onChange={(value) => setDraft((prev) => ({ ...prev, tools: value }))}
+                  suggestions={toolSuggestions}
+                  quickPicks={quickToolPicks}
+                  suggestionMode="list"
                 />
               </div>
             </EditorSection>
@@ -471,10 +683,20 @@ export function LabAdmin() {
         <FormActions
           busy={busy}
           isDirty={isDirty}
-          saveLabel={isCreatingNew ? 'Create lab note' : 'Save lab note'}
+          saveLabel={
+            draft.status === 'draft'
+              ? isCreatingNew
+                ? 'Create draft'
+                : 'Save draft'
+              : isCreatingNew
+                ? 'Publish lab note'
+                : 'Publish changes'
+          }
           disabledReason={disabledReason}
           onSave={handleSave}
           onDelete={!isCreatingNew && selectedId ? handleDelete : undefined}
+          onDuplicate={!isCreatingNew && selectedItem ? handleDuplicate : undefined}
+          previewHref={previewHref}
         />
       }
     />

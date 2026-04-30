@@ -40,9 +40,10 @@ export const useFeaturedItems = () => {
     const unsubProjects = onSnapshot(
       query(collection(db, 'projects'), where('featured', '==', true)),
       (snapshot) => {
-        featuredProjects = snapshot.docs.map((doc) =>
-          toPortfolioItem(normalizeProject({ id: doc.id, ...doc.data() } as Project)),
-        );
+        featuredProjects = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
+          .filter((item) => item.status !== 'draft')
+          .map((item) => toPortfolioItem(normalizeProject(item)));
         projectsDone = true;
         merge();
       },
@@ -55,9 +56,10 @@ export const useFeaturedItems = () => {
     const unsubVideos = onSnapshot(
       query(collection(db, 'videos'), where('featured', '==', true)),
       (snapshot) => {
-        featuredVideos = snapshot.docs.map((doc) =>
-          videoToPortfolioItem({ id: doc.id, ...doc.data() } as Video),
-        );
+        featuredVideos = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Video))
+          .filter((item) => item.status !== 'draft')
+          .map((item) => videoToPortfolioItem(item));
         videosDone = true;
         merge();
       },
@@ -70,9 +72,10 @@ export const useFeaturedItems = () => {
     const unsubGallery = onSnapshot(
       query(collection(db, 'gallery'), where('featured', '==', true)),
       (snapshot) => {
-        featuredGallery = snapshot.docs.map((doc) =>
-          galleryToPortfolioItem({ id: doc.id, ...doc.data() } as GalleryImage),
-        );
+        featuredGallery = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as GalleryImage))
+          .filter((item) => item.status !== 'draft')
+          .map((item) => galleryToPortfolioItem(item));
         galleryDone = true;
         merge();
       },

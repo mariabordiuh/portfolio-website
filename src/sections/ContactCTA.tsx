@@ -4,8 +4,8 @@ import { RevealOnScroll } from '../components/RevealOnScroll';
 export const ContactCTA = () => {
   return (
     <section className="px-6 py-32 md:px-12 md:py-44">
-      <RevealOnScroll>
-        <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
+        <RevealOnScroll>
           <div className="hidden min-h-[34rem] grid-cols-[minmax(0,1fr)_19rem] items-center gap-16 md:grid">
             <div className="relative">
               <div className="absolute -left-8 top-10 h-28 w-28 rounded-full border border-brand-accent/25 opacity-50" />
@@ -106,8 +106,8 @@ export const ContactCTA = () => {
               </a>
             </div>
           </div>
-        </div>
-      </RevealOnScroll>
+        </RevealOnScroll>
+      </div>
     </section>
   );
 };

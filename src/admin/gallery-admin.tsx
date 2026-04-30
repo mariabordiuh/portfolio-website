@@ -1,14 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { DataContext } from '../context/DataContext';
 import { db } from '../firebase-firestore';
 import { GalleryImage, ProjectPillar } from '../types';
 import {
   ChecklistItem,
+  ENTRY_STATUS_OPTIONS,
   GalleryDraft,
   PROJECT_PILLARS,
+  clearPersistedEditorDraft,
   confirmDelete,
   defaultGalleryDraft,
+  getEditorDraftStorageKey,
   keepSelectedId,
+  rankSuggestions,
+  readPersistedEditorDraft,
   splitList,
   toGalleryDraft,
   toReadableError,
@@ -17,6 +23,7 @@ import {
   useEditorProgress,
   useSaveShortcut,
   useUnsavedChangesWarning,
+  writePersistedEditorDraft,
 } from './admin-logic';
 import {
   EditorLayout,
@@ -31,7 +38,11 @@ import {
   ToggleField,
 } from './admin-ui';
 
+const dedupe = (values: string[]) =>
+  Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+
 export function GalleryAdmin() {
+  const { projects, videos, labItems, galleryImages } = useContext(DataContext);
   const [items, setItems] = useState<GalleryImage[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -39,6 +50,18 @@ export function GalleryAdmin() {
   const [busy, setBusy] = useState(false);
   const [focusMode, setFocusMode] = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [localDraftSavedAt, setLocalDraftSavedAt] = useState<number | null>(null);
+  const [batchSelection, setBatchSelection] = useState<string[]>([]);
+  const [batchPillar, setBatchPillar] = useState<string>('');
+  const [batchStatus, setBatchStatus] = useState('');
+  const [batchFeatured, setBatchFeatured] = useState<'keep' | 'on' | 'off'>('keep');
+  const [batchSoftware, setBatchSoftware] = useState('');
+  const [batchTags, setBatchTags] = useState('');
+  const [bulkUrls, setBulkUrls] = useState('');
+  const [bulkPillar, setBulkPillar] = useState<ProjectPillar>('Illustration & Design');
+  const [bulkStatus, setBulkStatus] = useState<'draft' | 'published'>('draft');
+  const [bulkSoftware, setBulkSoftware] = useState('');
+  const [bulkTags, setBulkTags] = useState('');
   const { notice, clear, setError, setSuccess } = useEditorNotice();
 
   useEffect(() => {
@@ -58,6 +81,10 @@ export function GalleryAdmin() {
   }, [isCreatingNew, setError]);
 
   const selectedItem = useMemo(() => items.find((item) => item.id === selectedId), [items, selectedId]);
+  const draftStorageKey = useMemo(
+    () => getEditorDraftStorageKey('gallery', selectedId, isCreatingNew),
+    [isCreatingNew, selectedId],
+  );
   const baselineDraft = useMemo(() => {
     if (isCreatingNew) {
       return defaultGalleryDraft();
@@ -81,11 +108,21 @@ export function GalleryAdmin() {
       previousSelection.isCreatingNew !== isCreatingNew;
 
     if (selectionChanged || !isDirtyRef.current) {
-      setDraft(baselineDraft);
+      const persisted = readPersistedEditorDraft<GalleryDraft>(draftStorageKey);
+      if (persisted) {
+        setDraft(persisted.draft);
+        setLocalDraftSavedAt(persisted.savedAt);
+        if (selectionChanged) {
+          setSuccess('Recovered a local draft so you can keep going.');
+        }
+      } else {
+        setDraft(baselineDraft);
+        setLocalDraftSavedAt(null);
+      }
     }
 
     previousSelectionRef.current = { selectedId, isCreatingNew };
-  }, [baselineDraft, isCreatingNew, selectedId]);
+  }, [baselineDraft, draftStorageKey, isCreatingNew, selectedId, setSuccess]);
 
   const checklist = useMemo<ChecklistItem[]>(
     () => [
@@ -101,9 +138,20 @@ export function GalleryAdmin() {
   });
   const isDirtyRef = useRef(false);
   useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+  useEffect(() => {
+    if (!isDirty) {
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
+      return;
+    }
+
+    writePersistedEditorDraft(draftStorageKey, draft);
+    setLocalDraftSavedAt(Date.now());
+  }, [draft, draftStorageKey, isDirty]);
   const payload = useMemo(
     () => ({
       url: trimValue(draft.url),
+      status: draft.status,
       pillar: draft.pillar || undefined,
       tags: splitList(draft.tags),
       software: trimValue(draft.software) || undefined,
@@ -113,19 +161,59 @@ export function GalleryAdmin() {
     }),
     [draft],
   );
-  const disabledReason = missingFields.length
-    ? `Add ${missingFields.join(', ')} to save.`
+  const publishMissingFields = draft.status === 'published' ? missingFields : [];
+  const disabledReason = publishMissingFields.length
+    ? `Add ${publishMissingFields.join(', ')} to publish.`
     : isDirty
       ? null
       : 'Make a change to enable save.';
+  const toolSuggestions = useMemo(
+    () =>
+      dedupe(
+        [
+          ...projects.flatMap((item) => item.tools ?? []),
+          ...videos.flatMap((item) => item.tools ?? []),
+          ...labItems.flatMap((item) => item.tools ?? []),
+          ...galleryImages.map((item) => item.software ?? '').filter(Boolean),
+        ],
+      ).sort((a, b) => a.localeCompare(b)),
+    [galleryImages, labItems, projects, videos],
+  );
+  const quickSoftwarePicks = useMemo(
+    () =>
+      rankSuggestions([
+        ...galleryImages.map((item) => item.software ?? ''),
+        ...projects.flatMap((item) => item.tools ?? []),
+        ...videos.flatMap((item) => item.tools ?? []),
+      ]),
+    [galleryImages, projects, videos],
+  );
+  const tagSuggestions = useMemo(
+    () =>
+      dedupe([
+        ...galleryImages.flatMap((item) => item.tags ?? []),
+        ...videos.flatMap((item) => item.tags ?? []),
+        ...projects.flatMap((item) => item.categories ?? []),
+      ]).sort((a, b) => a.localeCompare(b)),
+    [galleryImages, projects, videos],
+  );
+  const quickTagPicks = useMemo(
+    () =>
+      rankSuggestions([
+        ...galleryImages.flatMap((item) => item.tags ?? []),
+        ...videos.flatMap((item) => item.tags ?? []),
+        ...projects.flatMap((item) => item.categories ?? []),
+      ]),
+    [galleryImages, projects, videos],
+  );
 
   const handleSave = useCallback(async () => {
     if (busy) {
       return;
     }
 
-    if (missingFields.length) {
-      setError(`Add ${missingFields.join(', ')} before saving.`);
+    if (publishMissingFields.length) {
+      setError(`Add ${publishMissingFields.join(', ')} before publishing.`);
       return;
     }
 
@@ -146,13 +234,25 @@ export function GalleryAdmin() {
         setSuccess('Gallery item created.');
       }
 
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
       setLastSavedAt(Date.now());
     } catch (error) {
       setError(toReadableError('Could not save the gallery item.', error));
     } finally {
       setBusy(false);
     }
-  }, [busy, clear, isCreatingNew, missingFields, payload, selectedId, setError, setSuccess]);
+  }, [
+    busy,
+    clear,
+    draftStorageKey,
+    isCreatingNew,
+    payload,
+    publishMissingFields,
+    selectedId,
+    setError,
+    setSuccess,
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedId || isCreatingNew) {
@@ -167,6 +267,8 @@ export function GalleryAdmin() {
     try {
       clear();
       await deleteDoc(doc(db, 'gallery', selectedId));
+      clearPersistedEditorDraft(draftStorageKey);
+      setLocalDraftSavedAt(null);
       setSelectedId(null);
       setIsCreatingNew(false);
       setDraft(defaultGalleryDraft());
@@ -176,9 +278,151 @@ export function GalleryAdmin() {
     } finally {
       setBusy(false);
     }
-  }, [clear, isCreatingNew, selectedId, setError, setSuccess]);
+  }, [clear, draftStorageKey, isCreatingNew, selectedId, setError, setSuccess]);
 
-  useSaveShortcut(!busy && !missingFields.length && isDirty, handleSave);
+  const handleDuplicate = useCallback(() => {
+    if (!selectedItem) {
+      return;
+    }
+
+    clear();
+    setIsCreatingNew(true);
+    setSelectedId(null);
+    setDraft({
+      ...toGalleryDraft(selectedItem),
+      status: 'draft',
+      featured: false,
+      workPriorityRank: '',
+    });
+    setSuccess('Duplicated into a new draft.');
+  }, [clear, selectedItem, setSuccess]);
+
+  const handleBatchApply = useCallback(async () => {
+    if (!batchSelection.length || busy) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      clear();
+      const tagAdds = splitList(batchTags);
+      const batch = writeBatch(db);
+
+      batchSelection.forEach((id) => {
+        const current = items.find((item) => item.id === id);
+        if (!current) {
+          return;
+        }
+
+        const patch: Partial<GalleryImage> = {};
+
+        if (batchPillar) {
+          patch.pillar = batchPillar as ProjectPillar;
+        }
+
+        if (batchStatus) {
+          patch.status = batchStatus as GalleryDraft['status'];
+        }
+
+        if (batchFeatured !== 'keep') {
+          patch.featured = batchFeatured === 'on';
+        }
+
+        if (trimValue(batchSoftware)) {
+          patch.software = trimValue(batchSoftware);
+        }
+
+        if (tagAdds.length) {
+          patch.tags = dedupe([...(current.tags ?? []), ...tagAdds]);
+        }
+
+        batch.update(doc(db, 'gallery', id), patch);
+      });
+
+      await batch.commit();
+      setBatchSelection([]);
+      setBatchPillar('');
+      setBatchStatus('');
+      setBatchFeatured('keep');
+      setBatchSoftware('');
+      setBatchTags('');
+      setSuccess(`Updated ${batchSelection.length} gallery items.`);
+    } catch (error) {
+      setError(toReadableError('Could not update the selected gallery items.', error));
+    } finally {
+      setBusy(false);
+    }
+  }, [batchFeatured, batchPillar, batchSelection, batchSoftware, batchStatus, batchTags, busy, clear, items, setError, setSuccess]);
+
+  const handleBatchDelete = useCallback(async () => {
+    if (!batchSelection.length || busy) {
+      return;
+    }
+
+    if (!confirmDelete(`${batchSelection.length} selected gallery items`)) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      clear();
+      const batch = writeBatch(db);
+      batchSelection.forEach((id) => batch.delete(doc(db, 'gallery', id)));
+      await batch.commit();
+      setBatchSelection([]);
+      setSuccess(`Deleted ${batchSelection.length} gallery items.`);
+    } catch (error) {
+      setError(toReadableError('Could not delete the selected gallery items.', error));
+    } finally {
+      setBusy(false);
+    }
+  }, [batchSelection, busy, clear, setError, setSuccess]);
+
+  const handleBulkImport = useCallback(async () => {
+    if (busy) {
+      return;
+    }
+
+    const urls = dedupe(splitList(bulkUrls));
+    if (!urls.length) {
+      setError('Paste at least one image URL to bulk import.');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      clear();
+      const tags = splitList(bulkTags);
+      for (const url of urls) {
+        await addDoc(collection(db, 'gallery'), {
+          url,
+          status: bulkStatus,
+          pillar: bulkPillar,
+          tags,
+          software: trimValue(bulkSoftware) || undefined,
+          info: undefined,
+          featured: false,
+          workPriorityRank: null,
+          createdAt: serverTimestamp(),
+        });
+      }
+      setBulkUrls('');
+      setBulkSoftware('');
+      setBulkTags('');
+      setSuccess(`Imported ${urls.length} gallery items.`);
+    } catch (error) {
+      setError(toReadableError('Could not bulk import the gallery items.', error));
+    } finally {
+      setBusy(false);
+    }
+  }, [bulkPillar, bulkSoftware, bulkStatus, bulkTags, bulkUrls, busy, clear, setError, setSuccess]);
+
+  const previewHref =
+    !selectedId || isCreatingNew || draft.status !== 'published'
+      ? null
+      : `/work?pillar=${encodeURIComponent(draft.pillar || 'Illustration & Design')}&preview=${encodeURIComponent(`gallery:${selectedId}`)}`;
+
+  useSaveShortcut(!busy && !publishMissingFields.length && isDirty, handleSave);
   useUnsavedChangesWarning(isDirty);
 
   return (
@@ -188,6 +432,38 @@ export function GalleryAdmin() {
       list={items}
       selectedId={selectedId}
       hasUnsavedChanges={isDirty}
+      createOptions={[
+        {
+          label: 'Illustration',
+          description: 'Start a draft in Illustration & Design.',
+          onSelect: () => {
+            clear();
+            setFocusMode(true);
+            setIsCreatingNew(true);
+            setSelectedId(null);
+            setDraft({
+              ...defaultGalleryDraft(),
+              pillar: 'Illustration & Design',
+              status: 'draft',
+            });
+          },
+        },
+        {
+          label: 'AI image',
+          description: 'Start a draft in AI Generated.',
+          onSelect: () => {
+            clear();
+            setFocusMode(true);
+            setIsCreatingNew(true);
+            setSelectedId(null);
+            setDraft({
+              ...defaultGalleryDraft(),
+              pillar: 'AI Generated',
+              status: 'draft',
+            });
+          },
+        },
+      ]}
       onSelect={(nextId) => {
         clear();
         setIsCreatingNew(false);
@@ -213,10 +489,132 @@ export function GalleryAdmin() {
           missingFields={missingFields}
           isDirty={isDirty}
           lastSavedAt={lastSavedAt}
+          localDraftSavedAt={localDraftSavedAt}
+          publishStatus={draft.status}
           hasOptionalFields
           focusMode={focusMode}
           onToggleFocusMode={() => setFocusMode((value) => !value)}
         />
+      }
+      batchSelection={batchSelection}
+      onBatchSelectionChange={setBatchSelection}
+      batchPanel={
+        <EditorSection
+          title="Batch edit"
+          description={
+            batchSelection.length
+              ? `Apply shared changes to ${batchSelection.length} selected images.`
+              : 'Select images from the list to update them together.'
+          }
+        >
+          <div className="space-y-3">
+            <SelectField
+              label="Pillar"
+              value={batchPillar}
+              options={['', ...PROJECT_PILLARS]}
+              onChange={setBatchPillar}
+            />
+            <SelectField
+              label="Status"
+              value={batchStatus}
+              options={['', ...ENTRY_STATUS_OPTIONS]}
+              onChange={setBatchStatus}
+            />
+            <SelectField
+              label="Featured"
+              value={batchFeatured}
+              options={['keep', 'on', 'off']}
+              onChange={(value) => setBatchFeatured(value as 'keep' | 'on' | 'off')}
+            />
+            <TextField
+              label="Software"
+              value={batchSoftware}
+              onChange={setBatchSoftware}
+              placeholder="Midjourney, Photoshop, Blender"
+              suggestions={toolSuggestions}
+              quickPicks={quickSoftwarePicks}
+            />
+            <LongField
+              label="Add tags"
+              value={batchTags}
+              onChange={setBatchTags}
+              placeholder="One per line or comma-separated"
+              suggestions={tagSuggestions}
+              quickPicks={quickTagPicks}
+              suggestionMode="list"
+            />
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                type="button"
+                disabled={!batchSelection.length || busy}
+                onClick={() => void handleBatchApply()}
+                className="rounded-full bg-brand-accent px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-bg disabled:opacity-50"
+              >
+                Apply to selected
+              </button>
+              <button
+                type="button"
+                disabled={!batchSelection.length || busy}
+                onClick={() => void handleBatchDelete()}
+                className="rounded-full border border-red-500/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-red-300 disabled:opacity-50"
+              >
+                Delete selected
+              </button>
+            </div>
+          </div>
+        </EditorSection>
+      }
+      sidebarFooter={
+        <EditorSection
+          title="Bulk import"
+          description="Paste several image URLs at once, then stamp shared defaults before saving them to the gallery."
+        >
+          <div className="space-y-3">
+            <LongField
+              label="Image URLs"
+              value={bulkUrls}
+              onChange={setBulkUrls}
+              placeholder="One URL per line"
+            />
+            <SelectField
+              label="Pillar"
+              value={bulkPillar}
+              options={PROJECT_PILLARS}
+              onChange={(value) => setBulkPillar(value as ProjectPillar)}
+            />
+            <SelectField
+              label="Status"
+              value={bulkStatus}
+              options={ENTRY_STATUS_OPTIONS}
+              onChange={(value) => setBulkStatus(value as 'draft' | 'published')}
+            />
+            <TextField
+              label="Shared software"
+              value={bulkSoftware}
+              onChange={setBulkSoftware}
+              placeholder="Midjourney, Photoshop"
+              suggestions={toolSuggestions}
+              quickPicks={quickSoftwarePicks}
+            />
+            <LongField
+              label="Shared tags"
+              value={bulkTags}
+              onChange={setBulkTags}
+              placeholder="One per line or comma-separated"
+              suggestions={tagSuggestions}
+              quickPicks={quickTagPicks}
+              suggestionMode="list"
+            />
+            <button
+              type="button"
+              disabled={busy || !trimValue(bulkUrls)}
+              onClick={() => void handleBulkImport()}
+              className="w-full rounded-full bg-white px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-black disabled:opacity-50"
+            >
+              Import queue
+            </button>
+          </div>
+        </EditorSection>
       }
       form={
         <div className="space-y-4">
@@ -248,6 +646,8 @@ export function GalleryAdmin() {
                 placeholder="Midjourney, Blender, Photoshop"
                 value={draft.software}
                 onChange={(value) => setDraft((prev) => ({ ...prev, software: value }))}
+                suggestions={toolSuggestions}
+                quickPicks={quickSoftwarePicks}
               />
             </div>
           </EditorSection>
@@ -264,14 +664,37 @@ export function GalleryAdmin() {
                   options={['', ...PROJECT_PILLARS]}
                   onChange={(value) => setDraft((prev) => ({ ...prev, pillar: value as ProjectPillar | '' }))}
                 />
+                <SelectField
+                  label="Status"
+                  value={draft.status}
+                  options={ENTRY_STATUS_OPTIONS}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, status: value as GalleryDraft['status'] }))}
+                />
                 <LongField
                   label="Tags"
                   hint="One per line or comma-separated"
                   placeholder="metallic, macro, surreal"
                   value={draft.tags}
                   onChange={(value) => setDraft((prev) => ({ ...prev, tags: value }))}
+                  suggestions={tagSuggestions}
+                  quickPicks={quickTagPicks}
+                  suggestionMode="list"
                 />
               </div>
+            </EditorSection>
+          ) : null}
+
+          {focusMode ? (
+            <EditorSection
+              title="Publishing"
+              description="Keep rough uploads hidden until you are ready to publish them on the live site."
+            >
+              <SelectField
+                label="Status"
+                value={draft.status}
+                options={ENTRY_STATUS_OPTIONS}
+                onChange={(value) => setDraft((prev) => ({ ...prev, status: value as GalleryDraft['status'] }))}
+              />
             </EditorSection>
           ) : null}
 
@@ -303,10 +726,20 @@ export function GalleryAdmin() {
         <FormActions
           busy={busy}
           isDirty={isDirty}
-          saveLabel={isCreatingNew ? 'Create gallery item' : 'Save gallery item'}
+          saveLabel={
+            draft.status === 'draft'
+              ? isCreatingNew
+                ? 'Create draft'
+                : 'Save draft'
+              : isCreatingNew
+                ? 'Publish image'
+                : 'Publish changes'
+          }
           disabledReason={disabledReason}
           onSave={handleSave}
           onDelete={!isCreatingNew && selectedId ? handleDelete : undefined}
+          onDuplicate={!isCreatingNew && selectedItem ? handleDuplicate : undefined}
+          previewHref={previewHref}
         />
       }
     />

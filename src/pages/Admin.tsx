@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  X, Plus, Trash2, Edit3, Search, LogOut, Info, Rocket, 
+  X, Trash2, Edit3, LogOut, Info, Rocket,
   Check, CheckCircle2, Image as ImageIcon, Star,
   Compass, Zap, Cpu, Code, ArrowRight, AlertTriangle
 } from 'lucide-react';
@@ -157,11 +157,6 @@ export const Admin = () => {
     [projects, videos, galleryImages],
   );
 
-  const galleryFilterTags = useMemo(
-    () => ['All', 'Featured', ...uniqueStrings(galleryImages.flatMap(g => g.tags))],
-    [galleryImages],
-  );
-
   const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery' | 'hero' | 'storage'>('projects');
   
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
@@ -188,8 +183,6 @@ export const Admin = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   
   const [projectStep, setProjectStep] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeGalleryFilter, setActiveGalleryFilter] = useState<string>('All');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: string }>({});
@@ -847,7 +840,7 @@ export const Admin = () => {
                   <button
                     key={tab}
                     type="button"
-                    onClick={() => { setActiveTab(tab); setSearchQuery(''); }}
+                    onClick={() => { setActiveTab(tab); }}
                     aria-pressed={activeTab === tab}
                     className={cn(
                       "px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border shrink-0",
@@ -866,47 +859,15 @@ export const Admin = () => {
                 ))}
               </div>
 
-              {activeTab !== 'hero' && activeTab !== 'storage' ? (
-                <>
-                  <div className="flex-grow flex items-center gap-4 glass rounded-2xl border border-white/5 px-6 py-2 w-full md:max-w-md focus-within:border-brand-accent/40 transition-all font-mono">
-                    <Search size={16} className="text-brand-muted" />
-                    <input 
-                      type="text" 
-                      placeholder={`Filter archive...`} 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      aria-label="Filter archive"
-                      className="bg-transparent border-none outline-none py-3 text-xs uppercase tracking-widest w-full"
-                    />
-                  </div>
-                  
-                  <div className="relative group/create shrink-0">
-                     <button type="button" className="px-8 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center gap-3 hover:bg-brand-accent transition-all shadow-xl">
-                        <Plus size={14} strokeWidth={3} /> Create New
-                     </button>
-                     <div className="absolute top-full right-0 md:left-0 mt-4 w-52 glass rounded-[2rem] border border-white/10 opacity-0 invisible group-hover/create:opacity-100 group-hover/create:visible group-focus-within/create:opacity-100 group-focus-within/create:visible transition-all z-[100] overflow-hidden translate-y-2 group-hover/create:translate-y-0 group-focus-within/create:translate-y-0 shadow-3xl">
-                        <button type="button" onClick={() => setEditingProject(createEmptyProject())} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Project</button>
-                        <button type="button" onClick={() => setEditingVideo({ title: '', url: '', thumbnail: '', description: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Video</button>
-                        <button type="button" onClick={() => setEditingLab({ title: '', type: 'Experiment', content: '', tools: [], date: new Date().toISOString().split('T')[0] })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Lab Item</button>
-                        <button type="button" onClick={() => setEditingGalleryImage({ url: '', tags: [], software: '', info: '' })} className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 border-b border-white/5">Gallery Single</button>
-                        <label className="w-full px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest hover:bg-white/5 cursor-pointer block">
-                          Bulk Sync
-                          <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => {
-                            if (e.target.files) {
-                              const files = Array.from(e.target.files);
-                              setBulkGalleryQueue(files.map(f => ({ file: f, previewUrl: URL.createObjectURL(f), tags: [], status: 'Ready', progress: 0 })));
-                              e.target.value = '';
-                            }
-                          }} />
-                        </label>
-                      </div>
-                   </div>
-                </>
-              ) : activeTab === 'hero' ? (
+              {activeTab === 'hero' ? (
                 <div className="glass rounded-2xl border border-white/5 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-brand-muted font-mono">
                   Singleton setting: <span className="text-brand-accent">settings/{HOME_HERO_SETTINGS_ID}</span>
                 </div>
-              ) : null}
+              ) : activeTab === 'storage' ? null : (
+                <div className="glass rounded-2xl border border-white/5 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-brand-muted font-mono">
+                  This editor has its own search, create, batch, and filter controls inside the panel below.
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -931,26 +892,6 @@ export const Admin = () => {
           ) : null}
         </AnimatePresence>
 
-        {/* Content Lists */}
-        {activeTab === 'gallery' && (
-          <div className="flex flex-wrap items-center gap-3 mb-10 relative z-20">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-muted mr-2">Filters:</span>
-            {galleryFilterTags.map(filter => (
-              <button
-                key={filter}
-                onClick={() => setActiveGalleryFilter(filter)}
-                className={cn(
-                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
-                  activeGalleryFilter === filter
-                    ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    : "glass border border-white/10 hover:bg-white/10"
-                )}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
           {activeTab === 'hero' ? (
             <div className="lg:col-span-3">

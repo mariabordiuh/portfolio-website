@@ -11,6 +11,7 @@ const FALLBACK_RATIOS = [
   { width: 3, height: 4 },
   { width: 4, height: 3 },
 ];
+const WIDE_CASE_RATIO = { width: 16, height: 9 };
 
 const imageRatioCache = new Map<string, { width: number; height: number }>();
 
@@ -31,9 +32,23 @@ const getColumnCount = (width: number) => {
 };
 
 const getFallbackRatio = (item: PortfolioItem, index: number) =>
-  item.contentType === 'ai-video' || item.contentType === 'motion-video' || item.contentType === 'motion-embed'
+  item.contentType === 'art-direction'
+    ? WIDE_CASE_RATIO
+    : item.contentType === 'ai-video' || item.contentType === 'motion-video' || item.contentType === 'motion-embed'
     ? { width: 16, height: 9 }
     : FALLBACK_RATIOS[index % FALLBACK_RATIOS.length];
+
+const getDisplayRatio = (
+  item: PortfolioItem,
+  index: number,
+  measuredRatio?: { width: number; height: number },
+) => {
+  if (item.contentType === 'art-direction') {
+    return WIDE_CASE_RATIO;
+  }
+
+  return measuredRatio ?? getFallbackRatio(item, index);
+};
 
 const estimateCardHeight = (ratio: { width: number; height: number }) => {
   const visualHeight = ratio.height / ratio.width;
@@ -62,6 +77,7 @@ const MasonryCard = memo(({
   const isArt = isArtDirectionItem(item) && item.routeId;
   const imageKey = `${item.id}:${imageSrc}`;
   const isPriorityImage = index < 4;
+  const thumbnailScale = Math.max(1, (item.thumbnailZoom ?? 100) / 100);
   const Wrapper = isArt ? Link : 'button';
   const extraProps = isArt ? { to: `/work/${item.routeId}` } : { type: 'button' as const, onClick: () => onPreview(item) };
 
@@ -70,47 +86,45 @@ const MasonryCard = memo(({
       className="group block w-full text-left"
       {...(extraProps as any)}
     >
-      <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03]">
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/28 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <div
-          className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-white/[0.045] transition-opacity duration-700 ${
-            imageLoaded ? 'opacity-0' : 'opacity-100'
-          }`}
-          aria-hidden="true"
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,158,187,0.2),transparent_34%),radial-gradient(circle_at_72%_72%,rgba(185,122,37,0.18),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
-          <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_1.35s_infinite]" />
-          <div className="absolute bottom-5 left-5 h-2 w-24 rounded-full bg-white/8" />
-          <div className="absolute bottom-9 left-5 h-2 w-14 rounded-full bg-white/5" />
+      <div className="space-y-3">
+        <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03]">
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/28 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div
+            className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-white/[0.045] transition-opacity duration-700 ${
+              imageLoaded ? 'opacity-0' : 'opacity-100'
+            }`}
+            aria-hidden="true"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,158,187,0.2),transparent_34%),radial-gradient(circle_at_72%_72%,rgba(185,122,37,0.18),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
+            <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_1.35s_infinite]" />
+            <div className="absolute bottom-5 left-5 h-2 w-24 rounded-full bg-white/8" />
+            <div className="absolute bottom-9 left-5 h-2 w-14 rounded-full bg-white/5" />
+          </div>
+          <div style={{ aspectRatio: `${imageRatio.width} / ${imageRatio.height}` }}>
+            {imageSrc ? (
+              <OptimizedImage
+                src={imageSrc}
+                alt={item.title}
+                width={imageRatio.width}
+                height={imageRatio.height}
+                loading={isPriorityImage ? 'eager' : 'lazy'}
+                fetchPriority={isPriorityImage ? 'high' : 'auto'}
+                onImageLoad={(size) => onImageLoad(imageKey, size)}
+                className="block h-full w-full object-cover text-transparent"
+                style={{ transform: `scale(${thumbnailScale})` }}
+              />
+            ) : null}
+          </div>
+          <span className="absolute right-4 top-4 z-20 rounded-full border border-white/12 bg-black/45 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/75 opacity-0 backdrop-blur transition-all duration-300 group-hover:opacity-100">
+            Open Preview
+          </span>
         </div>
-        <div style={{ aspectRatio: `${imageRatio.width} / ${imageRatio.height}` }}>
-          {imageSrc ? (
-            <OptimizedImage
-              src={imageSrc}
-              alt={item.title}
-              width={imageRatio.width}
-              height={imageRatio.height}
-              loading={isPriorityImage ? 'eager' : 'lazy'}
-              fetchPriority={isPriorityImage ? 'high' : 'auto'}
-              onImageLoad={(size) => onImageLoad(imageKey, size)}
-              className="block h-full w-full object-cover text-transparent group-hover:scale-[1.025]"
-            />
-          ) : null}
-        </div>
-        <span className="absolute right-4 top-4 z-20 rounded-full border border-white/12 bg-black/45 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/75 opacity-0 backdrop-blur transition-all duration-300 group-hover:opacity-100">
-          Open Preview
-        </span>
-      </div>
-
-      <div className="px-1 pb-1 pt-4">
-        <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.24em] text-brand-accent">
-          {item.pillar}
-        </p>
-        <h3 className="text-xl font-semibold tracking-tight text-white">{item.title}</h3>
-        {item.description ? (
-          <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-white/60">
-            {item.description}
-          </p>
+        {isArt ? (
+          <div className="px-1">
+            <p className="text-xl font-black uppercase tracking-tight text-white md:text-2xl">
+              {item.title}
+            </p>
+          </div>
         ) : null}
       </div>
     </Wrapper>
@@ -136,6 +150,8 @@ export const MasonryPortfolioGrid = ({
     () => items.map((item) => `${item.id}:${getPortfolioImageSrc(item)}`).join('|'),
     [items],
   );
+
+  const useBalancedGrid = items.length <= Math.max(columnCount * 2, 6);
 
   useEffect(() => {
     const handleResize = () => {
@@ -195,6 +211,36 @@ export const MasonryPortfolioGrid = ({
     return nextColumns.map((column) => column.items);
   }, [columnCount, items]);
 
+  if (useBalancedGrid) {
+    return (
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {items.map((item, index) => {
+          const imageSrc = getPortfolioImageSrc(item);
+          const imageKey = `${item.id}:${imageSrc}`;
+          const ratio = getDisplayRatio(
+            item,
+            index,
+            measuredRatios[imageKey] ?? imageRatioCache.get(imageKey),
+          );
+          const imageLoaded = !imageSrc || loadedImages[imageKey];
+
+          return (
+            <MasonryCard
+              key={item.id}
+              imageLoaded={imageLoaded}
+              imageRatio={ratio}
+              imageSrc={imageSrc}
+              index={index}
+              item={item}
+              onImageLoad={handleImageLoad}
+              onPreview={onPreview}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {columns.map((columnItems, columnIndex) => (
@@ -202,7 +248,11 @@ export const MasonryPortfolioGrid = ({
           {columnItems.map(({ item, index }, itemIndex) => {
             const imageSrc = getPortfolioImageSrc(item);
             const imageKey = `${item.id}:${imageSrc}`;
-            const ratio = measuredRatios[imageKey] ?? imageRatioCache.get(imageKey) ?? getFallbackRatio(item, index);
+            const ratio = getDisplayRatio(
+              item,
+              index,
+              measuredRatios[imageKey] ?? imageRatioCache.get(imageKey),
+            );
             const imageLoaded = !imageSrc || loadedImages[imageKey];
 
             return (

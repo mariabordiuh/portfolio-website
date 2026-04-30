@@ -4,9 +4,12 @@ import {
   Check,
   CheckCircle2,
   Clock3,
+  Copy,
+  ExternalLink,
   ImagePlus,
   ListFilter,
   LoaderCircle,
+  Film,
   Plus,
   Save,
   Search,
@@ -16,6 +19,7 @@ import {
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { storage } from '../firebase-storage';
 import { cn } from '@/src/lib/utils';
+import { optimizeAndUploadVideo } from '../utils/video-upload';
 import {
   ChecklistItem,
   EditorLayoutProps,
@@ -25,6 +29,55 @@ import {
   formatRelativeTime,
   toReadableError,
 } from './admin-logic';
+
+const splitSuggestionEntries = (value: string) =>
+  value
+    .split('\n')
+    .flatMap((entry) => entry.split(','))
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+const getListSuggestionQuery = (value: string) => {
+  const match = value.match(/(?:^|[\n,])\s*([^\n,]*)$/);
+  return match?.[1]?.trim() ?? value.trim();
+};
+
+const replaceListSuggestion = (value: string, suggestion: string) => {
+  const match = value.match(/(^|[\n,])(\s*)([^\n,]*)$/);
+  if (!match) {
+    return suggestion;
+  }
+
+  const currentToken = match[3] ?? '';
+  return `${value.slice(0, value.length - currentToken.length)}${suggestion}`;
+};
+
+function SuggestionTray({
+  items,
+  onPick,
+}: {
+  items: string[];
+  onPick: (value: string) => void;
+}) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 pt-1">
+      {items.map((item) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onPick(item)}
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-brand-muted transition-colors hover:border-brand-accent/30 hover:text-white"
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function NoticeBanner({ notice }: { notice: EditorNotice }) {
   return (
@@ -114,14 +167,20 @@ export function EditorLayout<T extends { id: string }>({
   hasUnsavedChanges,
   onSelect,
   onCreate,
+  createOptions,
   getLabel,
   getMeta,
   notice,
   statusPanel,
   form,
   actions,
+  sidebarFooter,
+  batchSelection,
+  onBatchSelectionChange,
+  batchPanel,
 }: EditorLayoutProps<T>) {
   const [query, setQuery] = useState('');
+  const [batchMode, setBatchMode] = useState(false);
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const filteredList = useMemo(() => {
     if (!deferredQuery) {
@@ -156,8 +215,26 @@ export function EditorLayout<T extends { id: string }>({
       return;
     }
 
+    setBatchMode(false);
+    onBatchSelectionChange?.([]);
     onCreate();
   };
+
+  const handleBatchToggle = () => {
+    const nextValue = !batchMode;
+    setBatchMode(nextValue);
+    if (!nextValue) {
+      onBatchSelectionChange?.([]);
+    }
+  };
+
+  const allShownIds = filteredList.map((item) => item.id);
+  const allShownSelected = Boolean(
+    batchMode &&
+      batchSelection?.length &&
+      allShownIds.length &&
+      allShownIds.every((id) => batchSelection.includes(id)),
+  );
 
   return (
     <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
@@ -177,10 +254,52 @@ export function EditorLayout<T extends { id: string }>({
               New
             </button>
           </div>
+          {createOptions?.length ? (
+            <div className="mt-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-brand-muted">Quick add</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {createOptions.map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => {
+                      if (hasUnsavedChanges && !confirmDiscardChanges()) {
+                        return;
+                      }
+
+                      setBatchMode(false);
+                      onBatchSelectionChange?.([]);
+                      option.onSelect();
+                    }}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-white transition-colors hover:border-brand-accent/30 hover:text-brand-accent"
+                    title={option.description}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-3 py-3">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-brand-muted">
-              <ListFilter size={14} />
-              {filteredList.length === list.length ? `${list.length} entries` : `${filteredList.length} of ${list.length} shown`}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.2em] text-brand-muted">
+              <div className="flex items-center gap-2">
+                <ListFilter size={14} />
+                {filteredList.length === list.length ? `${list.length} entries` : `${filteredList.length} of ${list.length} shown`}
+              </div>
+              {onBatchSelectionChange ? (
+                <button
+                  type="button"
+                  onClick={handleBatchToggle}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em]',
+                    batchMode
+                      ? 'border-brand-accent/40 bg-brand-accent/10 text-brand-accent'
+                      : 'border-white/10 bg-white/5 text-brand-muted',
+                  )}
+                >
+                  {batchMode ? 'Done selecting' : 'Batch edit'}
+                </button>
+              ) : null}
             </div>
             <label className="mt-3 flex items-center gap-3 rounded-[1rem] border border-white/10 bg-white/5 px-3 py-3">
               <Search size={16} className="text-brand-muted" />
@@ -191,6 +310,32 @@ export function EditorLayout<T extends { id: string }>({
                 className="w-full bg-transparent text-sm outline-none placeholder:text-brand-muted"
               />
             </label>
+            {batchMode && onBatchSelectionChange ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onBatchSelectionChange(
+                      allShownSelected
+                        ? (batchSelection ?? []).filter((id) => !allShownIds.includes(id))
+                        : Array.from(new Set([...(batchSelection ?? []), ...allShownIds])),
+                    )
+                  }
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-brand-muted"
+                >
+                  {allShownSelected ? 'Clear shown' : 'Select shown'}
+                </button>
+                {batchSelection?.length ? (
+                  <button
+                    type="button"
+                    onClick={() => onBatchSelectionChange([])}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-brand-muted"
+                  >
+                    Clear all
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {selectedHiddenBySearch ? (
               <p className="mt-3 text-xs text-amber-200">
                 The current draft is hidden by this search. Clear the search to see it again.
@@ -199,13 +344,26 @@ export function EditorLayout<T extends { id: string }>({
           </div>
         </div>
 
+        {batchMode && batchPanel ? <div className="mt-4">{batchPanel}</div> : null}
+
         <div className="mt-4 max-h-[640px] space-y-2 overflow-y-auto pr-1">
           {filteredList.length ? (
             filteredList.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => handleSelect(item.id)}
+                onClick={() => {
+                  if (batchMode && onBatchSelectionChange) {
+                    onBatchSelectionChange(
+                      batchSelection?.includes(item.id)
+                        ? (batchSelection ?? []).filter((id) => id !== item.id)
+                        : [...(batchSelection ?? []), item.id],
+                    );
+                    return;
+                  }
+
+                  handleSelect(item.id);
+                }}
                 className={cn(
                   'w-full rounded-2xl border px-4 py-3 text-left',
                   selectedId === item.id
@@ -213,12 +371,30 @@ export function EditorLayout<T extends { id: string }>({
                     : 'border-white/10 bg-white/5 hover:bg-white/10',
                 )}
               >
-                <span className="line-clamp-2 text-sm font-medium text-white">
-                  {getLabel(item) || 'Untitled item'}
-                </span>
-                {getMeta?.(item) ? (
-                  <span className="mt-1 block text-xs text-brand-muted">{getMeta(item)}</span>
-                ) : null}
+                <div className="flex items-start gap-3">
+                  {batchMode && onBatchSelectionChange ? (
+                    <span
+                      className={cn(
+                        'mt-0.5 inline-flex h-4 w-4 shrink-0 rounded border',
+                        batchSelection?.includes(item.id)
+                          ? 'border-brand-accent bg-brand-accent'
+                          : 'border-white/15 bg-transparent',
+                      )}
+                    >
+                      {batchSelection?.includes(item.id) ? (
+                        <Check size={12} className="m-auto text-brand-bg" />
+                      ) : null}
+                    </span>
+                  ) : null}
+                  <div className="min-w-0">
+                    <span className="line-clamp-2 text-sm font-medium text-white">
+                      {getLabel(item) || 'Untitled item'}
+                    </span>
+                    {getMeta?.(item) ? (
+                      <span className="mt-1 block text-xs text-brand-muted">{getMeta(item)}</span>
+                    ) : null}
+                  </div>
+                </div>
               </button>
             ))
           ) : (
@@ -227,6 +403,8 @@ export function EditorLayout<T extends { id: string }>({
             </div>
           )}
         </div>
+
+        {sidebarFooter ? <div className="mt-4">{sidebarFooter}</div> : null}
       </aside>
 
       <div className="space-y-4">
@@ -234,6 +412,7 @@ export function EditorLayout<T extends { id: string }>({
         {statusPanel}
         <div className="glass rounded-[2rem] p-6 md:p-8">
           <div className="space-y-6">
+            {actions ? <div className="sticky top-4 z-10">{actions}</div> : null}
             {form}
             {actions}
           </div>
@@ -255,8 +434,11 @@ export function EditorStatusPanel({
   hasOptionalFields = false,
   focusMode = false,
   onToggleFocusMode,
+  localDraftSavedAt,
+  publishStatus = 'published',
 }: EditorStatusPanelProps) {
   const savedLabel = formatRelativeTime(lastSavedAt);
+  const localDraftLabel = formatRelativeTime(localDraftSavedAt);
 
   return (
     <div className="glass rounded-[2rem] p-5 md:p-6">
@@ -278,7 +460,11 @@ export function EditorStatusPanel({
             Essentials ready: {completedCount}/{totalCount}
           </p>
 
-          {missingFields.length ? (
+          {publishStatus === 'draft' ? (
+            <p className="text-sm text-amber-100">
+              Saved as draft items stay hidden from the live site until you switch them to published.
+            </p>
+          ) : missingFields.length ? (
             <p className="text-sm text-amber-200">Still needed: {missingFields.join(', ')}</p>
           ) : (
             <p className="text-sm text-emerald-200">Everything essential is ready to save.</p>
@@ -299,6 +485,13 @@ export function EditorStatusPanel({
           <StatusPill tone={isDirty ? 'warning' : 'success'}>
             {isDirty ? 'Unsaved changes' : 'Everything saved'}
           </StatusPill>
+
+          {localDraftLabel ? (
+            <div className="inline-flex items-center gap-2 text-xs text-brand-muted">
+              <Save size={14} />
+              Local draft updated {localDraftLabel}
+            </div>
+          ) : null}
 
           {savedLabel ? (
             <div className="inline-flex items-center gap-2 text-xs text-brand-muted">
@@ -348,6 +541,9 @@ export function FormActions({
   disabledReason,
   onSave,
   onDelete,
+  onDuplicate,
+  previewHref,
+  previewLabel = 'Open live preview',
 }: {
   busy: boolean;
   isDirty: boolean;
@@ -355,6 +551,9 @@ export function FormActions({
   disabledReason: string | null;
   onSave: () => Promise<void>;
   onDelete?: () => Promise<void>;
+  onDuplicate?: () => void;
+  previewHref?: string | null;
+  previewLabel?: string;
 }) {
   const saveDisabled = busy || Boolean(disabledReason);
 
@@ -393,6 +592,30 @@ export function FormActions({
               <Trash2 size={16} />
               Delete
             </button>
+          ) : null}
+
+          {onDuplicate ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onDuplicate}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white disabled:opacity-70"
+            >
+              <Copy size={16} />
+              Duplicate
+            </button>
+          ) : null}
+
+          {previewHref ? (
+            <a
+              href={previewHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white"
+            >
+              <ExternalLink size={16} />
+              {previewLabel}
+            </a>
           ) : null}
 
           {!isDirty && !busy ? (
@@ -486,6 +709,9 @@ export function TextField({
   placeholder,
   required = false,
   className,
+  suggestions,
+  quickPicks,
+  suggestionMode = 'single',
 }: {
   label: string;
   value: string;
@@ -494,7 +720,53 @@ export function TextField({
   placeholder?: string;
   required?: boolean;
   className?: string;
+  suggestions?: string[];
+  quickPicks?: string[];
+  suggestionMode?: 'single' | 'list';
 }) {
+  const normalizedSuggestions = useMemo(
+    () =>
+      (suggestions ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter((item, index, array) => array.indexOf(item) === index),
+    [suggestions],
+  );
+  const existingEntries = useMemo(() => new Set(splitSuggestionEntries(value).map((entry) => entry.toLowerCase())), [value]);
+  const query =
+    suggestionMode === 'list' ? getListSuggestionQuery(value).toLowerCase() : value.trim().toLowerCase();
+  const matchingSuggestions = useMemo(() => {
+    if (!query) {
+      return (quickPicks ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter((item, index, array) => array.indexOf(item) === index)
+        .filter((item) => {
+          if (suggestionMode === 'list' && existingEntries.has(item.toLowerCase())) {
+            return false;
+          }
+
+          return true;
+        })
+        .slice(0, 10);
+    }
+
+    return normalizedSuggestions
+      .filter((item) => {
+        const normalizedItem = item.toLowerCase();
+        if (!normalizedItem.includes(query) || normalizedItem === query) {
+          return false;
+        }
+
+        if (suggestionMode === 'list' && existingEntries.has(normalizedItem)) {
+          return false;
+        }
+
+        return true;
+      })
+      .slice(0, 8);
+  }, [existingEntries, normalizedSuggestions, query, quickPicks, suggestionMode]);
+
   return (
     <label className={cn('space-y-2', className)}>
       <FieldLabel label={label} required={required} />
@@ -503,6 +775,12 @@ export function TextField({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
+      />
+      <SuggestionTray
+        items={matchingSuggestions}
+        onPick={(nextValue) =>
+          onChange(suggestionMode === 'list' ? replaceListSuggestion(value, nextValue) : nextValue)
+        }
       />
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
     </label>
@@ -517,6 +795,9 @@ export function LongField({
   placeholder,
   required = false,
   className,
+  suggestions,
+  quickPicks,
+  suggestionMode = 'single',
 }: {
   label: string;
   value: string;
@@ -525,7 +806,53 @@ export function LongField({
   placeholder?: string;
   required?: boolean;
   className?: string;
+  suggestions?: string[];
+  quickPicks?: string[];
+  suggestionMode?: 'single' | 'list';
 }) {
+  const normalizedSuggestions = useMemo(
+    () =>
+      (suggestions ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter((item, index, array) => array.indexOf(item) === index),
+    [suggestions],
+  );
+  const existingEntries = useMemo(() => new Set(splitSuggestionEntries(value).map((entry) => entry.toLowerCase())), [value]);
+  const query =
+    suggestionMode === 'list' ? getListSuggestionQuery(value).toLowerCase() : value.trim().toLowerCase();
+  const matchingSuggestions = useMemo(() => {
+    if (!query) {
+      return (quickPicks ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter((item, index, array) => array.indexOf(item) === index)
+        .filter((item) => {
+          if (suggestionMode === 'list' && existingEntries.has(item.toLowerCase())) {
+            return false;
+          }
+
+          return true;
+        })
+        .slice(0, 10);
+    }
+
+    return normalizedSuggestions
+      .filter((item) => {
+        const normalizedItem = item.toLowerCase();
+        if (!normalizedItem.includes(query) || normalizedItem === query) {
+          return false;
+        }
+
+        if (suggestionMode === 'list' && existingEntries.has(normalizedItem)) {
+          return false;
+        }
+
+        return true;
+      })
+      .slice(0, 8);
+  }, [existingEntries, normalizedSuggestions, query, quickPicks, suggestionMode]);
+
   return (
     <label className={cn('space-y-2', className)}>
       <FieldLabel label={label} required={required} />
@@ -534,6 +861,12 @@ export function LongField({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         className="min-h-32 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
+      />
+      <SuggestionTray
+        items={matchingSuggestions}
+        onPick={(nextValue) =>
+          onChange(suggestionMode === 'list' ? replaceListSuggestion(value, nextValue) : nextValue)
+        }
       />
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
     </label>
@@ -580,18 +913,24 @@ export function StorageImageField({
   value,
   onChange,
   onError,
+  onUploadingChange,
   hint,
   required = false,
   className,
+  previewScale = 1,
+  previewPosition = '50% 50%',
 }: {
   label: string;
   pathPrefix: string;
   value: string;
   onChange: (value: string) => void;
   onError?: (message: string) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   hint?: string;
   required?: boolean;
   className?: string;
+  previewScale?: number;
+  previewPosition?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -603,6 +942,7 @@ export function StorageImageField({
     }
 
     setUploading(true);
+    onUploadingChange?.(true);
 
     try {
       setUploadError(null);
@@ -616,6 +956,7 @@ export function StorageImageField({
       onError?.(message);
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       event.target.value = '';
     }
   };
@@ -641,9 +982,143 @@ export function StorageImageField({
       </div>
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
       {value ? (
-        <div className="overflow-hidden rounded-2xl border border-white/10">
-          <img src={value} alt="" className="aspect-[16/9] w-full max-w-sm object-cover" />
+        <div className="space-y-2">
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <img
+              src={value}
+              alt=""
+              className="aspect-video w-full max-w-sm object-cover"
+              style={{
+                transform: `scale(${previewScale})`,
+                transformOrigin: 'center center',
+                objectPosition: previewPosition,
+              }}
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={value}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-brand-muted transition-colors hover:text-white"
+            >
+              <ExternalLink size={12} />
+              Open full size
+            </a>
+          </div>
         </div>
+      ) : null}
+      {uploadError ? <p className="text-xs text-red-300">{uploadError}</p> : null}
+    </label>
+  );
+}
+
+export function StorageVideoField({
+  label,
+  pathPrefix,
+  value,
+  sourceValue,
+  thumbnailValue,
+  onChange,
+  onSourceChange,
+  onThumbnailChange,
+  onError,
+  hint,
+  className,
+}: {
+  label: string;
+  pathPrefix: string;
+  value: string;
+  sourceValue?: string;
+  thumbnailValue?: string;
+  onChange: (value: string) => void;
+  onSourceChange?: (value: string) => void;
+  onThumbnailChange?: (value: string) => void;
+  onError?: (message: string) => void;
+  hint?: string;
+  className?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      setUploadError(null);
+      const result = await optimizeAndUploadVideo({
+        file,
+        pathPrefix,
+        onStatus: (nextStatus) => setStatus(nextStatus),
+      });
+      onChange(result.optimizedUrl);
+      onSourceChange?.(result.originalUrl);
+      onThumbnailChange?.(result.posterUrl);
+      setStatus(
+        result.usedOriginalAsPrimary
+          ? 'Original kept as primary because optimization did not meaningfully reduce size.'
+          : `Optimized from ${(result.originalSize / 1024 / 1024).toFixed(1)}MB to ${(result.optimizedSize / 1024 / 1024).toFixed(1)}MB.`,
+      );
+    } catch (error) {
+      const message = toReadableError('Video upload failed.', error);
+      setUploadError(message);
+      onError?.(message);
+      setStatus(null);
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  return (
+    <label className={cn('space-y-2', className)}>
+      <FieldLabel label={label} required />
+      <div className="flex flex-wrap gap-3">
+        <input
+          value={value}
+          onChange={(event) => {
+            setUploadError(null);
+            onChange(event.target.value);
+          }}
+          className="min-w-[240px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
+          placeholder="Paste a video URL or upload a file"
+        />
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm">
+          {uploading ? <LoaderCircle size={16} className="animate-spin" /> : <Film size={16} />}
+          {uploading ? 'Optimizing...' : 'Upload video'}
+          <input type="file" accept="video/*" onChange={handleFile} className="hidden" />
+        </label>
+      </div>
+      {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
+      {status ? <p className="text-xs text-brand-muted">{status}</p> : null}
+      {value ? (
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/50">
+          <video
+            src={value}
+            poster={thumbnailValue || undefined}
+            controls
+            playsInline
+            preload="metadata"
+            className="aspect-video w-full max-w-2xl object-contain"
+          />
+        </div>
+      ) : null}
+      {sourceValue ? (
+        <a
+          href={sourceValue}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex text-xs text-brand-muted underline underline-offset-4 hover:text-white"
+        >
+          Open original source video
+        </a>
       ) : null}
       {uploadError ? <p className="text-xs text-red-300">{uploadError}</p> : null}
     </label>

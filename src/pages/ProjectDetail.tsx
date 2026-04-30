@@ -1,53 +1,255 @@
-import { useRef, useState, useMemo, useEffect, Fragment } from 'react';
+import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
-import { isVideoFileUrl, normalizeProject } from '../utils/portfolio';
+import { isEmbeddableVideoUrl, isVideoFileUrl, normalizeProject, toEmbedUrl } from '../utils/portfolio';
 
-const DetailImage = ({ src, alt }: { src: string; alt: string }) => (
-  <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
-    {isVideoFileUrl(src) ? (
-      <video src={src} controls playsInline className="aspect-[4/5] w-full object-cover" />
-    ) : (
+const PAGE_SHELL_CLASS = 'mx-auto max-w-[1380px] px-6 md:px-8 xl:px-10';
+const ARTICLE_TEXT_CLASS = 'max-w-5xl';
+const ARTICLE_MEDIA_CLASS = 'max-w-6xl';
+
+const SectionHeader = ({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+}) => (
+  <div className={ARTICLE_TEXT_CLASS}>
+    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+      {eyebrow}
+    </p>
+    <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+      {title}
+    </h2>
+    {description ? (
+      <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/65">{description}</p>
+    ) : null}
+  </div>
+);
+
+const MediaFrame = ({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) => (
+  <div className={`bg-[#151515] p-4 md:p-6 ${className}`}>{children}</div>
+);
+
+const DetailImage = ({
+  src,
+  alt,
+  mediaClassName,
+}: {
+  src: string;
+  alt: string;
+  mediaClassName?: string;
+}) => {
+  if (isEmbeddableVideoUrl(src)) {
+    return (
+      <div className="overflow-hidden border border-white/8 bg-black/20">
+        <iframe
+          src={toEmbedUrl(src)}
+          title={alt}
+          className={mediaClassName ?? 'aspect-video w-full'}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  if (isVideoFileUrl(src)) {
+    return (
+      <div className="overflow-hidden border border-white/8 bg-black/20">
+        <video
+          src={src}
+          controls
+          playsInline
+          className={mediaClassName ?? 'aspect-video w-full object-cover'}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden border border-white/8 bg-black/20">
       <img
         src={src}
         alt={alt}
         loading="lazy"
         decoding="async"
-        className="aspect-[4/5] w-full object-cover"
+        className={mediaClassName ?? 'aspect-[16/10] w-full object-cover'}
         referrerPolicy="no-referrer"
       />
-    )}
-  </div>
-);
+    </div>
+  );
+};
+
+const TextSection = ({
+  id,
+  eyebrow,
+  title,
+  body,
+}: {
+  id?: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+}) => {
+  const showEyebrow = eyebrow.trim().toLowerCase() !== title.trim().toLowerCase();
+
+  return (
+    <section id={id} className="scroll-mt-28">
+      <div className={ARTICLE_TEXT_CLASS}>
+        {showEyebrow ? (
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+          {title}
+        </h2>
+        <p className="mt-4 text-base leading-relaxed text-white/74 md:text-[1.02rem]">{body}</p>
+      </div>
+    </section>
+  );
+};
 
 const GallerySection = ({
   eyebrow,
   title,
+  description,
   images,
+  columns = 2,
+  mediaClassName,
+  compact = false,
 }: {
   eyebrow: string;
   title: string;
+  description?: string;
   images: string[];
+  columns?: 1 | 2 | 3 | 5;
+  mediaClassName?: string;
+  compact?: boolean;
 }) => {
   if (!images.length) {
     return null;
   }
 
+  const gridClass =
+    columns === 5
+      ? 'grid gap-4 md:grid-cols-5'
+      : columns === 3
+        ? 'grid gap-4 md:grid-cols-3'
+        : columns === 1
+          ? 'grid gap-4'
+          : 'grid gap-4 md:grid-cols-2';
+
   return (
-    <section className="space-y-8">
-      <div className="max-w-2xl">
-        <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-          {eyebrow}
-        </p>
-        <h2 className="text-3xl font-black uppercase tracking-tight md:text-5xl">{title}</h2>
+    <section className="space-y-6">
+      <SectionHeader eyebrow={eyebrow} title={title} description={description} />
+      <div className={ARTICLE_MEDIA_CLASS}>
+        <div className={gridClass}>
+          {images.map((image, index) => (
+            <MediaFrame
+              key={`${image}-${index}`}
+              className={compact ? 'max-w-3xl' : ''}
+            >
+              <DetailImage
+                src={image}
+                alt={`${title} ${index + 1}`}
+                mediaClassName={mediaClassName}
+              />
+            </MediaFrame>
+          ))}
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {images.map((image, index) => (
-          <DetailImage key={`${image}-${index}`} src={image} alt={`${title} ${index + 1}`} />
+    </section>
+  );
+};
+
+const JourneySection = ({
+  title,
+  description,
+  groups,
+}: {
+  title: string;
+  description?: string;
+  groups: Array<{ label: string; images: string[] }>;
+}) => {
+  const populatedGroups = groups.filter((group) => group.images.length > 0);
+
+  if (!populatedGroups.length) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-6">
+      <SectionHeader eyebrow="Development" title={title} description={description} />
+      <div className={`${ARTICLE_MEDIA_CLASS} space-y-8`}>
+        {populatedGroups.map((group) => (
+          <div key={group.label} className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
+              {group.label}
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {group.images.map((image, index) => (
+                <MediaFrame key={`${group.label}-${image}-${index}`}>
+                  <DetailImage
+                    src={image}
+                    alt={`${group.label} ${index + 1}`}
+                    mediaClassName="aspect-[16/10] w-full object-cover"
+                  />
+                </MediaFrame>
+              ))}
+            </div>
+          </div>
         ))}
+      </div>
+    </section>
+  );
+};
+
+const ColorSystemSection = ({
+  colors,
+  description,
+}: {
+  colors: Array<{ hex: string; emotion: string }>;
+  description?: string;
+}) => {
+  if (!colors.length) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-6">
+      <SectionHeader eyebrow="Color" title="Color system" description={description} />
+      <div className={ARTICLE_MEDIA_CLASS}>
+        <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+          {colors.map((color) => (
+            <div key={`${color.hex}-${color.emotion}`} className="flex flex-col items-center text-center">
+              <div
+                className="h-32 w-32 rounded-full border border-white/10 md:h-36 md:w-36"
+                style={{ backgroundColor: color.hex }}
+                aria-hidden="true"
+              />
+              <p className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                {color.emotion}
+              </p>
+              <p className="mt-2 font-mono text-sm uppercase tracking-[0.12em] text-white/78">
+                {color.hex}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -66,7 +268,6 @@ const SlotMachineGrid = ({
   const [isVisible, setIsVisible] = useState(false);
   const totalCells = gridSize * gridSize;
 
-  // Distribute images across cells, wrapping if fewer images than cells
   const cellImages = useMemo<string[][]>(() => {
     if (!images.length) return Array.from({ length: totalCells }, () => []);
     const perCell = Math.max(1, Math.floor(images.length / totalCells));
@@ -76,34 +277,30 @@ const SlotMachineGrid = ({
     });
   }, [images, totalCells]);
 
-  const [frameIndices, setFrameIndices] = useState<number[]>(() =>
-    Array(totalCells).fill(0)
-  );
+  const [frameIndices, setFrameIndices] = useState<number[]>(() => Array(totalCells).fill(0));
 
-  // Pause cycling when scrolled out of view
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      threshold: 0.1,
+    });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Per-cell intervals with random desync offset (max 300ms)
   useEffect(() => {
     if (!isVisible) return;
+
     const frameMs = 1000 / fps;
     const allTimers: ReturnType<typeof setTimeout>[] = [];
     const allIntervals: ReturnType<typeof setInterval>[] = [];
 
-    for (let i = 0; i < totalCells; i++) {
+    for (let i = 0; i < totalCells; i += 1) {
       const cellIdx = i;
       const delay = Math.random() * 300;
       const timer = setTimeout(() => {
-        const iv = setInterval(() => {
+        const interval = setInterval(() => {
           setFrameIndices((prev) => {
             const cellLen = cellImages[cellIdx]?.length ?? 0;
             if (cellLen <= 1) return prev;
@@ -112,7 +309,7 @@ const SlotMachineGrid = ({
             return next;
           });
         }, frameMs);
-        allIntervals.push(iv);
+        allIntervals.push(interval);
       }, delay);
       allTimers.push(timer);
     }
@@ -121,7 +318,7 @@ const SlotMachineGrid = ({
       allTimers.forEach(clearTimeout);
       allIntervals.forEach(clearInterval);
     };
-  }, [isVisible, fps, totalCells, cellImages]);
+  }, [cellImages, fps, isVisible, totalCells]);
 
   return (
     <div
@@ -138,11 +335,11 @@ const SlotMachineGrid = ({
               <img
                 src={src}
                 alt=""
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-full h-full" />
+              <div className="h-full w-full" />
             )}
           </div>
         );
@@ -151,69 +348,62 @@ const SlotMachineGrid = ({
   );
 };
 
-const CASE_STUDY_LINKS = [
-  { label: 'overview', href: '#overview' },
-  { label: 'context', href: '#context' },
-  { label: 'process', href: '#process' },
-  { label: 'outcome', href: '#outcome' },
-];
-
-const CaseStudyNav = () => {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [floating, setFloating] = useState(false);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFloating(!entry.isIntersecting),
-      { rootMargin: '-80px 0px 0px 0px', threshold: 0 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
+const SideRail = ({
+  links,
+}: {
+  links: Array<{ label: string; href: string }>;
+}) => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const renderLinks = () => (
-    <>
-      {CASE_STUDY_LINKS.map((item, i) => (
-        <Fragment key={item.href}>
-          {i > 0 && <span className="w-1 h-1 rounded-full bg-white/20 flex-none" aria-hidden />}
-          <a
-            href={item.href}
-            className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted hover:text-white transition-colors"
+  return (
+    <aside className="border-r border-white/6 pr-6">
+      <div>
+        <nav className="space-y-5">
+          <Link
+            to="/work"
+            className="block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
           >
-            {item.label}
-          </a>
-        </Fragment>
-      ))}
-      <span className="w-1 h-1 rounded-full bg-white/20 flex-none" aria-hidden />
-      <button
-        onClick={scrollToTop}
-        className="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted hover:text-white transition-colors"
-      >
-        back to top
-      </button>
-    </>
+            ← Home
+          </Link>
+
+          {links.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <button
+          onClick={scrollToTop}
+          className="mt-12 block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
+        >
+          ↑ Back to top
+        </button>
+      </div>
+    </aside>
   );
+};
+
+const MetaBlock = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) => {
+  if (!value || (Array.isArray(value) && value.length === 0)) {
+    return null;
+  }
 
   return (
-    <>
-      <div ref={sentinelRef} />
-      <nav
-        className={`hidden md:flex items-center gap-4 py-5 border-b border-white/5 px-6 md:px-8 transition-opacity duration-200 ${
-          floating ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-      >
-        {renderLinks()}
-      </nav>
-      {floating && (
-        <nav className="hidden md:flex fixed top-6 left-1/2 -translate-x-1/2 z-40 items-center gap-4 px-6 py-3 rounded-full border border-white/10 bg-black/70 backdrop-blur-xl shadow-xl">
-          {renderLinks()}
-        </nav>
-      )}
-    </>
+    <div className="space-y-2 border-t border-white/8 pt-4 first:border-t-0 first:pt-0">
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">{label}</p>
+      <div className="space-y-2 text-sm leading-relaxed text-white/74">{value}</div>
+    </div>
   );
 };
 
@@ -224,14 +414,14 @@ export const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="pt-40 px-6 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
+      <div className="px-6 pt-40 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
         brewing...
       </div>
     );
   }
 
   if (!project) {
-    return <div className="pt-40 px-6 text-center">Project not found.</div>;
+    return <div className="px-6 pt-40 text-center">Project not found.</div>;
   }
 
   const normalized = normalizeProject(project);
@@ -262,208 +452,316 @@ export const ProjectDetail = () => {
     );
   }
 
-  const meta = [normalized.client, normalized.year, normalized.role].filter(Boolean);
-  const categories = normalized.categories ?? [];
+  const heroImage = normalized.heroImage || normalized.thumbnail;
+  const heroScale = Math.max(1, (normalized.heroZoom ?? 100) / 100);
+  const heroPosition = `${normalized.heroPositionX ?? 50}% ${normalized.heroPositionY ?? 50}%`;
   const tools = normalized.tools ?? [];
   const credits = normalized.credits ?? [];
-  const heroImage = normalized.heroImage || normalized.thumbnail;
   const moodboardImages = normalized.moodboardImages ?? [];
   const sketchImages = normalized.sketchImages ?? [];
+  const childhoodImages = normalized.childhoodImages ?? [];
+  const universityImages = normalized.universityImages ?? [];
+  const workImages = normalized.workImages ?? [];
   const explorationType = normalized.explorationType ?? 'masonry';
   const slotGridSize = normalized.slotMachineGridSize ?? 4;
   const slotFps = normalized.slotMachineFps ?? 12;
+  const animaticVideoUrls =
+    normalized.animaticVideoUrls?.length
+      ? normalized.animaticVideoUrls
+      : normalized.animaticVideoUrl
+        ? [normalized.animaticVideoUrl]
+        : [];
+  const animaticCaption = normalized.animaticCaption;
+  const inferredAnimaticSection =
+    Boolean(animaticCaption?.toLowerCase().includes('animatic')) || normalized.title === 'NovoSeven';
+  const processVideoTitle =
+    normalized.processVideoTitle || (inferredAnimaticSection ? 'Animatics' : 'Generated videos');
+  const processVideoEyebrow =
+    normalized.processVideoEyebrow || (inferredAnimaticSection ? 'Discovery' : 'Motion');
   const explorationImages =
     normalized.explorationImages?.length
       ? normalized.explorationImages
       : normalized.explorationVideos ?? [];
+  const hybridizationImages = normalized.hybridizationImages ?? [];
+  const hybridizationCaption = normalized.hybridizationCaption;
+  const colorSystem = normalized.colorSystem ?? [];
   const outcomeImages =
     normalized.outcomeImages?.length ? normalized.outcomeImages : normalized.outcomeVisuals ?? [];
-  const outcomeCopy = normalized.outcomeCopy || normalized.outcomeResultCopy || normalized.result;
+  const outcomeCopy =
+    normalized.outcome || normalized.outcomeCopy || normalized.outcomeResultCopy || normalized.result;
+
+  const metaEntries = [
+    { label: 'Timeline', value: normalized.timelineText },
+    { label: 'Role', value: normalized.role },
+    { label: 'Client', value: normalized.client },
+    {
+      label: 'Tools',
+      value: tools.length ? tools.map((tool) => <p key={tool}>{tool}</p>) : null,
+    },
+    {
+      label: 'Credits',
+      value: credits.length ? credits.map((credit) => <p key={credit}>{credit}</p>) : null,
+      fullWidth: true,
+    },
+  ].filter((entry) => Boolean(entry.value));
+
+  const hasMeta = metaEntries.length > 0;
+
+  const hasProcessContent =
+    childhoodImages.length > 0 ||
+    moodboardImages.length > 0 ||
+    sketchImages.length > 0 ||
+    animaticVideoUrls.length > 0 ||
+    explorationImages.length > 0 ||
+    universityImages.length > 0 ||
+    hybridizationImages.length > 0 ||
+    colorSystem.length > 0 ||
+    workImages.length > 0;
+
+  const hasOutcomeContent = Boolean(outcomeCopy || outcomeImages.length > 0);
+
+  const sections = [
+    normalized.brief
+      ? { id: 'context', eyebrow: 'Overview', title: 'The brief', body: normalized.brief }
+      : null,
+    normalized.context || normalized.globalContext
+      ? {
+          eyebrow: 'Context',
+          title: 'Context',
+          body: normalized.context || normalized.globalContext || '',
+        }
+      : null,
+    normalized.problem || normalized.creativeTension
+      ? {
+          eyebrow: 'Challenge',
+          title: 'The problem',
+          body: normalized.problem || normalized.creativeTension || '',
+        }
+      : null,
+    normalized.insights
+      ? { eyebrow: 'Insights', title: 'Insights', body: normalized.insights }
+      : null,
+    normalized.solution || normalized.approach
+      ? {
+          eyebrow: 'Solution',
+          title: 'Solution',
+          body: normalized.solution || normalized.approach || '',
+        }
+      : null,
+    outcomeCopy
+      ? { eyebrow: 'Outcome', title: 'Outcome', body: outcomeCopy }
+      : null,
+  ].filter(Boolean) as Array<{ id?: string; eyebrow: string; title: string; body: string }>;
+
+  const hasContextContent = sections.slice(0, 4).length > 0;
+
+  const caseStudyLinks = [
+    { label: 'Overview', href: '#overview' },
+    ...(hasContextContent ? [{ label: 'Context', href: '#context' }] : []),
+    ...(hasProcessContent ? [{ label: 'Process', href: '#process' }] : []),
+    ...(hasOutcomeContent ? [{ label: 'Outcome', href: '#outcome' }] : []),
+  ];
 
   return (
     <PageTransition>
       <article className="bg-brand-bg text-white">
-        <section id="overview" className="relative overflow-hidden border-b border-white/5">
-          <div className="absolute inset-0">
-            {heroImage ? (
-              <img
-                src={heroImage}
-                alt={normalized.title}
-                className="h-full w-full object-cover opacity-45"
-                referrerPolicy="no-referrer"
-              />
-            ) : null}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(var(--accent-rgb),0.22),transparent_35%),linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.84))]" />
+        <div className={`${PAGE_SHELL_CLASS} grid gap-10 md:grid-cols-[140px_minmax(0,1fr)] md:gap-12`}>
+          <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">
+            <SideRail links={caseStudyLinks} />
           </div>
 
-          <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end px-6 pb-16 pt-40 md:px-8 md:pb-24">
-            <Link
-              to="/work"
-              className="mb-10 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/60 transition-colors hover:text-white"
-            >
-              Archive
-              <ArrowUpRight size={12} />
-            </Link>
-
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="max-w-4xl"
-            >
-              <p className="mb-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-accent">
-                Art Direction
-              </p>
-              <h1 className="text-fluid-xl font-black uppercase leading-[0.92] tracking-tighter">
-                {normalized.title}
-              </h1>
-              {normalized.description ? (
-                <p className="mt-8 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">
-                  {normalized.description}
-                </p>
-              ) : null}
-            </motion.div>
-
-            <div className="mt-12 flex flex-wrap gap-3">
-              {meta.map((entry) => (
-                <span
-                  key={entry}
-                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/70 backdrop-blur"
+          <div>
+            <section id="overview" className="border-b border-white/5">
+              <div className="pb-16 pt-28 md:pt-32">
+                <Link
+                  to="/work"
+                  className="mb-10 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/60 transition-colors hover:text-white md:hidden"
                 >
-                  {entry}
-                </span>
-              ))}
-              {categories.map((category) => (
-                <span
-                  key={category}
-                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-white/70 backdrop-blur"
+                  Archive
+                  <ArrowUpRight size={12} />
+                </Link>
+
+                {heroImage ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="overflow-hidden bg-[#151515]"
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden border border-white/8 bg-black/20">
+                      <img
+                        src={heroImage}
+                        alt={normalized.title}
+                        className="h-full w-full object-cover object-center"
+                        style={{
+                          transform: `scale(${heroScale})`,
+                          transformOrigin: 'center center',
+                          objectPosition: heroPosition,
+                        }}
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  </motion.div>
+                ) : null}
+
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.08, ease: 'easeOut' }}
+                  className="mt-10 space-y-8"
                 >
-                  {category}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <CaseStudyNav />
-
-        <div className="mx-auto max-w-7xl space-y-24 px-6 py-20 md:px-8 md:py-24">
-          <div id="context" className="scroll-mt-24" />
-          <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-10 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8 md:p-10">
-              {normalized.creativeTension ? (
-                <div>
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    Creative tension
-                  </p>
-                  <p className="text-lg leading-relaxed text-white/80">{normalized.creativeTension}</p>
-                </div>
-              ) : null}
-
-              {normalized.globalContext ? (
-                <div>
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    Global context
-                  </p>
-                  <p className="text-base leading-relaxed text-white/70">{normalized.globalContext}</p>
-                </div>
-              ) : null}
-
-              {normalized.approach ? (
-                <div>
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    Approach
-                  </p>
-                  <p className="text-base leading-relaxed text-white/70">{normalized.approach}</p>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="space-y-8 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8 md:p-10">
-              <div>
-                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
-                  Tools
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {tools.length ? (
-                    tools.map((tool) => (
-                      <span
-                        key={tool}
-                        className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-white/70"
-                      >
-                        {tool}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-sm text-white/40">No tools added.</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
-                  Credits
-                </p>
-                <div className="space-y-2">
-                  {credits.length ? (
-                    credits.map((credit) => (
-                      <p key={credit} className="text-sm text-white/65">
-                        {credit}
+                  <div className="max-w-3xl">
+                    <h1 className="text-fluid-xl font-black uppercase leading-[0.92] tracking-tighter text-white">
+                      {normalized.title}
+                    </h1>
+                    {normalized.description ? (
+                      <p className="mt-6 text-lg leading-relaxed text-white/74 md:text-xl">
+                        {normalized.description}
                       </p>
-                    ))
-                  ) : (
-                    <p className="text-sm text-white/40">No credits added.</p>
-                  )}
-                </div>
+                    ) : null}
+                  </div>
+
+                  {hasMeta ? (
+                    <div className="grid gap-8 border-t border-white/8 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+                      {metaEntries.map((entry) => (
+                        <div
+                          key={entry.label}
+                          className={entry.fullWidth ? 'sm:col-span-2 lg:col-span-2' : undefined}
+                        >
+                          <MetaBlock label={entry.label} value={entry.value} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </motion.div>
               </div>
-            </div>
-          </section>
-
-          <div id="process" className="scroll-mt-24" />
-          <GallerySection eyebrow="Moodboard" title="Initial visual territory" images={moodboardImages} />
-          {sketchImages.length > 0 ? (
-            <GallerySection eyebrow="Sketches" title="Early hand-drawn exploration" images={sketchImages} />
-          ) : null}
-          {explorationImages.length > 0 ? (
-            explorationType === 'slot-machine' ? (
-              <section className="space-y-8">
-                <div className="max-w-2xl">
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    Exploration
-                  </p>
-                  <h2 className="text-3xl font-black uppercase tracking-tight md:text-5xl">
-                    Search and refinement
-                  </h2>
-                </div>
-                <SlotMachineGrid images={explorationImages} gridSize={slotGridSize} fps={slotFps} />
-              </section>
-            ) : (
-              <GallerySection eyebrow="Exploration" title="Search and refinement" images={explorationImages} />
-            )
-          ) : null}
-          <div id="outcome" className="scroll-mt-24" />
-          <GallerySection eyebrow="Outcome" title="Final visuals" images={outcomeImages} />
-
-          {outcomeCopy ? (
-            <section className="rounded-[2.75rem] border border-brand-accent/20 bg-brand-accent/10 px-8 py-12 md:px-12">
-              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                Outcome
-              </p>
-              <p className="max-w-4xl text-2xl font-semibold leading-tight text-white md:text-4xl">
-                {outcomeCopy}
-              </p>
             </section>
-          ) : null}
 
-          <section className="border-t border-white/10 pt-10">
-            <Link
-              to="/work"
-              className="inline-flex items-center gap-3 text-sm font-semibold text-white/70 transition-colors hover:text-white"
-            >
-              Return to the archive
-              <ArrowUpRight size={16} />
-            </Link>
-          </section>
+            <div className="space-y-20 py-16 md:space-y-24 md:py-20">
+              {sections[0] ? <TextSection {...sections[0]} /> : null}
+              {sections[1] ? <TextSection {...sections[1]} /> : null}
+
+              <div id="process" className="scroll-mt-28" />
+              <JourneySection
+                title="Character development"
+                description="Key stills used to shape Lena's story arc from early aspiration through study and into the reality of work."
+                groups={[
+                  { label: 'Childhood', images: childhoodImages },
+                  { label: 'University', images: universityImages },
+                  { label: 'Work', images: workImages },
+                ]}
+              />
+
+              <GallerySection
+                eyebrow="Moodboard"
+                title="Initial visual territory"
+                images={moodboardImages}
+                columns={1}
+                mediaClassName="aspect-square w-full object-cover"
+              />
+
+              <GallerySection
+                eyebrow="Sketches"
+                title="Character development"
+                images={sketchImages}
+                columns={3}
+                mediaClassName="aspect-square w-full object-cover"
+              />
+
+              {animaticVideoUrls.length ? (
+                <GallerySection
+                  eyebrow={processVideoEyebrow}
+                  title={processVideoTitle}
+                  description={
+                    animaticCaption ||
+                    (inferredAnimaticSection
+                      ? 'Early animatics used to test pacing, clarity, and structure before the visual language was pushed into broader exploration.'
+                      : 'AI-generated motion studies used to bring the still-image world into a more emotional narrative sequence.')
+                  }
+                  images={animaticVideoUrls}
+                  columns={2}
+                  mediaClassName="aspect-video w-full"
+                />
+              ) : null}
+
+              {explorationImages.length > 0 ? (
+                explorationType === 'slot-machine' ? (
+                  <section className="space-y-6">
+                    <SectionHeader
+                      eyebrow="Exploration"
+                      title="Search and refinement"
+                    />
+                    <div className={ARTICLE_MEDIA_CLASS}>
+                      <MediaFrame>
+                        <SlotMachineGrid images={explorationImages} gridSize={slotGridSize} fps={slotFps} />
+                      </MediaFrame>
+                    </div>
+                  </section>
+                ) : (
+                  <GallerySection
+                    eyebrow="Exploration"
+                    title="Midjourney exploration"
+                    description={
+                      normalized.explorationCaption ||
+                      'Early Midjourney passes used to pressure-test the visual language before the final system locked in.'
+                    }
+                    images={explorationImages}
+                    columns={5}
+                    mediaClassName="h-auto w-full object-contain"
+                  />
+                )
+              ) : null}
+
+              {sections[2] ? <TextSection {...sections[2]} /> : null}
+              {sections[3] ? <TextSection {...sections[3]} /> : null}
+
+              {hybridizationImages.length ? (
+                <GallerySection
+                  eyebrow="Development"
+                  title="Illustrator refinement"
+                  description={
+                    hybridizationCaption ||
+                    'Illustrator-led development used to translate the strongest Midjourney directions into a cleaner, more usable film system.'
+                  }
+                  images={hybridizationImages}
+                  columns={1}
+                  compact
+                  mediaClassName="h-auto w-full object-contain"
+                />
+              ) : null}
+
+              <ColorSystemSection
+                colors={colorSystem}
+                description={
+                  colorSystem.length
+                    ? 'After the first approved illustration direction felt too gloomy, I reopened the palette and pushed it toward lighter sky blues, softer pinks, and a warmer coral accent so the films could feel clearer and more humane.'
+                    : undefined
+                }
+              />
+
+              {sections[4] ? <TextSection {...sections[4]} /> : null}
+
+              <div id="outcome" className="scroll-mt-28" />
+              {sections[5] ? <TextSection {...sections[5]} /> : null}
+              <GallerySection
+                eyebrow="Outcome"
+                title="Final visuals"
+                images={outcomeImages}
+                columns={2}
+                mediaClassName="aspect-video w-full object-cover"
+              />
+
+              <section className="border-t border-white/10 pt-8">
+                <Link
+                  to="/work"
+                  className="inline-flex items-center gap-3 text-sm font-semibold text-white/70 transition-colors hover:text-white"
+                >
+                  Return to the archive
+                  <ArrowUpRight size={16} />
+                </Link>
+              </section>
+            </div>
+          </div>
         </div>
       </article>
     </PageTransition>

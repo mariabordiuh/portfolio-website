@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { RevealOnScroll } from '../components/RevealOnScroll';
@@ -9,13 +10,28 @@ import { Tag } from '../components/Tag';
 import { LabSkeleton } from '../components/Skeleton';
 import { LabItem, LabSection } from '../types';
 
+const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+
 export const Lab = () => {
   const { labItems, loading } = useData();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeItem, setActiveItem] = useState<LabItem | null>(null);
+  const previewId = searchParams.get('preview');
+
+  useEffect(() => {
+    if (!previewId) {
+      return;
+    }
+
+    const match = labItems.find((item) => item.id === previewId);
+    if (match) {
+      setActiveItem(match);
+    }
+  }, [labItems, previewId]);
 
   return (
     <PageTransition>
-      <div className="pt-40 px-6 pb-32 max-w-7xl mx-auto">
+      <div className={`${SITE_SHELL_CLASS} pb-32 pt-40`}>
         <header className="mb-20">
           <motion.h1 
             initial="hidden"
@@ -104,7 +120,12 @@ export const Lab = () => {
             >
               <button 
                 className="absolute top-8 right-8 text-white hover:text-brand-accent transition-colors"
-                onClick={() => setActiveItem(null)}
+                onClick={() => {
+                  setActiveItem(null);
+                  const nextParams = new URLSearchParams(searchParams);
+                  nextParams.delete('preview');
+                  setSearchParams(nextParams, { replace: true });
+                }}
               >
                 <X size={32} />
               </button>
