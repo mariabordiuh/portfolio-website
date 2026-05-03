@@ -41,6 +41,8 @@ export const CatHero = () => {
     },
   };
 
+  const mediaPositionClass = 'object-[62%_50%] sm:object-[64%_50%] md:object-[60%_50%]';
+
   return (
     <section className="relative min-h-[100svh] w-full bg-[#0a0a0a] overflow-hidden">
       
@@ -59,7 +61,7 @@ export const CatHero = () => {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
-                className={`block h-full w-full object-cover opacity-100 transition-opacity duration-[1200ms] ${mediaLoaded && hasHeroVideo ? 'opacity-0' : 'opacity-100'}`}
+                className={`block h-full w-full object-cover ${mediaPositionClass} opacity-100 transition-opacity duration-[1200ms] ${mediaLoaded && hasHeroVideo ? 'opacity-0' : 'opacity-100'}`}
               />
             </picture>
           </div>
@@ -72,7 +74,7 @@ export const CatHero = () => {
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
               src={mobileVideoSrc}
               poster={mobileImageSrc || posterImageSrc}
-              className={`relative z-10 h-full w-full bg-black object-cover md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              className={`relative z-10 h-full w-full bg-black object-cover ${mediaPositionClass} md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               autoPlay
               muted
               loop
@@ -89,7 +91,7 @@ export const CatHero = () => {
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
               src={desktopVideoSrc}
               poster={desktopImageSrc || posterImageSrc}
-              className={`relative z-10 hidden h-full w-full bg-black object-cover md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              className={`relative z-10 hidden h-full w-full bg-black object-cover ${mediaPositionClass} md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               autoPlay
               muted
               loop
@@ -115,7 +117,7 @@ export const CatHero = () => {
               loading="eager"
               decoding="async"
               fetchPriority="high"
-              className={`block h-full w-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              className={`block h-full w-full object-cover ${mediaPositionClass} ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               onLoad={() => setMediaLoaded(true)}
             />
           </motion.picture>
