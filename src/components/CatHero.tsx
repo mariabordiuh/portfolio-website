@@ -5,18 +5,23 @@ import { useData } from '../context/DataContext';
 export const CatHero = () => {
   const { homeHero, homeHeroReady } = useData();
   const [mediaLoaded, setMediaLoaded] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
   const headline = "Visuals, motion & systems.";
   const words = headline.split(" ");
-  const heroVideoSrc = homeHero.desktopVideo || homeHero.mobileVideo || '';
+  const desktopVideoSrc = homeHero.desktopVideo || homeHero.mobileVideo || '';
+  const mobileVideoSrc = homeHero.mobileVideo || homeHero.desktopVideo || '';
   const desktopImageSrc = homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage || '';
   const mobileImageSrc = homeHero.mobileImage || homeHero.posterImage || desktopImageSrc;
-  const heroImageSrc = desktopImageSrc || mobileImageSrc;
-  const hasHeroVideo = homeHeroReady && homeHero.mode === 'video' && Boolean(heroVideoSrc);
-  const hasHeroImage = homeHeroReady && !hasHeroVideo && Boolean(heroImageSrc);
+  const posterImageSrc = homeHero.posterImage || mobileImageSrc || desktopImageSrc;
+  const heroImageSrc = desktopImageSrc || mobileImageSrc || posterImageSrc;
+  const hasHeroVideo =
+    homeHeroReady && homeHero.mode === 'video' && Boolean(desktopVideoSrc || mobileVideoSrc) && !videoFailed;
+  const hasHeroImage = homeHeroReady && (!hasHeroVideo || videoFailed) && Boolean(heroImageSrc || posterImageSrc);
 
   useEffect(() => {
     setMediaLoaded(false);
-  }, [heroImageSrc, heroVideoSrc, homeHero.mode]);
+    setVideoFailed(false);
+  }, [desktopImageSrc, desktopVideoSrc, homeHero.mode, mobileImageSrc, mobileVideoSrc, posterImageSrc]);
 
   const containerVariants = {
     hidden: {},
@@ -42,19 +47,59 @@ export const CatHero = () => {
       {/* Background Full-Screen Dynamic Media */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {hasHeroVideo ? (
-          <motion.video
-            initial={{ opacity: 0 }}
-            animate={{ opacity: mediaLoaded ? 1 : 0 }}
-            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-            src={heroVideoSrc}
-            className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            onCanPlay={() => setMediaLoaded(true)}
-            onPlaying={() => setMediaLoaded(true)}
-          />
+          <div className="relative h-full w-full">
+            {posterImageSrc ? (
+              <motion.picture
+                initial={{ opacity: 1 }}
+                animate={{ opacity: mediaLoaded ? 0 : 1 }}
+                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 z-10 block h-full w-full"
+              >
+                <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
+                <img
+                  src={desktopImageSrc || posterImageSrc}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className={`h-full w-full object-cover ${homeHero.flipPosterHorizontal ? '-scale-x-100' : ''}`}
+                  aria-hidden="true"
+                />
+              </motion.picture>
+            ) : null}
+            <motion.video
+              initial={{ opacity: 0 }}
+              animate={{ opacity: mediaLoaded ? 1 : 0 }}
+              transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+              src={mobileVideoSrc}
+              className={`relative z-0 h-full w-full object-cover md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              onCanPlay={() => setMediaLoaded(true)}
+              onPlaying={() => setMediaLoaded(true)}
+              onError={() => setVideoFailed(true)}
+              aria-hidden="true"
+            />
+            <motion.video
+              initial={{ opacity: 0 }}
+              animate={{ opacity: mediaLoaded ? 1 : 0 }}
+              transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+              src={desktopVideoSrc}
+              className={`relative z-0 hidden h-full w-full object-cover md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              onCanPlay={() => setMediaLoaded(true)}
+              onPlaying={() => setMediaLoaded(true)}
+              onError={() => setVideoFailed(true)}
+              aria-hidden="true"
+            />
+          </div>
         ) : hasHeroImage ? (
           <motion.picture
             initial={{ opacity: 0 }}
