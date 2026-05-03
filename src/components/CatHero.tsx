@@ -46,33 +46,33 @@ export const CatHero = () => {
       
       {/* Background Full-Screen Dynamic Media */}
       <div className="absolute inset-0 z-0 pointer-events-none">
+        {homeHeroReady && posterImageSrc ? (
+          <div
+            className={`absolute inset-0 z-0 overflow-hidden ${homeHero.flipPosterHorizontal ? '-scale-x-100' : ''}`}
+            aria-hidden="true"
+          >
+            <picture className="block h-full w-full">
+              <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
+              <img
+                src={desktopImageSrc || posterImageSrc}
+                alt=""
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                className={`block h-full w-full object-cover opacity-100 transition-opacity duration-[1200ms] ${mediaLoaded && hasHeroVideo ? 'opacity-0' : 'opacity-100'}`}
+              />
+            </picture>
+          </div>
+        ) : null}
         {hasHeroVideo ? (
           <div className="relative h-full w-full">
-            {posterImageSrc ? (
-              <motion.picture
-                initial={{ opacity: 1 }}
-                animate={{ opacity: mediaLoaded ? 0 : 1 }}
-                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 z-10 block h-full w-full"
-              >
-                <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
-                <img
-                  src={desktopImageSrc || posterImageSrc}
-                  alt=""
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  className={`h-full w-full object-cover ${homeHero.flipPosterHorizontal ? '-scale-x-100' : ''}`}
-                  aria-hidden="true"
-                />
-              </motion.picture>
-            ) : null}
             <motion.video
               initial={{ opacity: 0 }}
               animate={{ opacity: mediaLoaded ? 1 : 0 }}
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
               src={mobileVideoSrc}
-              className={`relative z-0 h-full w-full object-cover md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              poster={mobileImageSrc || posterImageSrc}
+              className={`relative z-10 h-full w-full bg-black object-cover md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               autoPlay
               muted
               loop
@@ -88,7 +88,8 @@ export const CatHero = () => {
               animate={{ opacity: mediaLoaded ? 1 : 0 }}
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
               src={desktopVideoSrc}
-              className={`relative z-0 hidden h-full w-full object-cover md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              poster={desktopImageSrc || posterImageSrc}
+              className={`relative z-10 hidden h-full w-full bg-black object-cover md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               autoPlay
               muted
               loop
@@ -114,7 +115,7 @@ export const CatHero = () => {
               loading="eager"
               decoding="async"
               fetchPriority="high"
-              className={`w-full h-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
+              className={`block h-full w-full object-cover ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
               onLoad={() => setMediaLoaded(true)}
             />
           </motion.picture>
