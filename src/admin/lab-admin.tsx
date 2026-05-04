@@ -156,6 +156,7 @@ export function LabAdmin() {
   const [batchStatus, setBatchStatus] = useState('');
   const [batchTools, setBatchTools] = useState('');
   const { notice, clear, setError, setSuccess } = useEditorNotice();
+  const isThoughtPost = draft.type === 'Thoughts';
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -218,12 +219,20 @@ export function LabAdmin() {
   }, [baselineDraft, draftStorageKey, isCreatingNew, selectedId, setSuccess]);
 
   const checklist = useMemo<ChecklistItem[]>(
-    () => [
-      { label: 'Title', done: Boolean(trimValue(draft.title)) },
-      { label: 'Date', done: Boolean(trimValue(draft.date)) },
-      { label: 'Content', done: Boolean(trimValue(draft.content)) },
-    ],
-    [draft],
+    () =>
+      isThoughtPost
+        ? [
+            { label: 'Title', done: Boolean(trimValue(draft.title)) },
+            { label: 'Date', done: Boolean(trimValue(draft.date)) },
+            { label: 'Excerpt', done: Boolean(trimValue(draft.excerpt) || trimValue(draft.content)) },
+            { label: 'Body', done: Boolean(trimValue(draft.bodyMarkdown)) },
+          ]
+        : [
+            { label: 'Title', done: Boolean(trimValue(draft.title)) },
+            { label: 'Date', done: Boolean(trimValue(draft.date)) },
+            { label: 'Content', done: Boolean(trimValue(draft.content)) },
+          ],
+    [draft, isThoughtPost],
   );
   const { isDirty, missingFields, completedCount, totalCount } = useEditorProgress({
     draft,
@@ -247,7 +256,20 @@ export function LabAdmin() {
       title: trimValue(draft.title),
       status: draft.status,
       type: draft.type,
-      content: trimValue(draft.content),
+      content: trimValue(isThoughtPost ? draft.excerpt || draft.content : draft.content),
+      slug: trimValue(draft.slug) || undefined,
+      readingTime: trimValue(draft.readingTime) || undefined,
+      category: trimValue(draft.category) || undefined,
+      excerpt: trimValue(draft.excerpt) || undefined,
+      author: trimValue(draft.author) || undefined,
+      bodyMarkdown: trimValue(draft.bodyMarkdown) || undefined,
+      bodyImage:
+        trimValue(draft.bodyImageUrl)
+          ? {
+              url: trimValue(draft.bodyImageUrl),
+              alt: trimValue(draft.bodyImageAlt) || undefined,
+            }
+          : undefined,
       image: trimValue(draft.image) || undefined,
       code: trimValue(draft.code) || undefined,
       tools: splitList(draft.tools),
@@ -262,7 +284,7 @@ export function LabAdmin() {
       outcome: trimValue(draft.outcome) || undefined,
       labImages: draft.labImages.length ? draft.labImages : undefined,
     }),
-    [draft],
+    [draft, isThoughtPost],
   );
   const publishMissingFields = draft.status === 'published' ? missingFields : [];
   const disabledReason = publishMissingFields.length
@@ -563,86 +585,163 @@ export function LabAdmin() {
                 onChange={(value) => setDraft((prev) => ({ ...prev, date: value }))}
               />
               <LongField
-                label="Teaser"
+                label={isThoughtPost ? 'Excerpt' : 'Teaser'}
                 required
                 className="md:col-span-2"
-                placeholder="One-liner shown on the card (e.g. A premium Hanseatic bakery experience.)"
-                value={draft.content}
-                onChange={(value) => setDraft((prev) => ({ ...prev, content: value }))}
+                placeholder={
+                  isThoughtPost
+                    ? 'Short preview shown on the Lab index'
+                    : 'One-liner shown on the card (e.g. A premium Hanseatic bakery experience.)'
+                }
+                value={isThoughtPost ? draft.excerpt : draft.content}
+                onChange={(value) =>
+                  setDraft((prev) =>
+                    isThoughtPost
+                      ? { ...prev, excerpt: value, content: prev.content || value }
+                      : { ...prev, content: value },
+                  )
+                }
               />
             </div>
           </EditorSection>
 
-          <EditorSection
-            title="Case study"
-            description="Fill what you have — leave the rest empty. Only populated sections show on the site."
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField
-                label="Timeline"
-                placeholder="e.g. 48 hours"
-                value={draft.timeline}
-                onChange={(value) => setDraft((prev) => ({ ...prev, timeline: value }))}
-              />
-              <TextField
-                label="Role"
-                placeholder="e.g. Art Director & Brand Designer"
-                value={draft.role}
-                onChange={(value) => setDraft((prev) => ({ ...prev, role: value }))}
-              />
-              <LongField
-                label="Brief"
-                className="md:col-span-2"
-                placeholder="What was the challenge or goal?"
-                value={draft.brief}
-                onChange={(value) => setDraft((prev) => ({ ...prev, brief: value }))}
-              />
-              <LongField
-                label="Context"
-                className="md:col-span-2"
-                placeholder="Background, why this matters"
-                value={draft.context}
-                onChange={(value) => setDraft((prev) => ({ ...prev, context: value }))}
-              />
-              <LongField
-                label="Problem"
-                className="md:col-span-2"
-                placeholder="What made this hard?"
-                value={draft.problem}
-                onChange={(value) => setDraft((prev) => ({ ...prev, problem: value }))}
-              />
-              <LongField
-                label="Insights"
-                className="md:col-span-2"
-                placeholder="Key learnings"
-                value={draft.insights}
-                onChange={(value) => setDraft((prev) => ({ ...prev, insights: value }))}
-              />
-              <LongField
-                label="Solution"
-                className="md:col-span-2"
-                placeholder="What you built and how"
-                value={draft.solution}
-                onChange={(value) => setDraft((prev) => ({ ...prev, solution: value }))}
-              />
-              <LongField
-                label="Outcome"
-                className="md:col-span-2"
-                placeholder="Result, reflection, what you'd do differently"
-                value={draft.outcome}
-                onChange={(value) => setDraft((prev) => ({ ...prev, outcome: value }))}
-              />
-              <div className="md:col-span-2 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-muted">Images</p>
-                <p className="text-xs text-brand-muted">Upload and reorder. Choose where each image appears, or leave as gallery at the bottom.</p>
-                <DraggableImageList
-                  images={draft.labImages}
-                  onChange={(imgs) => setDraft((prev) => ({ ...prev, labImages: imgs }))}
+          {isThoughtPost ? (
+            <EditorSection
+              title="Article post"
+              description="Use this for Thoughts or Notes that do not follow the structured case-study layout."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField
+                  label="Slug"
+                  placeholder="pinterest-most-used-tool"
+                  value={draft.slug}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, slug: value }))}
+                />
+                <TextField
+                  label="Reading time"
+                  placeholder="2 min"
+                  value={draft.readingTime}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, readingTime: value }))}
+                />
+                <TextField
+                  label="Category / tag"
+                  placeholder="Thoughts"
+                  value={draft.category}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, category: value }))}
+                />
+                <TextField
+                  label="Author"
+                  placeholder="Maria Bordiuh"
+                  value={draft.author}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, author: value }))}
+                />
+                <StorageImageField
+                  label="Cover image"
+                  pathPrefix="lab/images"
+                  className="md:col-span-2"
+                  value={draft.image}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
                   onError={setError}
+                  hint="Used on the Lab card / preview."
+                />
+                <LongField
+                  label="Body markdown"
+                  required
+                  className="md:col-span-2"
+                  placeholder="Write the full post in markdown."
+                  value={draft.bodyMarkdown}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, bodyMarkdown: value }))}
+                />
+                <StorageImageField
+                  label="Inline article image"
+                  pathPrefix="lab/images"
+                  className="md:col-span-2"
+                  value={draft.bodyImageUrl}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, bodyImageUrl: value }))}
+                  onError={setError}
+                  hint="This is the image inserted at the placeholder inside the article body."
+                />
+                <TextField
+                  label="Inline image alt text"
+                  className="md:col-span-2"
+                  placeholder="Describe the image for accessibility."
+                  value={draft.bodyImageAlt}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, bodyImageAlt: value }))}
                 />
               </div>
-            </div>
-          </EditorSection>
+            </EditorSection>
+          ) : (
+            <EditorSection
+              title="Case study"
+              description="Fill what you have — leave the rest empty. Only populated sections show on the site."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField
+                  label="Timeline"
+                  placeholder="e.g. 48 hours"
+                  value={draft.timeline}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, timeline: value }))}
+                />
+                <TextField
+                  label="Role"
+                  placeholder="e.g. Art Director & Brand Designer"
+                  value={draft.role}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, role: value }))}
+                />
+                <LongField
+                  label="Brief"
+                  className="md:col-span-2"
+                  placeholder="What was the challenge or goal?"
+                  value={draft.brief}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, brief: value }))}
+                />
+                <LongField
+                  label="Context"
+                  className="md:col-span-2"
+                  placeholder="Background, why this matters"
+                  value={draft.context}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, context: value }))}
+                />
+                <LongField
+                  label="Problem"
+                  className="md:col-span-2"
+                  placeholder="What made this hard?"
+                  value={draft.problem}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, problem: value }))}
+                />
+                <LongField
+                  label="Insights"
+                  className="md:col-span-2"
+                  placeholder="Key learnings"
+                  value={draft.insights}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, insights: value }))}
+                />
+                <LongField
+                  label="Solution"
+                  className="md:col-span-2"
+                  placeholder="What you built and how"
+                  value={draft.solution}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, solution: value }))}
+                />
+                <LongField
+                  label="Outcome"
+                  className="md:col-span-2"
+                  placeholder="Result, reflection, what you'd do differently"
+                  value={draft.outcome}
+                  onChange={(value) => setDraft((prev) => ({ ...prev, outcome: value }))}
+                />
+                <div className="md:col-span-2 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-brand-muted">Images</p>
+                  <p className="text-xs text-brand-muted">Upload and reorder. Choose where each image appears, or leave as gallery at the bottom.</p>
+                  <DraggableImageList
+                    images={draft.labImages}
+                    onChange={(imgs) => setDraft((prev) => ({ ...prev, labImages: imgs }))}
+                    onError={setError}
+                  />
+                </div>
+              </div>
+            </EditorSection>
+          )}
 
           {!focusMode ? (
             <EditorSection
@@ -650,18 +749,21 @@ export function LabAdmin() {
               description="Image, tools, and code snippets."
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <StorageImageField
-                  label="Image"
-                  pathPrefix="lab/images"
-                  value={draft.image}
-                  onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
-                  onError={setError}
-                />
+                {!isThoughtPost ? (
+                  <StorageImageField
+                    label="Image"
+                    pathPrefix="lab/images"
+                    value={draft.image}
+                    onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
+                    onError={setError}
+                  />
+                ) : null}
                 <LongField
                   label="Code"
                   placeholder="Paste a short code sample or prompt"
                   value={draft.code}
                   onChange={(value) => setDraft((prev) => ({ ...prev, code: value }))}
+                  className={isThoughtPost ? 'md:col-span-2' : undefined}
                 />
                 <LongField
                   label="Tools"
