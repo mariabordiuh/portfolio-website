@@ -305,7 +305,7 @@
     display: flex;
     width: max-content;
     min-width: 100%;
-    animation: updateMarqueeScroll 38s linear infinite;
+    animation: updateMarqueeScroll 54s linear infinite;
   }
 
   .hero-mesh {
