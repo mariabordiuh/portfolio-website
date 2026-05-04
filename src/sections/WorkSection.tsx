@@ -43,12 +43,17 @@ export const WorkSection = () => {
                 type="button"
                 onClick={handleShuffle}
                 disabled={loading || allFeatured.length <= 4}
-                className="group flex items-center gap-3 rounded-full border border-white/10 px-6 py-4 font-mono text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-35"
+                data-click-sound="true"
+                className="group btn-glass-shift px-6 py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Shuffle selected works"
               >
                 Roll Again <Shuffle size={16} className="transition-transform group-hover:rotate-90" />
               </button>
-              <PrefetchLink to="/work" className="group flex items-center gap-4 rounded-full border border-white/10 px-8 py-4 font-mono text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-white/5">
+              <PrefetchLink
+                to="/work"
+                data-click-sound="true"
+                className="group btn-gradient-shift px-8 py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
+              >
                 Index Catalog <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </PrefetchLink>
             </div>

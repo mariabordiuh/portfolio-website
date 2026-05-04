@@ -118,6 +118,7 @@ export const Nav = () => {
       <PrefetchLink
         to="/" 
         onClick={handleLogoClick}
+        data-click-sound="true"
         className="block hover:opacity-70 transition-opacity"
         aria-label="Maria Bordiuh home"
       >
@@ -130,13 +131,14 @@ export const Nav = () => {
           <PrefetchLink
             key={link.path}
             to={link.path}
+            data-click-sound="true"
             aria-current={
               location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
                 ? 'page'
                 : undefined
             }
             className={cn(
-              "text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-brand-accent",
+              "nav-underline-link text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-brand-accent",
               location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
                 ? "text-brand-accent"
                 : "text-white drop-shadow-md"
@@ -151,6 +153,7 @@ export const Nav = () => {
       <button 
         className="md:hidden text-white" 
         onClick={() => setIsOpen(!isOpen)}
+        data-click-sound="true"
         aria-expanded={isOpen}
         aria-controls="mobile-navigation"
         aria-label="Toggle menu"
@@ -175,6 +178,7 @@ export const Nav = () => {
           <button
             className="absolute top-8 right-6 text-white"
             onClick={() => setIsOpen(false)}
+            data-click-sound="true"
             aria-label="Close menu"
           >
             <X size={32} />
@@ -189,6 +193,7 @@ export const Nav = () => {
                   ? 'page'
                   : undefined
               }
+              data-click-sound="true"
               className="text-4xl font-bold tracking-tighter hover:text-brand-accent transition-colors"
             >
               {link.name}

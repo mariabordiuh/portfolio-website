@@ -71,27 +71,28 @@ export const ServicesSection = () => {
           </h2>
         </RevealOnScroll>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-3xl border border-white/5 bg-white/5 md:grid-cols-2 xl:grid-cols-5">
           {SERVICE_GROUPS.map((group, groupIndex) => (
             <RevealOnScroll
               key={group.tag}
               delay={groupIndex * 0.06}
-              className="bg-brand-bg p-8 md:p-10 flex flex-col"
+              className="group relative overflow-hidden bg-brand-bg/94 p-8 backdrop-blur-sm transition-transform duration-500 hover:-translate-y-1 md:p-10 flex flex-col"
             >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,87,112,0.14),transparent_30%),radial-gradient(circle_at_80%_75%,rgba(52,72,104,0.18),transparent_34%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="mb-8">
-                <span className="text-[10px] font-mono text-brand-accent uppercase tracking-[0.3em] block mb-3">
+                <span className="relative block mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-brand-accent">
                   {group.tag}
                 </span>
-                <h3 className="text-sm font-black uppercase tracking-wider leading-tight">
+                <h3 className="relative text-sm font-black uppercase leading-tight tracking-wider">
                   {group.title}
                 </h3>
               </div>
 
-              <ul className="space-y-3 mt-auto">
+              <ul className="relative mt-auto space-y-3">
                 {group.services.map((service) => (
                   <li
                     key={service}
-                    className="text-[11px] text-white/55 uppercase tracking-[0.15em] leading-relaxed font-medium whitespace-nowrap"
+                    className="whitespace-nowrap text-[11px] font-medium uppercase leading-relaxed tracking-[0.15em] text-white/55 transition-colors duration-300 group-hover:text-white/72"
                   >
                     {service}
                   </li>

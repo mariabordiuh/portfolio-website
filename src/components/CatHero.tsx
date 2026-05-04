@@ -1,165 +1,179 @@
-import { useEffect, useState } from 'react';
-import { motion, type Variants } from 'motion/react';
-import { useData } from '../context/DataContext';
+import { motion } from 'motion/react';
+import { ArrowUpRight } from 'lucide-react';
+import { PrefetchLink } from './PrefetchLink';
+
+const headlineLines = [
+  'Art direction,',
+  'motion, and',
+  'AI-led image systems.',
+];
+
+const capabilityChips = [
+  'Campaign visuals',
+  'Motion systems',
+  'AI image direction',
+  'Brand worlds',
+];
 
 export const CatHero = () => {
-  const { homeHero, homeHeroReady } = useData();
-  const [mediaLoaded, setMediaLoaded] = useState(false);
-  const [videoFailed, setVideoFailed] = useState(false);
-  const headline = "Visuals, motion & systems.";
-  const words = headline.split(" ");
-  const desktopVideoSrc = homeHero.desktopVideo || homeHero.mobileVideo || '';
-  const mobileVideoSrc = homeHero.mobileVideo || homeHero.desktopVideo || '';
-  const desktopImageSrc = homeHero.desktopImage || homeHero.posterImage || homeHero.mobileImage || '';
-  const mobileImageSrc = homeHero.mobileImage || homeHero.posterImage || desktopImageSrc;
-  const posterImageSrc = homeHero.posterImage || mobileImageSrc || desktopImageSrc;
-  const heroImageSrc = desktopImageSrc || mobileImageSrc || posterImageSrc;
-  const hasHeroVideo =
-    homeHeroReady && homeHero.mode === 'video' && Boolean(desktopVideoSrc || mobileVideoSrc) && !videoFailed;
-  const hasHeroImage = homeHeroReady && (!hasHeroVideo || videoFailed) && Boolean(heroImageSrc || posterImageSrc);
-
-  useEffect(() => {
-    setMediaLoaded(false);
-    setVideoFailed(false);
-  }, [desktopImageSrc, desktopVideoSrc, homeHero.mode, mobileImageSrc, mobileVideoSrc, posterImageSrc]);
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.15,
-      },
-    },
-  };
-
-  const wordVariants: Variants = {
-    hidden: { y: 40, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 100, damping: 20 },
-    },
-  };
-
-  const mediaPositionClass = 'object-contain object-right-bottom';
-
   return (
-    <section className="relative min-h-[100svh] w-full bg-[#0a0a0a] overflow-hidden">
-      
-      {/* Background Full-Screen Dynamic Media */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {homeHeroReady && posterImageSrc ? (
-          <div
-            className={`absolute inset-0 z-0 overflow-hidden ${homeHero.flipPosterHorizontal ? '-scale-x-100' : ''}`}
-            aria-hidden="true"
-          >
-            <picture className="block h-full w-full">
-              <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
-              <img
-                src={desktopImageSrc || posterImageSrc}
-                alt=""
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-                className={`block h-full w-full ${mediaPositionClass} opacity-100 transition-opacity duration-[1200ms] ${mediaLoaded && hasHeroVideo ? 'opacity-0' : 'opacity-100'}`}
-              />
-            </picture>
-          </div>
-        ) : null}
-        {hasHeroVideo ? (
-          <div className="relative h-full w-full">
-            <motion.video
-              initial={{ opacity: 0 }}
-              animate={{ opacity: mediaLoaded ? 1 : 0 }}
-              transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-              src={mobileVideoSrc}
-              poster={mobileImageSrc || posterImageSrc}
-              className={`relative z-10 h-full w-full bg-black ${mediaPositionClass} md:hidden ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              onLoadedData={() => setMediaLoaded(true)}
-              onCanPlay={() => setMediaLoaded(true)}
-              onPlaying={() => setMediaLoaded(true)}
-              onError={() => setVideoFailed(true)}
-              aria-hidden="true"
-            />
-            <motion.video
-              initial={{ opacity: 0 }}
-              animate={{ opacity: mediaLoaded ? 1 : 0 }}
-              transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-              src={desktopVideoSrc}
-              poster={desktopImageSrc || posterImageSrc}
-              className={`relative z-10 hidden h-full w-full bg-black ${mediaPositionClass} md:block ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              onLoadedData={() => setMediaLoaded(true)}
-              onCanPlay={() => setMediaLoaded(true)}
-              onPlaying={() => setMediaLoaded(true)}
-              onError={() => setVideoFailed(true)}
-              aria-hidden="true"
-            />
-          </div>
-        ) : hasHeroImage ? (
-          <motion.picture
-            initial={{ opacity: 0 }}
-            animate={{ opacity: mediaLoaded ? 1 : 0 }}
-            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-            className="block h-full w-full"
-          >
-            <source media="(max-width: 767px)" srcSet={mobileImageSrc} />
-            <img
-              src={desktopImageSrc}
-              alt="Hero Media"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              className={`block h-full w-full ${mediaPositionClass} ${homeHero.flipHorizontal ? '-scale-x-100' : ''}`}
-              onLoad={() => setMediaLoaded(true)}
-            />
-          </motion.picture>
-        ) : null}
-        
-        {/* Gradients optimized to shadow only the text area (Bottom + Left) leaving the rest completely exposed */}
-        <div className="absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-        <div className="absolute inset-y-0 left-0 w-[90%] md:w-[60%] bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-      </div>
+    <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
+      <div className="hero-mesh absolute inset-0" aria-hidden="true" />
+      <div className="hero-grid-overlay absolute inset-0" aria-hidden="true" />
+      <div
+        className="absolute -left-[16vw] top-[16vh] h-[42vw] w-[42vw] rounded-full bg-brand-accent/10 blur-[80px]"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute right-[-14vw] top-[12vh] h-[32vw] w-[32vw] rounded-full bg-[#344868]/60 blur-[90px]"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute bottom-[-14vw] left-[34%] h-[28vw] w-[28vw] rounded-full bg-[#f9c0c2]/12 blur-[85px]"
+        aria-hidden="true"
+      />
 
-      {/* Foreground Typography */}
-      <div className="relative z-10 w-full min-h-[100svh] flex items-end px-6 pb-20 pt-32 md:px-12 md:pb-32 max-w-[1380px] mx-auto">
-        <div className="flex flex-col justify-end max-w-3xl">
-          <motion.h1
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-white font-mono font-bold tracking-tight text-5xl md:text-7xl leading-[1.1] mb-8 flex flex-wrap gap-x-4 gap-y-2"
-          >
-            {words.map((word, i) => (
-              <motion.span
-                key={i}
-                variants={wordVariants}
-                className={word === "&" ? "text-brand-accent tracking-normal" : ""}
+      <div className="hero-ripple-ring hero-ripple-ring--pink left-[58%] top-[18%] h-[28rem] w-[28rem]" aria-hidden="true" />
+      <div className="hero-ripple-ring hero-ripple-ring--soft left-[46%] top-[40%] h-[40rem] w-[40rem] [animation-delay:-4s]" aria-hidden="true" />
+      <div className="hero-ripple-ring hero-ripple-ring--pink right-[-8rem] bottom-[-10rem] h-[32rem] w-[32rem] [animation-delay:-7s]" aria-hidden="true" />
+
+      <div className="grain-overlay opacity-25" aria-hidden="true" />
+
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-14 pt-32 md:px-12 md:pb-20 md:pt-36">
+        <div className="grid items-end gap-12 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="max-w-[62rem]">
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-6 font-mono text-[10px] uppercase tracking-[0.38em] text-white/58"
+            >
+              Maria Bordiuh // Hamburg
+            </motion.p>
+
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.12,
+                  },
+                },
+              }}
+              className="mb-6"
+            >
+              {headlineLines.map((line) => (
+                <motion.h1
+                  key={line}
+                  variants={{
+                    hidden: { opacity: 0, y: 26 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
+                    },
+                  }}
+                  className="pb-[0.08em] font-display text-[clamp(3rem,7vw,7.4rem)] font-bold uppercase leading-[0.86] tracking-[-0.05em] text-white"
+                >
+                  {line === 'AI-led image systems.' ? (
+                    <>
+                      AI-led image systems<span className="text-brand-accent">.</span>
+                    </>
+                  ) : (
+                    line
+                  )}
+                </motion.h1>
+              ))}
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="max-w-[52rem] text-[clamp(1rem,0.82rem+0.55vw,1.28rem)] leading-relaxed text-white/72"
+            >
+              I shape visual worlds for brands, campaigns, and moving image projects, blending
+              art direction, AI workflows, and motion design into systems that still feel human.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap"
+            >
+              <PrefetchLink
+                to="/work"
+                data-click-sound="true"
+                className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
               >
-                {word}
-              </motion.span>
-            ))}
-          </motion.h1>
+                View Work
+                <ArrowUpRight size={16} />
+              </PrefetchLink>
+              <PrefetchLink
+                to="/lab"
+                data-click-sound="true"
+                className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              >
+                Open Lab
+                <ArrowUpRight size={16} />
+              </PrefetchLink>
+            </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.9, ease: "easeOut" }}
-            className="text-white/80 font-sans font-light text-[clamp(1rem,0.65rem+0.9vw,1.3rem)] leading-relaxed max-w-[34rem]"
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.52, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 flex flex-wrap gap-2.5"
+            >
+              {capabilityChips.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/62 backdrop-blur-sm"
+                >
+                  {chip}
+                </span>
+              ))}
+            </motion.div>
+          </div>
+
+          <motion.aside
+            initial={{ opacity: 0, x: 28, y: 18 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+            className="hidden xl:block"
           >
-            i’m an art director blending an advertising background with a love for ai,
-            motion, and visual craft. currently based in hamburg, vibecoding and
-            building creative systems.
-          </motion.p>
+            <div className="frosted-panel-scene p-6">
+              <div className="frosted-blob frosted-blob--1" />
+              <div className="frosted-blob frosted-blob--2" />
+              <div className="frosted-blob frosted-blob--3" />
+
+              <div className="frosted-panel-element p-6">
+                <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/54">
+                  Current focus
+                </p>
+                <h3 className="mt-5 text-xl font-bold uppercase leading-tight text-white">
+                  Moving brands with mood, motion, and systems.
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-white/58">
+                  Campaign visuals, generative image direction, and motion languages that can
+                  actually ship.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {['Available', 'Remote', 'Selected projects'].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-white/62"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.aside>
         </div>
       </div>
     </section>

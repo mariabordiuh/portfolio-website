@@ -8,6 +8,7 @@ import { RevealText } from '../components/RevealText';
 import { MasonryPortfolioGrid } from '../components/MasonryPortfolioGrid';
 import { PortfolioPreviewModal } from '../components/PortfolioPreviewModal';
 import { ProjectSkeleton } from '../components/Skeleton';
+import { UpdateMarquee } from '../components/UpdateMarquee';
 import { type ProjectPillar } from '../types';
 import {
   type PortfolioItem,
@@ -325,7 +326,8 @@ export const Work = () => {
               <button
                 type="button"
                 onClick={() => handlePillarChange('All')}
-                className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] transition-all sm:px-5 sm:tracking-[0.2em] ${
+                data-click-sound="true"
+                className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-5 sm:tracking-[0.2em] ${
                   activePillar === 'All'
                     ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
                     : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
@@ -342,7 +344,8 @@ export const Work = () => {
                     key={pillar}
                     type="button"
                     onClick={() => handlePillarChange(isActive ? 'All' : pillar)}
-                    className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] transition-all sm:px-5 sm:tracking-[0.2em] ${
+                    data-click-sound="true"
+                    className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-5 sm:tracking-[0.2em] ${
                       isActive
                         ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
                         : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
@@ -369,6 +372,7 @@ export const Work = () => {
                   <button
                     type="button"
                     onClick={handleClearTool}
+                    data-click-sound="true"
                     className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent transition-colors hover:bg-brand-accent hover:text-brand-bg"
                   >
                     <svg width="8" height="8" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -397,7 +401,8 @@ export const Work = () => {
                         key={sub}
                         type="button"
                         onClick={() => setActiveSubcategory(sub)}
-                        className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.16em] transition-all sm:px-4 sm:tracking-[0.2em] ${
+                        data-click-sound="true"
+                        className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-4 sm:tracking-[0.2em] ${
                           isActive
                             ? 'border-brand-accent/50 bg-brand-accent/20 text-brand-accent shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]'
                             : 'border-white/5 bg-white/[0.02] text-white/40 hover:border-white/10 hover:text-white/80'
@@ -412,6 +417,10 @@ export const Work = () => {
             )}
           </AnimatePresence>
         </header>
+
+        <div className="mb-10 sm:mb-12">
+          <UpdateMarquee />
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

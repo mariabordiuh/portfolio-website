@@ -6,6 +6,7 @@ import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CircleCursor } from './components/CircleCursor';
+import { ButtonClickSound } from './components/ButtonClickSound';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
@@ -116,6 +117,7 @@ export default function App() {
         <Seo />
         <SmoothScrollProvider>
           <CircleCursor />
+          <ButtonClickSound />
           <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
             <a
               href="#main-content"

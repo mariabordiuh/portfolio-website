@@ -75,19 +75,53 @@ const MasonryCard = memo(({
   onPreview,
 }: MasonryCardProps) => {
   const isArt = isArtDirectionItem(item) && item.routeId;
-  const imageKey = `${item.id}:${imageSrc}`;
   const isPriorityImage = index < 4;
   const thumbnailScale = Math.max(1, (item.thumbnailZoom ?? 100) / 100);
+  const previewFrames = useMemo(() => {
+    const uniqueFrames = new Set<string>();
+    const orderedFrames = [imageSrc, ...item.images]
+      .filter(Boolean)
+      .filter((frame) => {
+        if (uniqueFrames.has(frame)) {
+          return false;
+        }
+        uniqueFrames.add(frame);
+        return true;
+      });
+
+    return orderedFrames.slice(0, 6);
+  }, [imageSrc, item.images]);
+  const [isHovered, setIsHovered] = useState(false);
+  const [activeFrameIndex, setActiveFrameIndex] = useState(0);
+  const activeFrameSrc = previewFrames[activeFrameIndex] || imageSrc;
+  const activeImageKey = `${item.id}:${activeFrameSrc}`;
   const Wrapper = isArt ? Link : 'button';
   const extraProps = isArt ? { to: `/work/${item.routeId}` } : { type: 'button' as const, onClick: () => onPreview(item) };
+
+  useEffect(() => {
+    if (!isHovered || previewFrames.length < 2) {
+      setActiveFrameIndex(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveFrameIndex((current) => (current + 1) % previewFrames.length);
+    }, 1350);
+
+    return () => window.clearInterval(interval);
+  }, [isHovered, previewFrames]);
 
   return (
     <Wrapper
       className="group block w-full text-left"
+      data-click-sound="true"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onBlur={() => setIsHovered(false)}
       {...(extraProps as any)}
     >
       <div className="space-y-3">
-        <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03]">
+        <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03] transition-transform duration-500 group-hover:scale-[1.01]">
           <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/28 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           <div
             className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-white/[0.045] transition-opacity duration-700 ${
@@ -101,20 +135,32 @@ const MasonryCard = memo(({
             <div className="absolute bottom-9 left-5 h-2 w-14 rounded-full bg-white/5" />
           </div>
           <div style={{ aspectRatio: `${imageRatio.width} / ${imageRatio.height}` }}>
-            {imageSrc ? (
+            {activeFrameSrc ? (
               <OptimizedImage
-                src={imageSrc}
+                src={activeFrameSrc}
                 alt={item.title}
                 width={imageRatio.width}
                 height={imageRatio.height}
                 loading={isPriorityImage ? 'eager' : 'lazy'}
                 fetchPriority={isPriorityImage ? 'high' : 'auto'}
-                onImageLoad={(size) => onImageLoad(imageKey, size)}
-                className="block h-full w-full object-cover text-transparent"
+                onImageLoad={(size) => onImageLoad(activeImageKey, size)}
+                className="block h-full w-full object-cover text-transparent transition-transform duration-[1400ms] ease-out"
                 style={{ transform: `scale(${thumbnailScale})` }}
               />
             ) : null}
           </div>
+          {previewFrames.length > 1 ? (
+            <div className="absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              {previewFrames.map((frame, frameIndex) => (
+                <span
+                  key={frame}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    frameIndex === activeFrameIndex ? 'w-6 bg-white/90' : 'w-1.5 bg-white/35'
+                  }`}
+                />
+              ))}
+            </div>
+          ) : null}
           <span className="absolute right-4 top-4 z-20 rounded-full border border-white/12 bg-black/45 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/75 opacity-0 backdrop-blur transition-all duration-300 group-hover:opacity-100">
             Open Preview
           </span>

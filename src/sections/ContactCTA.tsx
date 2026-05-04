@@ -28,48 +28,56 @@ export const ContactCTA = () => {
               <div className="relative mt-12 flex items-center gap-8 font-mono text-[10px] font-black uppercase tracking-[0.22em]">
                 <a
                   href="mailto:mariabordiuh@gmail.com"
-                  className="group inline-flex items-center gap-3 text-white transition-colors hover:text-brand-accent"
+                  data-click-sound="true"
+                  className="btn-gradient-shift px-6 py-4"
                 >
                   Email me
-                  <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <ArrowUpRight size={14} />
                 </a>
                 <a
                   href="https://www.linkedin.com/in/mariia-bordiuh/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 text-brand-muted transition-colors hover:text-white"
+                  data-click-sound="true"
+                  className="btn-glass-shift px-6 py-4"
                 >
                   LinkedIn
-                  <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <ArrowUpRight size={14} />
                 </a>
               </div>
             </div>
 
-            <aside className="relative rotate-2 rounded-[1.4rem] border border-white/10 bg-[#f3eadf] p-7 text-[#100d0b] shadow-[0_22px_80px_rgba(0,0,0,0.4)]">
-              <span className="absolute -top-5 left-1/2 h-10 w-24 -translate-x-1/2 rotate-[-4deg] rounded-sm bg-brand-accent/70 shadow-[0_10px_30px_rgba(0,0,0,0.25)]" />
-              <div className="mb-10 flex items-start justify-between gap-6">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-black/45">
-                    Art Director
-                  </p>
-                  <p className="mt-4 font-mono text-2xl font-bold uppercase leading-none tracking-[-0.05em]">
-                    Maria Bordiuh
-                  </p>
+            <aside className="frosted-panel-scene relative rotate-[2.5deg] p-6 text-white shadow-[0_22px_80px_rgba(0,0,0,0.4)]">
+              <div className="frosted-blob frosted-blob--1" />
+              <div className="frosted-blob frosted-blob--2" />
+              <div className="frosted-blob frosted-blob--3" />
+
+              <div className="frosted-panel-element p-7">
+                <div className="mb-10 flex items-start justify-between gap-6">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/52">
+                      Art Director
+                    </p>
+                    <p className="mt-4 font-mono text-2xl font-bold uppercase leading-none tracking-[-0.05em]">
+                      Maria Bordiuh
+                    </p>
+                  </div>
+                  <span className="h-3 w-3 rounded-full bg-brand-accent shadow-[0_0_0_8px_rgba(var(--accent-rgb),0.18)]" />
                 </div>
-                <span className="h-3 w-3 rounded-full bg-brand-accent shadow-[0_0_0_8px_rgba(243,154,198,0.18)]" />
+
+                <p className="border-y border-white/10 py-7 font-mono text-[10px] uppercase leading-loose tracking-[0.18em] text-white/56">
+                  Art direction / AI image systems / motion / visual production
+                </p>
+
+                <a
+                  href="mailto:mariabordiuh@gmail.com"
+                  data-click-sound="true"
+                  className="mt-8 inline-flex items-center gap-3 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white transition-colors hover:text-brand-accent"
+                >
+                  <Mail size={14} />
+                  mariabordiuh@gmail.com
+                </a>
               </div>
-
-              <p className="border-y border-black/15 py-7 font-mono text-[10px] uppercase leading-loose tracking-[0.18em] text-black/55">
-                Art direction / AI image systems / motion / visual production
-              </p>
-
-              <a
-                href="mailto:mariabordiuh@gmail.com"
-                className="mt-8 inline-flex items-center gap-3 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#100d0b] transition-colors hover:text-brand-accent"
-              >
-                <Mail size={14} />
-                mariabordiuh@gmail.com
-              </a>
             </aside>
           </div>
 
@@ -90,7 +98,8 @@ export const ContactCTA = () => {
             <div className="mt-8 flex flex-col gap-3 font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:mt-10 sm:gap-4 sm:tracking-[0.22em]">
               <a
                 href="mailto:mariabordiuh@gmail.com"
-                className="inline-flex items-center justify-between rounded-full bg-white px-6 py-3.5 text-black sm:px-7 sm:py-4"
+                data-click-sound="true"
+                className="btn-gradient-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:px-7 sm:py-4"
               >
                 Email me
                 <ArrowUpRight size={14} />
@@ -99,7 +108,8 @@ export const ContactCTA = () => {
                 href="https://www.linkedin.com/in/mariia-bordiuh/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-between rounded-full border border-white/10 px-6 py-3.5 text-white sm:px-7 sm:py-4"
+                data-click-sound="true"
+                className="btn-glass-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:px-7 sm:py-4"
               >
                 LinkedIn
                 <ArrowUpRight size={14} />
