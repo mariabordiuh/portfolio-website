@@ -91,7 +91,7 @@ service cloud.firestore {
              (isDraft(data)
                ? (!('title' in data) || data.title is string)
                : (data.title is string && data.title.size() > 0)) &&
-             (!('type' in data) || data.type in ['Experiment', 'Learning', 'AI', 'Vibe']) &&
+             (!('type' in data) || data.type in ['Experiment', 'Learning', 'AI', 'Vibe', 'Thoughts']) &&
              (isDraft(data)
                ? (!('content' in data) || data.content is string)
                : (data.content is string && data.content.size() > 0));

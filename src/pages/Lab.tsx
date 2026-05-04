@@ -11,23 +11,84 @@ import { LabSkeleton } from '../components/Skeleton';
 import { LabItem, LabSection } from '../types';
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+const ARTICLE_IMAGE_TOKEN = '[INSERT IMAGE HERE — see image block below]';
+
+const renderInlineMarkdown = (text: string) => {
+  const parts = text.split(/(\*[^*]+\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>;
+    }
+
+    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  });
+};
+
+const renderArticleBody = (item: LabItem) => {
+  const body = item.bodyMarkdown?.trim();
+
+  if (!body) {
+    return null;
+  }
+
+  const blocks = body
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-6">
+      {blocks.map((block, index) => {
+        if (block === ARTICLE_IMAGE_TOKEN) {
+          if (!item.bodyImage?.url) {
+            return null;
+          }
+
+          return (
+            <div key={`article-image-${index}`} className="pt-2">
+              <img
+                src={item.bodyImage.url}
+                alt={item.bodyImage.alt ?? ''}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          );
+        }
+
+        return (
+          <p key={`article-paragraph-${index}`} className="text-white/84 text-base leading-relaxed md:text-lg">
+            {renderInlineMarkdown(block)}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
 
 export const Lab = () => {
   const { labItems, loading } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeItem, setActiveItem] = useState<LabItem | null>(null);
   const previewId = searchParams.get('preview');
+  const sortedLabItems = React.useMemo(
+    () => [...labItems].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
+    [labItems],
+  );
 
   useEffect(() => {
     if (!previewId) {
       return;
     }
 
-    const match = labItems.find((item) => item.id === previewId);
+    const match = sortedLabItems.find((item) => item.id === previewId);
     if (match) {
       setActiveItem(match);
     }
-  }, [labItems, previewId]);
+  }, [previewId, sortedLabItems]);
 
   return (
     <PageTransition>
@@ -55,12 +116,12 @@ export const Lab = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
-          ) : !labItems.length ? (
+          ) : !sortedLabItems.length ? (
             <div className="col-span-full py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
               Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
             </div>
           ) : (
-            labItems.map((item, index) => (
+            sortedLabItems.map((item, index) => (
               <RevealOnScroll key={item.id} delay={index * 0.05}>
                 <button
                   type="button"
@@ -69,7 +130,7 @@ export const Lab = () => {
                 >
                   <div className="flex justify-between items-start z-10">
                     <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
-                      {item.type}
+                      {item.category ?? item.type}
                     </span>
                     <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
                   </div>
@@ -89,7 +150,7 @@ export const Lab = () => {
                   )}
                   <div className="z-10">
                     <h3 className="text-xl font-bold mb-3 group-hover:text-brand-accent transition-colors leading-tight">{item.title}</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed mb-4 line-clamp-3 italic">{item.content}</p>
+                    <p className="text-brand-muted text-sm leading-relaxed mb-4 line-clamp-3 italic">{item.excerpt ?? item.content}</p>
                     <div className="flex flex-wrap gap-2">
                       {item.tools.map(tool => (
                         <Tag 
@@ -139,16 +200,28 @@ export const Lab = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-8">
                   <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-xs uppercase tracking-widest font-bold font-mono">
-                    {activeItem.type}
+                    {activeItem.category ?? activeItem.type}
                   </span>
                   <span className="text-sm font-mono text-brand-muted">{activeItem.date}</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-3 leading-none">{activeItem.title}</h2>
-                <p className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.content}</p>
+                <p className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.excerpt ?? activeItem.content}</p>
 
                 {/* Case study meta row */}
-                {(activeItem.timeline || activeItem.role) && (
+                {(activeItem.timeline || activeItem.role || activeItem.readingTime || activeItem.author) && (
                   <div className="flex flex-wrap gap-6 mb-10 pb-8 border-b border-white/10">
+                    {activeItem.readingTime && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Reading time</p>
+                        <p className="font-semibold text-sm">{activeItem.readingTime}</p>
+                      </div>
+                    )}
+                    {activeItem.author && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Author</p>
+                        <p className="font-semibold text-sm">{activeItem.author}</p>
+                      </div>
+                    )}
                     {activeItem.timeline && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Timeline</p>
@@ -175,7 +248,9 @@ export const Lab = () => {
                 )}
 
                 {/* Case study sections */}
-                {(activeItem.brief || activeItem.context || activeItem.problem || activeItem.insights || activeItem.solution || activeItem.outcome) ? (
+                {activeItem.bodyMarkdown ? (
+                  renderArticleBody(activeItem)
+                ) : (activeItem.brief || activeItem.context || activeItem.problem || activeItem.insights || activeItem.solution || activeItem.outcome) ? (
                   (() => {
                     const sectionImages = (key: LabSection) =>
                       (activeItem.labImages ?? []).filter(img => img.after === key);

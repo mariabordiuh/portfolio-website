@@ -9,7 +9,7 @@ export const PROJECT_PILLARS: ProjectPillar[] = [
   'Illustration & Design',
   'Art Direction',
 ];
-export const LAB_TYPES: LabItem['type'][] = ['Experiment', 'Learning', 'AI', 'Vibe'];
+export const LAB_TYPES: LabItem['type'][] = ['Experiment', 'Learning', 'AI', 'Vibe', 'Thoughts'];
 export const VIDEO_TYPES = ['Traditional', 'Cut-Out', 'Motion'] as const;
 export const ENTRY_STATUS_OPTIONS: EntryStatus[] = ['draft', 'published'];
 

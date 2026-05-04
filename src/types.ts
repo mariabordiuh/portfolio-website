@@ -140,12 +140,22 @@ export interface LabItem {
   id: string;
   title: string;
   status?: EntryStatus;
-  type: 'Experiment' | 'Learning' | 'AI' | 'Vibe';
+  type: 'Experiment' | 'Learning' | 'AI' | 'Vibe' | 'Thoughts';
   content: string;
   image?: string;
   code?: string;
   tools: string[];
   date: string;
+  slug?: string;
+  readingTime?: string;
+  category?: string;
+  excerpt?: string;
+  author?: string;
+  bodyMarkdown?: string;
+  bodyImage?: {
+    url: string;
+    alt?: string;
+  };
   // Case study fields — render as named sections when populated
   timeline?: string;
   role?: string;
