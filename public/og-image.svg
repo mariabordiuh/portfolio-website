@@ -3,7 +3,7 @@
 
   <!-- Subtle accent glow, top-left -->
   <radialGradient id="glow" cx="0%" cy="0%" r="60%">
-    <stop offset="0%" stop-color="#ff9ebb" stop-opacity="0.08"/>
+    <stop offset="0%" stop-color="#ff5770" stop-opacity="0.08"/>
     <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
   </radialGradient>
   <rect width="1200" height="630" fill="url(#glow)"/>
@@ -22,7 +22,7 @@
   >Maria Bordiuh</text>
 
   <!-- Accent dot -->
-  <circle cx="910" cy="270" r="8" fill="#ff9ebb"/>
+  <circle cx="910" cy="270" r="8" fill="#ff5770"/>
 
   <!-- Subtitle -->
   <text
@@ -32,7 +32,7 @@
     font-size="32"
     font-weight="400"
     letter-spacing="1"
-    fill="#ff9ebb"
+    fill="#ff5770"
     text-anchor="middle"
     dominant-baseline="auto"
   >AI Creative Director &amp; Art Director — Hamburg</text>

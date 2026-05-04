@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --accent-color: #ff9ebb;
+  --accent-color: #ff5770;
   
   /* Fluid Typography Scale Tokens */
   --fs-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
