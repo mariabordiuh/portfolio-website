@@ -39,7 +39,7 @@ const CV_NOTES = [
   },
   {
     title: 'Tools + tech',
-    body: 'I work across After Effects, Photoshop, Illustrator, Toon Boom, Houdini, Midjourney, Flux, Firefly, Runway, Kling, Veo, fal.ai, Firebase, Netlify, and small custom UIs when a project needs them.',
+    body: 'I work across After Effects, Photoshop, Houdini, Midjourney, various stuff on fal.ai, Codex, Claude Code, Firebase, and small custom UIs when a project needs them.',
   },
   {
     title: 'Languages',
