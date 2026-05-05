@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowUpRight, Mail, MapPin, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { PageTransition } from '../components/PageTransition';
@@ -60,6 +61,22 @@ const CV_NOTES = [
 
 export const About = () => {
   const [isLokiOpen, setIsLokiOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    if (isLokiOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isLokiOpen]);
 
   return (
     <PageTransition>
@@ -222,49 +239,54 @@ export const About = () => {
         </div>
       </section>
 
-      <AnimatePresence>
-        {isLokiOpen ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/92 p-5 backdrop-blur-2xl"
-            onClick={() => setIsLokiOpen(false)}
-          >
-            <div className="flex h-full items-center justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.94, y: 18 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-                className="relative max-w-[min(90vw,42rem)]"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  aria-label="Close Loki photo"
+      {typeof document !== 'undefined'
+        ? createPortal(
+            <AnimatePresence>
+              {isLokiOpen ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[120] bg-black/92 p-5 backdrop-blur-2xl"
                   onClick={() => setIsLokiOpen(false)}
-                  className="absolute right-3 top-3 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/52 text-white/78 backdrop-blur transition-colors hover:text-white"
                 >
-                  <X size={18} />
-                </button>
+                  <div className="flex h-full items-center justify-center">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.94, y: 18 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                      transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                      className="relative max-w-[min(90vw,42rem)]"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        aria-label="Close Loki photo"
+                        onClick={() => setIsLokiOpen(false)}
+                        className="absolute right-3 top-3 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/52 text-white/78 backdrop-blur transition-colors hover:text-white"
+                      >
+                        <X size={18} />
+                      </button>
 
-                <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-[0_25px_120px_rgba(0,0,0,0.55)]">
-                  <img
-                    src={LOKI_IMAGE}
-                    alt="Loki the cat sitting in a chair"
-                    className="block max-h-[78vh] w-full object-contain"
-                  />
-                </div>
+                      <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-[0_25px_120px_rgba(0,0,0,0.55)]">
+                        <img
+                          src={LOKI_IMAGE}
+                          alt="Loki the cat sitting in a chair"
+                          className="block max-h-[78vh] w-full object-contain"
+                        />
+                      </div>
 
-                <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-white/46">
-                  Loki // definitely part of the team
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+                      <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-white/46">
+                        Loki // definitely part of the team
+                      </p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </PageTransition>
   );
 };
