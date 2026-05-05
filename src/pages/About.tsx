@@ -2,6 +2,7 @@ import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { PageTransition } from '../components/PageTransition';
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
+const LOKI_IMAGE = '/media/about-loki.jpg';
 
 const CONTACT_LINKS = [
   {
@@ -51,7 +52,7 @@ const CV_NOTES = [
   },
   {
     title: 'Outside work',
-    body: 'I moved to Hamburg in 2022 after living in Ukraine, the US, Poland, China, and Vietnam, so different people and cultures feel very natural to me. Outside work it is Loki, plants, coffee, and making things from scratch, from vibecoding a web app to rescuing street furniture.',
+    body: 'I moved to Hamburg in 2022 after living in Ukraine, the US, Poland, China, and Vietnam, so different people and cultures feel very natural to me. Outside work it is plants, coffee, balcony tomato plans, and making things from scratch, from vibecoding a web app to rescuing street furniture.',
   },
 ] as const;
 
@@ -175,6 +176,27 @@ export const About = () => {
                     {note.title}
                   </p>
                   <p className="mt-4 text-[0.98rem] leading-relaxed text-white/72">{note.body}</p>
+                  {note.title === 'Outside work' ? (
+                    <div className="mt-5 rounded-[1.15rem] border border-white/10 bg-black/20 p-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={LOKI_IMAGE}
+                          alt="Loki the cat sitting in a chair"
+                          loading="lazy"
+                          className="h-14 w-14 shrink-0 rounded-[0.9rem] object-cover"
+                        />
+                        <div>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
+                            Bonus: Loki
+                          </p>
+                          <p className="mt-1 text-sm leading-relaxed text-white/66">
+                            Found in China in 2018, and yes, he will very likely make an
+                            unscheduled appearance during video calls.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
