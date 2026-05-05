@@ -144,6 +144,9 @@ export interface LabItem {
   content: string;
   image?: string;
   thumbnail?: string;
+  thumbnailZoom?: number;
+  thumbnailPositionX?: number;
+  thumbnailPositionY?: number;
   heroImage?: string;
   code?: string;
   tools: string[];

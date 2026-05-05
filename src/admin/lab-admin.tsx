@@ -34,6 +34,7 @@ import {
   EditorStatusPanel,
   FormActions,
   LongField,
+  NumberField,
   SelectField,
   StorageImageField,
   TextField,
@@ -252,48 +253,64 @@ export function LabAdmin() {
     setLocalDraftSavedAt(Date.now());
   }, [draft, draftStorageKey, isDirty]);
   const payload = useMemo(
-    () => ({
-      title: trimValue(draft.title),
-      status: draft.status,
-      type: draft.type,
-      content: trimValue(isThoughtPost ? draft.excerpt || draft.content : draft.content),
-      thumbnail: trimValue(draft.thumbnail) || trimValue(draft.image) || undefined,
-      heroImage:
-        trimValue(draft.heroImage) ||
-        trimValue(draft.thumbnail) ||
-        trimValue(draft.image) ||
-        undefined,
-      slug: trimValue(draft.slug) || undefined,
-      readingTime: trimValue(draft.readingTime) || undefined,
-      category: trimValue(draft.category) || undefined,
-      excerpt: trimValue(draft.excerpt) || undefined,
-      author: trimValue(draft.author) || undefined,
-      bodyMarkdown: trimValue(draft.bodyMarkdown) || undefined,
-      bodyImage:
-        trimValue(draft.bodyImageUrl)
-          ? {
-              url: trimValue(draft.bodyImageUrl),
-              alt: trimValue(draft.bodyImageAlt) || undefined,
-            }
-          : undefined,
-      image:
-        trimValue(draft.thumbnail) ||
-        trimValue(draft.image) ||
-        trimValue(draft.heroImage) ||
-        undefined,
-      code: trimValue(draft.code) || undefined,
-      tools: splitList(draft.tools),
-      date: trimValue(draft.date),
-      timeline: trimValue(draft.timeline) || undefined,
-      role: trimValue(draft.role) || undefined,
-      brief: trimValue(draft.brief) || undefined,
-      context: trimValue(draft.context) || undefined,
-      problem: trimValue(draft.problem) || undefined,
-      insights: trimValue(draft.insights) || undefined,
-      solution: trimValue(draft.solution) || undefined,
-      outcome: trimValue(draft.outcome) || undefined,
-      labImages: draft.labImages.length ? draft.labImages : undefined,
-    }),
+    () => {
+      const thumbnail = trimValue(draft.thumbnail) || trimValue(draft.image) || undefined;
+      const thumbnailZoomRaw = Number(draft.thumbnailZoom || '100');
+      const thumbnailPositionXRaw = Number(draft.thumbnailPositionX || '50');
+      const thumbnailPositionYRaw = Number(draft.thumbnailPositionY || '50');
+
+      return {
+        title: trimValue(draft.title),
+        status: draft.status,
+        type: draft.type,
+        content: trimValue(isThoughtPost ? draft.excerpt || draft.content : draft.content),
+        thumbnail,
+        thumbnailZoom: Number.isFinite(thumbnailZoomRaw)
+          ? Math.min(200, Math.max(100, thumbnailZoomRaw))
+          : 100,
+        thumbnailPositionX: Number.isFinite(thumbnailPositionXRaw)
+          ? Math.min(100, Math.max(0, thumbnailPositionXRaw))
+          : 50,
+        thumbnailPositionY: Number.isFinite(thumbnailPositionYRaw)
+          ? Math.min(100, Math.max(0, thumbnailPositionYRaw))
+          : 50,
+        heroImage:
+          trimValue(draft.heroImage) ||
+          trimValue(draft.thumbnail) ||
+          trimValue(draft.image) ||
+          undefined,
+        slug: trimValue(draft.slug) || undefined,
+        readingTime: trimValue(draft.readingTime) || undefined,
+        category: trimValue(draft.category) || undefined,
+        excerpt: trimValue(draft.excerpt) || undefined,
+        author: trimValue(draft.author) || undefined,
+        bodyMarkdown: trimValue(draft.bodyMarkdown) || undefined,
+        bodyImage:
+          trimValue(draft.bodyImageUrl)
+            ? {
+                url: trimValue(draft.bodyImageUrl),
+                alt: trimValue(draft.bodyImageAlt) || undefined,
+              }
+            : undefined,
+        image:
+          trimValue(draft.thumbnail) ||
+          trimValue(draft.image) ||
+          trimValue(draft.heroImage) ||
+          undefined,
+        code: trimValue(draft.code) || undefined,
+        tools: splitList(draft.tools),
+        date: trimValue(draft.date),
+        timeline: trimValue(draft.timeline) || undefined,
+        role: trimValue(draft.role) || undefined,
+        brief: trimValue(draft.brief) || undefined,
+        context: trimValue(draft.context) || undefined,
+        problem: trimValue(draft.problem) || undefined,
+        insights: trimValue(draft.insights) || undefined,
+        solution: trimValue(draft.solution) || undefined,
+        outcome: trimValue(draft.outcome) || undefined,
+        labImages: draft.labImages.length ? draft.labImages : undefined,
+      };
+    },
     [draft, isThoughtPost],
   );
   const publishMissingFields = draft.status === 'published' ? missingFields : [];
@@ -634,6 +651,8 @@ export function LabAdmin() {
                 }
                 onError={setError}
                 hint="Used on the Lab index / preview card."
+                previewScale={Math.max(1, Number(draft.thumbnailZoom || '100') / 100)}
+                previewPosition={`${Number(draft.thumbnailPositionX || '50')}% ${Number(draft.thumbnailPositionY || '50')}%`}
               />
               <StorageImageField
                 label="Hero image"
@@ -649,6 +668,30 @@ export function LabAdmin() {
                 }
                 onError={setError}
                 hint="Shown at the top of the opened Lab post."
+              />
+              <NumberField
+                label="Thumbnail zoom (%)"
+                value={draft.thumbnailZoom}
+                min={100}
+                max={200}
+                onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailZoom: value }))}
+                hint="100 = original fit. Increase this to crop in tighter on the Lab card."
+              />
+              <NumberField
+                label="Thumbnail horizontal position (%)"
+                value={draft.thumbnailPositionX}
+                min={0}
+                max={100}
+                onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
+                hint="50 = centered. Lower moves the crop left, higher moves it right."
+              />
+              <NumberField
+                label="Thumbnail vertical position (%)"
+                value={draft.thumbnailPositionY}
+                min={0}
+                max={100}
+                onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
+                hint="50 = centered. Lower moves the crop up, higher moves it down."
               />
             </div>
           </EditorSection>

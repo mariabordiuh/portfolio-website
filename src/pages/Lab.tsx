@@ -12,6 +12,15 @@ import { LabItem, LabSection } from '../types';
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
 const ARTICLE_IMAGE_TOKEN = '[INSERT IMAGE HERE — see image block below]';
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
+] as const;
+
+const parseLabDate = (value?: string) => {
+  const timestamp = Date.parse(value ?? '');
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
 
 const getLabThumbnail = (item: LabItem) =>
   item.thumbnail || item.image || item.heroImage || item.bodyImage?.url || '';
@@ -80,9 +89,15 @@ export const Lab = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeItem, setActiveItem] = useState<LabItem | null>(null);
   const previewId = searchParams.get('preview');
+  const sortOrder = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
   const sortedLabItems = React.useMemo(
-    () => [...labItems].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
-    [labItems],
+    () =>
+      [...labItems].sort((a, b) =>
+        sortOrder === 'oldest'
+          ? parseLabDate(a.date) - parseLabDate(b.date)
+          : parseLabDate(b.date) - parseLabDate(a.date),
+      ),
+    [labItems, sortOrder],
   );
 
   useEffect(() => {
@@ -115,7 +130,37 @@ export const Lab = () => {
             <RevealText>The Lab</RevealText>
           </motion.h1>
           <RevealOnScroll delay={0.08}>
-            <p className="max-w-xl text-lg text-brand-muted">Experiments, tests, learnings, and unfinished vibecodings.</p>
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <p className="max-w-xl text-lg text-brand-muted">Experiments, tests, learnings, and unfinished vibecodings.</p>
+              <div className="inline-flex w-fit rounded-full border border-white/10 bg-white/5 p-1">
+                {SORT_OPTIONS.map((option) => {
+                  const isActive = sortOrder === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        const nextParams = new URLSearchParams(searchParams);
+                        if (option.value === 'newest') {
+                          nextParams.delete('sort');
+                        } else {
+                          nextParams.set('sort', option.value);
+                        }
+                        setSearchParams(nextParams, { replace: true });
+                      }}
+                      className={`rounded-full px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors ${
+                        isActive
+                          ? 'bg-brand-accent text-black'
+                          : 'text-brand-muted hover:text-white'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </RevealOnScroll>
         </header>
 
@@ -154,6 +199,11 @@ export const Lab = () => {
                           loading="lazy"
                           decoding="async"
                           className="h-full w-full object-cover opacity-80 transition-all duration-700 grayscale group-hover:opacity-100 group-hover:grayscale-0"
+                          style={{
+                            transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
+                            transformOrigin: 'center center',
+                            objectPosition: `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`,
+                          }}
                           referrerPolicy="no-referrer"
                         />
                       </div>

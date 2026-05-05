@@ -81,6 +81,9 @@ export type LabDraft = {
   type: LabItem['type'];
   content: string;
   thumbnail: string;
+  thumbnailZoom: string;
+  thumbnailPositionX: string;
+  thumbnailPositionY: string;
   heroImage: string;
   slug: string;
   readingTime: string;
@@ -193,6 +196,9 @@ export const defaultLabDraft = (): LabDraft => ({
   type: 'Experiment',
   content: '',
   thumbnail: '',
+  thumbnailZoom: '100',
+  thumbnailPositionX: '50',
+  thumbnailPositionY: '50',
   heroImage: '',
   slug: '',
   readingTime: '',
@@ -583,6 +589,9 @@ export function toLabDraft(item?: LabItem): LabDraft {
     type: item.type ?? 'Experiment',
     content: item.content ?? '',
     thumbnail: item.thumbnail ?? item.image ?? '',
+    thumbnailZoom: String(item.thumbnailZoom ?? 100),
+    thumbnailPositionX: String(item.thumbnailPositionX ?? 50),
+    thumbnailPositionY: String(item.thumbnailPositionY ?? 50),
     heroImage: item.heroImage ?? item.thumbnail ?? item.image ?? '',
     slug: item.slug ?? '',
     readingTime: item.readingTime ?? '',
