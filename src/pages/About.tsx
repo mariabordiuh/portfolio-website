@@ -35,7 +35,7 @@ const CV_NOTES = [
   },
   {
     title: 'Education',
-    body: 'I completed a Diploma in VFX & 3D Animation at SAE Institute Hamburg, after a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv.',
+    body: 'I completed a Diploma in VFX & 3D Animation at SAE Institute Hamburg, after a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv. Both left me with a mix of craft, structure, and curiosity.',
   },
   {
     title: 'Tools + tech',
@@ -43,15 +43,15 @@ const CV_NOTES = [
   },
   {
     title: 'Languages',
-    body: 'Ukrainian is my native language, English is fluent, German is strong enough for work, and my Japanese background still follows me around in useful ways.',
+    body: 'Ukrainian is my native language, English is fluent, German is strong enough for work, and my Japanese background still follows me around in useful ways. It makes international teams and weird cross-cultural briefs feel pretty natural to me.',
   },
   {
     title: 'NDA reality',
-    body: 'Some recent work is still under wraps, still in development, or simply better explained in conversation than on a public page, which is why the portfolio is selective by design.',
+    body: 'Some recent work is still under wraps, still in development, or simply better explained in conversation than on a public page. The portfolio is selective by design, not because the rest does not exist.',
   },
   {
     title: 'Outside work',
-    body: 'I moved to Hamburg in 2022 after living in Ukraine, the US, Poland, China, Vietnam, and that mix made me very comfortable with people, cultures, and different ways of working. My favorite things in life are my cat Loki, who I found in China in 2018, plants, coffee, and making things from scratch, whether that means vibecoding a web app or fixing broken furniture from the street.',
+    body: 'I moved to Hamburg in 2022 after living in Ukraine, the US, Poland, China, and Vietnam, so different people and cultures feel very natural to me. Outside work it is Loki, plants, coffee, and making things from scratch, from vibecoding a web app to rescuing street furniture.',
   },
 ] as const;
 
@@ -164,11 +164,11 @@ export const About = () => {
               </h2>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
               {CV_NOTES.map((note) => (
                 <article
                   key={note.title}
-                  className="relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-6 backdrop-blur-sm"
+                  className="relative h-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-6 backdrop-blur-sm"
                 >
                   <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/46">
