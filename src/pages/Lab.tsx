@@ -13,6 +13,34 @@ import { LabItem, LabSection } from '../types';
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
 const ARTICLE_IMAGE_TOKEN = '[INSERT IMAGE HERE — see image block below]';
 
+const getLabThumbnail = (item: LabItem) =>
+  item.thumbnail || item.image || item.heroImage || item.bodyImage?.url || '';
+
+const getLabHeroImage = (item: LabItem) =>
+  item.heroImage || item.thumbnail || item.image || item.bodyImage?.url || '';
+
+const getLabBentoClasses = (index: number, total: number) => {
+  if (total === 1) {
+    return 'md:col-span-2 lg:col-span-6';
+  }
+
+  if (total === 2) {
+    return index === 0 ? 'md:col-span-2 lg:col-span-4 lg:row-span-2' : 'lg:col-span-2 lg:row-span-2';
+  }
+
+  if (total === 3) {
+    if (index === 0) return 'md:col-span-2 lg:col-span-3 lg:row-span-2';
+    return 'lg:col-span-3';
+  }
+
+  if (total === 4) {
+    if (index === 0) return 'md:col-span-2 lg:col-span-3 lg:row-span-2';
+    return 'lg:col-span-3';
+  }
+
+  return 'lg:col-span-2';
+};
+
 const renderInlineMarkdown = (text: string) => {
   const parts = text.split(/(\*[^*]+\*)/g);
 
@@ -78,6 +106,7 @@ export const Lab = () => {
     () => [...labItems].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
     [labItems],
   );
+  const useBentoLayout = sortedLabItems.length > 0 && sortedLabItems.length <= 6;
 
   useEffect(() => {
     if (!previewId) {
@@ -113,7 +142,13 @@ export const Lab = () => {
           </RevealOnScroll>
         </header>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          className={
+            useBentoLayout
+              ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-6 lg:auto-rows-[minmax(17rem,auto)]'
+              : 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
+          }
+        >
           {loading ? (
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
           ) : !sortedLabItems.length ? (
@@ -121,23 +156,34 @@ export const Lab = () => {
               Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
             </div>
           ) : (
-            sortedLabItems.map((item, index) => (
+            sortedLabItems.map((item, index) => {
+              const thumbnail = getLabThumbnail(item);
+              const isLargeCard =
+                useBentoLayout &&
+                ((sortedLabItems.length === 1 && index === 0) ||
+                  (sortedLabItems.length === 2 && index === 0) ||
+                  ((sortedLabItems.length === 3 || sortedLabItems.length === 4) && index === 0));
+
+              return (
               <RevealOnScroll key={item.id} delay={index * 0.05}>
                 <button
                   type="button"
                   onClick={() => setActiveItem(item)}
-                  className="group relative flex w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
+                  className={`group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10 ${
+                    useBentoLayout ? getLabBentoClasses(index, sortedLabItems.length) : ''
+                  }`}
                 >
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   <div className="flex justify-between items-start z-10">
                     <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
                       {item.category ?? item.type}
                     </span>
                     <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
                   </div>
-                  {item.image && (
-                    <div className="aspect-video rounded-xl overflow-hidden bg-black/20 z-10">
+                  {thumbnail ? (
+                    <div className={`${isLargeCard ? 'aspect-[16/10] lg:aspect-[5/4]' : 'aspect-video'} rounded-xl overflow-hidden bg-black/20 z-10`}>
                       <img 
-                        src={item.image} 
+                        src={thumbnail} 
                         alt={item.title} 
                         width={600}
                         height={400}
@@ -147,10 +193,10 @@ export const Lab = () => {
                         referrerPolicy="no-referrer" 
                       />
                     </div>
-                  )}
+                  ) : null}
                   <div className="z-10">
-                    <h3 className="text-xl font-bold mb-3 group-hover:text-brand-accent transition-colors leading-tight">{item.title}</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed mb-4 line-clamp-3 italic">{item.excerpt ?? item.content}</p>
+                    <h3 className={`${isLargeCard ? 'text-[1.65rem] md:text-[1.9rem]' : 'text-xl'} font-bold mb-3 group-hover:text-brand-accent transition-colors leading-[1.04] tracking-tight`}>{item.title}</h3>
+                    <p className={`text-brand-muted text-sm leading-relaxed mb-4 italic ${isLargeCard ? 'line-clamp-4 md:text-[0.96rem]' : 'line-clamp-3'}`}>{item.excerpt ?? item.content}</p>
                     <div className="flex flex-wrap gap-2">
                       {item.tools.map(tool => (
                         <Tag 
@@ -166,7 +212,7 @@ export const Lab = () => {
                   </div>
                 </button>
               </RevealOnScroll>
-            ))
+            )})
           )}
         </div>
 
@@ -197,6 +243,19 @@ export const Lab = () => {
                 className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto glass rounded-[3rem] p-8 md:p-12"
                 onClick={e => e.stopPropagation()}
               >
+                {getLabHeroImage(activeItem) ? (
+                  <div className="mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03]">
+                    <img
+                      src={getLabHeroImage(activeItem)}
+                      alt={activeItem.title}
+                      className="aspect-[16/9] w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ) : null}
+
                 {/* Header */}
                 <div className="flex justify-between items-start mb-8">
                   <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-xs uppercase tracking-widest font-bold font-mono">
@@ -305,12 +364,13 @@ export const Lab = () => {
                         ))}
                       </div>
                     </div>
-                    {activeItem.image && (
+                    {getLabThumbnail(activeItem) &&
+                    getLabThumbnail(activeItem) !== getLabHeroImage(activeItem) ? (
                       <div className="rounded-2xl overflow-hidden bg-white/5 aspect-square relative">
                         <div className="grain-overlay" />
-                        <img src={activeItem.image} alt={activeItem.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" referrerPolicy="no-referrer" />
+                        <img src={getLabThumbnail(activeItem)} alt={activeItem.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" referrerPolicy="no-referrer" />
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
 

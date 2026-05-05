@@ -80,6 +80,8 @@ export type LabDraft = {
   status: EntryStatus;
   type: LabItem['type'];
   content: string;
+  thumbnail: string;
+  heroImage: string;
   slug: string;
   readingTime: string;
   category: string;
@@ -190,6 +192,8 @@ export const defaultLabDraft = (): LabDraft => ({
   status: 'draft',
   type: 'Experiment',
   content: '',
+  thumbnail: '',
+  heroImage: '',
   slug: '',
   readingTime: '',
   category: '',
@@ -578,6 +582,8 @@ export function toLabDraft(item?: LabItem): LabDraft {
     status: item.status ?? 'published',
     type: item.type ?? 'Experiment',
     content: item.content ?? '',
+    thumbnail: item.thumbnail ?? item.image ?? '',
+    heroImage: item.heroImage ?? item.thumbnail ?? item.image ?? '',
     slug: item.slug ?? '',
     readingTime: item.readingTime ?? '',
     category: item.category ?? '',
@@ -586,7 +592,7 @@ export function toLabDraft(item?: LabItem): LabDraft {
     bodyMarkdown: item.bodyMarkdown ?? '',
     bodyImageUrl: item.bodyImage?.url ?? '',
     bodyImageAlt: item.bodyImage?.alt ?? '',
-    image: item.image ?? '',
+    image: item.image ?? item.thumbnail ?? item.heroImage ?? '',
     code: item.code ?? '',
     tools: joinList(item.tools),
     date: item.date ?? new Date().toISOString().slice(0, 10),

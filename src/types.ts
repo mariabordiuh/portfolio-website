@@ -143,6 +143,8 @@ export interface LabItem {
   type: 'Experiment' | 'Learning' | 'AI' | 'Vibe' | 'Thoughts';
   content: string;
   image?: string;
+  thumbnail?: string;
+  heroImage?: string;
   code?: string;
   tools: string[];
   date: string;

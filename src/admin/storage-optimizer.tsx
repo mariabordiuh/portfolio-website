@@ -149,6 +149,8 @@ const extractAllImageUrls = (data: CollectionData): Map<string, ImageReference[]
   // Lab items
   for (const l of data.labItems) {
     add(l.image, 'labItems', l.id, 'image');
+    add(l.thumbnail, 'labItems', l.id, 'thumbnail');
+    add(l.heroImage, 'labItems', l.id, 'heroImage');
   }
 
   // Gallery

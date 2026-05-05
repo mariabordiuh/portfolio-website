@@ -257,6 +257,12 @@ export function LabAdmin() {
       status: draft.status,
       type: draft.type,
       content: trimValue(isThoughtPost ? draft.excerpt || draft.content : draft.content),
+      thumbnail: trimValue(draft.thumbnail) || trimValue(draft.image) || undefined,
+      heroImage:
+        trimValue(draft.heroImage) ||
+        trimValue(draft.thumbnail) ||
+        trimValue(draft.image) ||
+        undefined,
       slug: trimValue(draft.slug) || undefined,
       readingTime: trimValue(draft.readingTime) || undefined,
       category: trimValue(draft.category) || undefined,
@@ -270,7 +276,11 @@ export function LabAdmin() {
               alt: trimValue(draft.bodyImageAlt) || undefined,
             }
           : undefined,
-      image: trimValue(draft.image) || undefined,
+      image:
+        trimValue(draft.thumbnail) ||
+        trimValue(draft.image) ||
+        trimValue(draft.heroImage) ||
+        undefined,
       code: trimValue(draft.code) || undefined,
       tools: splitList(draft.tools),
       date: trimValue(draft.date),
@@ -605,6 +615,44 @@ export function LabAdmin() {
             </div>
           </EditorSection>
 
+          <EditorSection
+            title="Display"
+            description="Thumbnail is for the Lab card. Hero image is used when the post opens."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <StorageImageField
+                label="Card thumbnail"
+                pathPrefix="lab/images"
+                value={draft.thumbnail}
+                onChange={(value) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    thumbnail: value,
+                    image: value || prev.image,
+                    heroImage: prev.heroImage || value,
+                  }))
+                }
+                onError={setError}
+                hint="Used on the Lab index / preview card."
+              />
+              <StorageImageField
+                label="Hero image"
+                pathPrefix="lab/images"
+                value={draft.heroImage}
+                onChange={(value) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    heroImage: value,
+                    thumbnail: prev.thumbnail || value,
+                    image: prev.image || prev.thumbnail || value,
+                  }))
+                }
+                onError={setError}
+                hint="Shown at the top of the opened Lab post."
+              />
+            </div>
+          </EditorSection>
+
           {isThoughtPost ? (
             <EditorSection
               title="Article post"
@@ -634,15 +682,6 @@ export function LabAdmin() {
                   placeholder="Maria Bordiuh"
                   value={draft.author}
                   onChange={(value) => setDraft((prev) => ({ ...prev, author: value }))}
-                />
-                <StorageImageField
-                  label="Cover image"
-                  pathPrefix="lab/images"
-                  className="md:col-span-2"
-                  value={draft.image}
-                  onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
-                  onError={setError}
-                  hint="Used on the Lab card / preview."
                 />
                 <LongField
                   label="Body markdown"
@@ -749,15 +788,6 @@ export function LabAdmin() {
               description="Image, tools, and code snippets."
             >
               <div className="grid gap-4 md:grid-cols-2">
-                {!isThoughtPost ? (
-                  <StorageImageField
-                    label="Image"
-                    pathPrefix="lab/images"
-                    value={draft.image}
-                    onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
-                    onError={setError}
-                  />
-                ) : null}
                 <LongField
                   label="Code"
                   placeholder="Paste a short code sample or prompt"
