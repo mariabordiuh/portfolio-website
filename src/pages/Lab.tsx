@@ -145,7 +145,7 @@ export const Lab = () => {
         <div
           className={
             useBentoLayout
-              ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-6 lg:auto-rows-[minmax(17rem,auto)]'
+              ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-6 lg:auto-rows-[minmax(19rem,auto)]'
               : 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
           }
         >
@@ -181,7 +181,7 @@ export const Lab = () => {
                     <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
                   </div>
                   {thumbnail ? (
-                    <div className={`${isLargeCard ? 'aspect-[16/10] lg:aspect-[5/4]' : 'aspect-video'} rounded-xl overflow-hidden bg-black/20 z-10`}>
+                    <div className={`${isLargeCard ? 'aspect-[16/10] lg:aspect-[6/5]' : 'aspect-[4/3]'} rounded-xl overflow-hidden bg-black/20 z-10`}>
                       <img 
                         src={thumbnail} 
                         alt={item.title} 
