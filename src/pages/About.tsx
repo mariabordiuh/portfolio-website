@@ -18,28 +18,36 @@ const CONTACT_LINKS = [
 
 const CV_NOTES = [
   {
-    title: 'Background',
-    body: 'Design, animation, and art direction first. The visual storytelling part came before the tools.',
-  },
-  {
     title: 'Now',
-    body: 'I build brand worlds, motion systems, AI visuals, and concept directions that still feel human and crafted.',
+    body: 'Since August 2024 I’ve been freelancing as an AI Specialist and Art Director, leading AI-driven video generation, visual direction, moodboards, character design, and custom workflows built around real production needs.',
   },
   {
-    title: 'Working style',
-    body: 'Mood boards, references, prompts, prototypes, edits, and too many tabs open at once until the system clicks.',
+    title: 'Motion foundation',
+    body: 'Before that, I spent several years in motion design and 2D animation, from cut-out TV animation in Toon Boom to social assets, explainers, and digital campaign work.',
   },
   {
-    title: 'Tech side',
-    body: 'Nerdy enough to use AI tools, generative workflows, and vibecoding when they help the idea move faster.',
+    title: 'Agency chapter',
+    body: 'At weigertpirouzwolf in Hamburg I was the agency’s only motion designer, turning campaign ideas into motion, social assets, and promotional materials under small-team, fast-turnaround conditions.',
   },
   {
-    title: 'Availability',
-    body: 'Based in Hamburg. Open to selected freelance and collaborative projects, remote or hybrid.',
+    title: 'Selected work',
+    body: 'Recent work includes Novo Nordisk explainer videos and launch visuals, Morshynska’s dinosaur label world, motion spots for Silpo, and smaller web experiments like Mirror Atelier and pink33.party.',
   },
   {
-    title: 'NDA energy',
-    body: 'Some recent work is still under wraps, in development, or simply better shown in person than listed in public.',
+    title: 'Education',
+    body: 'I’m finishing a Diploma in VFX & 3D Animation at SAE Institute Hamburg, after a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv.',
+  },
+  {
+    title: 'Tools + tech',
+    body: 'I work across After Effects, Photoshop, Illustrator, Toon Boom, Houdini, Midjourney, Flux, Firefly, Runway, Kling, Veo, fal.ai, Firebase, Netlify, and small custom UIs when a project needs them.',
+  },
+  {
+    title: 'Languages',
+    body: 'Ukrainian is my native language, English is fluent, German is strong enough for work, and my Japanese background still follows me around in useful ways.',
+  },
+  {
+    title: 'NDA reality',
+    body: 'Some recent work is still under wraps, still in development, or simply better explained in conversation than on a public page, which is why the portfolio is selective by design.',
   },
 ] as const;
 
@@ -61,9 +69,10 @@ export const About = () => {
               </h1>
 
               <p className="mt-6 max-w-[46rem] text-[clamp(1rem,0.88rem+0.4vw,1.22rem)] leading-relaxed text-white/72">
-                I’m an Art Director with roots in design and animation, working across visual
-                storytelling, motion, AI image systems, and creative technology. I like projects
-                that need both taste and structure: the emotional part and the systems part.
+                I’m a Ukrainian Art Director based in Hamburg, with roots in design, animation,
+                and visual storytelling. My work now sits between art direction, motion, AI image
+                systems, and creative technology, especially when a project needs both a strong
+                visual taste level and a nerdier workflow brain behind it.
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
@@ -93,7 +102,8 @@ export const About = () => {
                       Role
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-white/74">
-                      Art direction, AI visuals, motion, concept development
+                      Art direction, AI visuals, motion, concept development, lightweight creative
+                      tech
                     </p>
                   </div>
                   <div>
@@ -111,7 +121,16 @@ export const About = () => {
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-white/74">
                       Brand worlds, campaign visuals, generative image systems, motion-led
-                      storytelling
+                      storytelling, and experiments that still need real design judgment
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
+                      Current chapter
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/74">
+                      Freelance AI Specialist / Art Director since 2024, building visuals and
+                      workflows across campaigns, launch films, and branded experiments
                     </p>
                   </div>
                   <div>

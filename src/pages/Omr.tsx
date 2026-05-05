@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { ArrowUpRight, Download, Mail, QrCode } from 'lucide-react';
+import { ArrowUpRight, ExternalLink, Mail } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
 import { PrefetchLink } from '../components/PrefetchLink';
 import { PageTransition } from '../components/PageTransition';
@@ -89,16 +89,9 @@ export const Omr = () => {
               Maria Bordiuh
             </PrefetchLink>
 
-            <div className="flex items-center gap-3">
-              <a
-                href="/omr/maria-omr-qr.svg"
-                download
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/72 backdrop-blur-md transition-colors hover:border-brand-accent/50 hover:text-white"
-              >
-                <Download size={12} />
-                Download QR
-              </a>
-            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/42">
+              OMR landing page
+            </span>
           </header>
 
           <div className="grid min-h-[calc(100svh-8rem)] flex-1 gap-14 py-10 xl:grid-cols-[minmax(0,1fr)_25rem] xl:items-end xl:gap-16">
@@ -177,25 +170,42 @@ export const Omr = () => {
                   <div className="mt-4 flex items-start justify-between gap-4">
                     <div>
                       <h2 className="max-w-[12ch] text-[clamp(1.8rem,4vw,2.5rem)] font-semibold leading-[0.95] text-white normal-case">
-                        Scan to see selected work.
+                        Start here if we just met.
                       </h2>
                       <p className="mt-3 max-w-[18rem] text-sm leading-relaxed text-white/58">
-                        A quick way into case studies, visual systems, experiments, and the person
-                        behind them.
+                        The shortest route into selected case studies, visual systems, experiments,
+                        and why I work the way I do.
                       </p>
                     </div>
-
-                    <QrCode className="mt-1 shrink-0 text-white/48" size={20} />
                   </div>
 
                   <div className="mt-8 rounded-[1.35rem] border border-white/12 bg-white/[0.03] p-4">
-                    <div className="rounded-[1rem] bg-white p-4">
-                      <img
-                        src="/omr/maria-omr-qr.svg"
-                        alt="QR code linking to Maria Bordiuh's OMR page"
-                        className="aspect-square w-full object-contain"
-                        loading="eager"
-                      />
+                    <div className="grid gap-3">
+                      <a
+                        href="https://mariabordiuh.com/work"
+                        className="group flex items-center justify-between rounded-[1rem] border border-white/10 bg-white/[0.03] px-4 py-4 transition-colors hover:border-brand-accent/45 hover:bg-white/[0.05]"
+                      >
+                        <div>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
+                            First stop
+                          </p>
+                          <p className="mt-1 text-sm text-white/84">Selected work</p>
+                        </div>
+                        <ExternalLink size={15} className="text-white/42 transition-colors group-hover:text-brand-accent" />
+                      </a>
+
+                      <a
+                        href="https://mariabordiuh.com/about"
+                        className="group flex items-center justify-between rounded-[1rem] border border-white/10 bg-white/[0.03] px-4 py-4 transition-colors hover:border-brand-accent/45 hover:bg-white/[0.05]"
+                      >
+                        <div>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
+                            Then
+                          </p>
+                          <p className="mt-1 text-sm text-white/84">Why work with me</p>
+                        </div>
+                        <ExternalLink size={15} className="text-white/42 transition-colors group-hover:text-brand-accent" />
+                      </a>
                     </div>
 
                     <div className="mt-4 flex items-center justify-between gap-4 border-t border-white/10 pt-4">
