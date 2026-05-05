@@ -496,7 +496,15 @@ export const ProjectDetail = () => {
     { label: 'Client', value: normalized.client },
     {
       label: 'Tools',
-      value: tools.length ? tools.map((tool) => <p key={tool}>{tool}</p>) : null,
+      value: tools.length ? (
+        <div className="flex flex-wrap gap-2">
+          {tools.map((tool) => (
+            <span key={tool} className="tool-pill">
+              {tool}
+            </span>
+          ))}
+        </div>
+      ) : null,
     },
     {
       label: 'Credits',

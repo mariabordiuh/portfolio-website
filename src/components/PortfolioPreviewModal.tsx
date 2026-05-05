@@ -207,7 +207,7 @@ export const PortfolioPreviewModal = ({
               {item.tools.map((tool) => (
                 <span
                   key={tool}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-white/65"
+                  className="tool-pill"
                 >
                   {tool}
                 </span>
