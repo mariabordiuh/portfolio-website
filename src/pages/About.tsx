@@ -49,6 +49,10 @@ const CV_NOTES = [
     title: 'NDA reality',
     body: 'Some recent work is still under wraps, still in development, or simply better explained in conversation than on a public page, which is why the portfolio is selective by design.',
   },
+  {
+    title: 'Outside work',
+    body: 'I moved to Hamburg in 2022 after living in Ukraine, the US, Poland, China, Vietnam, and that mix made me very comfortable with people, cultures, and different ways of working. My favorite things in life are my cat Loki, who I found in China in 2018, plants, coffee, and making things from scratch, whether that means vibecoding a web app or fixing broken furniture from the street.',
+  },
 ] as const;
 
 export const About = () => {
