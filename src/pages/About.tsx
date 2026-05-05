@@ -1,4 +1,6 @@
-import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
+import React from 'react';
+import { ArrowUpRight, Mail, MapPin, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { PageTransition } from '../components/PageTransition';
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
@@ -57,6 +59,8 @@ const CV_NOTES = [
 ] as const;
 
 export const About = () => {
+  const [isLokiOpen, setIsLokiOpen] = React.useState(false);
+
   return (
     <PageTransition>
       <section className="min-h-[100svh] bg-brand-bg pb-24 pt-32 md:pb-32 md:pt-40">
@@ -178,13 +182,27 @@ export const About = () => {
                   <p className="mt-4 text-[0.98rem] leading-relaxed text-white/72">{note.body}</p>
                   {note.title === 'Outside work' ? (
                     <div className="mt-5 rounded-[1.15rem] border border-white/10 bg-black/20 p-3">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={LOKI_IMAGE}
-                          alt="Loki the cat sitting in a chair"
-                          loading="lazy"
-                          className="h-14 w-14 shrink-0 rounded-[0.9rem] object-cover"
-                        />
+                      <div className="flex items-center gap-4">
+                        <motion.button
+                          type="button"
+                          onClick={() => setIsLokiOpen(true)}
+                          whileHover={{ y: -2, scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_60px_rgba(0,0,0,0.28)]"
+                        >
+                          <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.32),_transparent_62%)] opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
+                          <motion.img
+                            src={LOKI_IMAGE}
+                            alt="Loki the cat sitting in a chair"
+                            loading="lazy"
+                            className="relative z-[1] h-full w-full object-cover"
+                            animate={{ scale: [1, 1.03, 1] }}
+                            transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                          <span className="pointer-events-none absolute inset-x-2 bottom-2 z-[2] rounded-full border border-white/14 bg-black/52 px-2 py-1 text-[8px] font-mono uppercase tracking-[0.18em] text-white/70 backdrop-blur">
+                            Open
+                          </span>
+                        </motion.button>
                         <div>
                           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
                             Bonus: Loki
@@ -203,6 +221,50 @@ export const About = () => {
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {isLokiOpen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/92 p-5 backdrop-blur-2xl"
+            onClick={() => setIsLokiOpen(false)}
+          >
+            <div className="flex h-full items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 18 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                className="relative max-w-[min(90vw,42rem)]"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  aria-label="Close Loki photo"
+                  onClick={() => setIsLokiOpen(false)}
+                  className="absolute right-3 top-3 z-[2] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/52 text-white/78 backdrop-blur transition-colors hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+
+                <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-[0_25px_120px_rgba(0,0,0,0.55)]">
+                  <img
+                    src={LOKI_IMAGE}
+                    alt="Loki the cat sitting in a chair"
+                    className="block max-h-[78vh] w-full object-contain"
+                  />
+                </div>
+
+                <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-white/46">
+                  Loki // definitely part of the team
+                </p>
+              </motion.div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </PageTransition>
   );
 };
