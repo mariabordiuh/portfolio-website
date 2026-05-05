@@ -19,28 +19,6 @@ const getLabThumbnail = (item: LabItem) =>
 const getLabHeroImage = (item: LabItem) =>
   item.heroImage || item.thumbnail || item.image || item.bodyImage?.url || '';
 
-const getLabBentoClasses = (index: number, total: number) => {
-  if (total === 1) {
-    return 'md:col-span-2 lg:col-span-6';
-  }
-
-  if (total === 2) {
-    return index === 0 ? 'md:col-span-2 lg:col-span-4 lg:row-span-2' : 'lg:col-span-2 lg:row-span-2';
-  }
-
-  if (total === 3) {
-    if (index === 0) return 'md:col-span-2 lg:col-span-3 lg:row-span-2';
-    return 'lg:col-span-3';
-  }
-
-  if (total === 4) {
-    if (index === 0) return 'md:col-span-2 lg:col-span-3 lg:row-span-2';
-    return 'lg:col-span-3';
-  }
-
-  return 'lg:col-span-2';
-};
-
 const renderInlineMarkdown = (text: string) => {
   const parts = text.split(/(\*[^*]+\*)/g);
 
@@ -106,7 +84,6 @@ export const Lab = () => {
     () => [...labItems].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
     [labItems],
   );
-  const useBentoLayout = sortedLabItems.length > 0 && sortedLabItems.length <= 6;
 
   useEffect(() => {
     if (!previewId) {
@@ -142,13 +119,7 @@ export const Lab = () => {
           </RevealOnScroll>
         </header>
 
-        <div
-          className={
-            useBentoLayout
-              ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-6 lg:auto-rows-[minmax(19rem,auto)]'
-              : 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'
-          }
-        >
+        <div className="grid gap-6 md:grid-cols-2">
           {loading ? (
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
           ) : !sortedLabItems.length ? (
@@ -158,61 +129,59 @@ export const Lab = () => {
           ) : (
             sortedLabItems.map((item, index) => {
               const thumbnail = getLabThumbnail(item);
-              const isLargeCard =
-                useBentoLayout &&
-                ((sortedLabItems.length === 1 && index === 0) ||
-                  (sortedLabItems.length === 2 && index === 0) ||
-                  ((sortedLabItems.length === 3 || sortedLabItems.length === 4) && index === 0));
 
               return (
-              <RevealOnScroll key={item.id} delay={index * 0.05}>
-                <button
-                  type="button"
-                  onClick={() => setActiveItem(item)}
-                  className={`group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10 ${
-                    useBentoLayout ? getLabBentoClasses(index, sortedLabItems.length) : ''
-                  }`}
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                  <div className="flex justify-between items-start z-10">
-                    <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-[10px] uppercase tracking-widest font-bold font-mono">
-                      {item.category ?? item.type}
-                    </span>
-                    <span className="text-[10px] font-mono text-brand-muted">{item.date}</span>
-                  </div>
-                  {thumbnail ? (
-                    <div className={`${isLargeCard ? 'aspect-[16/10] lg:aspect-[6/5]' : 'aspect-[4/3]'} rounded-xl overflow-hidden bg-black/20 z-10`}>
-                      <img 
-                        src={thumbnail} 
-                        alt={item.title} 
-                        width={600}
-                        height={400}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 grayscale hover:grayscale-0" 
-                        referrerPolicy="no-referrer" 
-                      />
+                <RevealOnScroll key={item.id} delay={index * 0.05}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveItem(item)}
+                    className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                    <div className="flex items-start justify-between z-10">
+                      <span className="rounded-full bg-brand-accent/20 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-brand-accent">
+                        {item.category ?? item.type}
+                      </span>
+                      <span className="font-mono text-[10px] text-brand-muted">{item.date}</span>
                     </div>
-                  ) : null}
-                  <div className="z-10">
-                    <h3 className={`${isLargeCard ? 'text-[1.65rem] md:text-[1.9rem]' : 'text-xl'} font-bold mb-3 group-hover:text-brand-accent transition-colors leading-[1.04] tracking-tight`}>{item.title}</h3>
-                    <p className={`text-brand-muted text-sm leading-relaxed mb-4 italic ${isLargeCard ? 'line-clamp-4 md:text-[0.96rem]' : 'line-clamp-3'}`}>{item.excerpt ?? item.content}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {item.tools.map(tool => (
-                        <Tag 
-                          key={tool} 
-                          name={tool} 
-                          onClick={(e) => {
-                            e?.stopPropagation();
-                            window.location.href = `/work?tool=${tool}`;
-                          }}
+                    {thumbnail ? (
+                      <div className="z-10 aspect-[5/4] overflow-hidden rounded-xl bg-black/20">
+                        <img
+                          src={thumbnail}
+                          alt={item.title}
+                          width={600}
+                          height={400}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover opacity-80 transition-all duration-700 grayscale group-hover:opacity-100 group-hover:grayscale-0"
+                          referrerPolicy="no-referrer"
                         />
-                      ))}
+                      </div>
+                    ) : null}
+                    <div className="z-10">
+                      <h3 className="mb-3 text-xl font-bold leading-[1.04] tracking-tight transition-colors group-hover:text-brand-accent md:text-[1.65rem]">
+                        {item.title}
+                      </h3>
+                      <p className="mb-4 line-clamp-4 text-sm italic leading-relaxed text-brand-muted md:text-[0.96rem]">
+                        {item.excerpt ?? item.content}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {item.tools.map((tool) => (
+                          <Tag
+                            key={tool}
+                            name={tool}
+                            onClick={(e) => {
+                              e?.stopPropagation();
+                              window.location.href = `/work?tool=${tool}`;
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              </RevealOnScroll>
-            )})
+                  </button>
+                </RevealOnScroll>
+              );
+            })
           )}
         </div>
 
