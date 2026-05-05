@@ -32,6 +32,7 @@ const ProjectDetail = lazy(() =>
 );
 const Lab = lazy(() => loadLabRoute().then((module) => ({ default: module.Lab })));
 const About = lazy(() => loadAboutRoute().then((module) => ({ default: module.About })));
+const Omr = lazy(() => import('./pages/Omr').then((module) => ({ default: module.Omr })));
 const Admin = lazy(() => loadAdminRoute().then((module) => ({ default: module.Admin })));
 const NotFound = lazy(() =>
   loadNotFoundRoute().then((module) => ({ default: module.NotFound })),
@@ -96,9 +97,39 @@ const AnimatedRoutes = () => {
         </Route>
 
         <Route path="/about" element={<SuspenseRoute><About /></SuspenseRoute>} />
+        <Route path="/omr" element={<SuspenseRoute><Omr /></SuspenseRoute>} />
         <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
       </Routes>
     </AnimatePresence>
+  );
+};
+
+const AppShell = () => {
+  const location = useLocation();
+  const isOmr = location.pathname.startsWith('/omr');
+
+  return (
+    <>
+      <Seo />
+      <SmoothScrollProvider>
+        <CircleCursor />
+        <ButtonClickSound />
+        <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[200] focus:rounded-full focus:bg-brand-accent focus:px-5 focus:py-3 focus:text-[10px] focus:font-black focus:uppercase focus:tracking-[0.24em] focus:text-brand-bg"
+          >
+            Skip to content
+          </a>
+          {!isOmr ? <Nav /> : null}
+          <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
+            <AnimatedRoutes />
+          </main>
+          <ScrollToTop />
+          {!isOmr ? <Footer /> : null}
+        </div>
+      </SmoothScrollProvider>
+    </>
   );
 };
 
@@ -114,25 +145,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <Seo />
-        <SmoothScrollProvider>
-          <CircleCursor />
-          <ButtonClickSound />
-          <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[200] focus:rounded-full focus:bg-brand-accent focus:px-5 focus:py-3 focus:text-[10px] focus:font-black focus:uppercase focus:tracking-[0.24em] focus:text-brand-bg"
-            >
-              Skip to content
-            </a>
-            <Nav />
-            <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
-              <AnimatedRoutes />
-            </main>
-            <ScrollToTop />
-            <Footer />
-          </div>
-        </SmoothScrollProvider>
+        <AppShell />
       </Router>
     </ErrorBoundary>
   );

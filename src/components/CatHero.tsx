@@ -109,15 +109,15 @@ export const CatHero = () => {
                 data-click-sound="true"
                 className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
               >
-                View Work
+                See selected work
                 <ArrowUpRight size={16} />
               </PrefetchLink>
               <PrefetchLink
-                to="/lab"
+                to="/about"
                 data-click-sound="true"
                 className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
               >
-                Open Lab
+                Why work with me
                 <ArrowUpRight size={16} />
               </PrefetchLink>
             </motion.div>

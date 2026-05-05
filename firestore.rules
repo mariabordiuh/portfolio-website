@@ -115,6 +115,26 @@ service cloud.firestore {
              (!('posterImage' in data) || data.posterImage is string);
     }
 
+    function isValidOmrVisit(data) {
+      return data.keys().hasOnly(['source', 'path', 'referrer', 'userAgent', 'locale', 'screen', 'createdAt']) &&
+             data.source is string &&
+             data.source.size() > 0 &&
+             data.source.size() < 80 &&
+             data.path is string &&
+             data.path.size() > 0 &&
+             data.path.size() < 200 &&
+             data.referrer is string &&
+             data.referrer.size() < 2000 &&
+             data.userAgent is string &&
+             data.userAgent.size() < 1000 &&
+             data.locale is string &&
+             data.locale.size() < 80 &&
+             data.screen is string &&
+             data.screen.size() < 40 &&
+             data.createdAt is string &&
+             data.createdAt.size() < 80;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -158,6 +178,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;
       allow write: if isAdmin();
+    }
+
+    match /omrVisits/{visitId} {
+      allow create: if isValidOmrVisit(request.resource.data);
+      allow read, update, delete: if false;
     }
   }
 }

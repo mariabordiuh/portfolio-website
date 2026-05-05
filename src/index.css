@@ -342,6 +342,75 @@
     opacity: 0.22;
   }
 
+  .omr-grid-scene {
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      radial-gradient(circle at 18% 22%, rgba(255, 87, 112, 0.18), transparent 24%),
+      radial-gradient(circle at 74% 18%, rgba(255, 119, 157, 0.1), transparent 22%),
+      radial-gradient(circle at 82% 76%, rgba(52, 72, 104, 0.34), transparent 28%),
+      linear-gradient(135deg, #050508 0%, #08080d 46%, #06060b 100%);
+    background-size:
+      6.25rem 6.25rem,
+      6.25rem 6.25rem,
+      auto,
+      auto,
+      auto,
+      auto;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.92) 60%, rgba(0, 0, 0, 1));
+  }
+
+  .omr-noise-overlay {
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.85'/%3E%3C/svg%3E");
+    mix-blend-mode: soft-light;
+  }
+
+  .omr-glow {
+    position: absolute;
+    width: 38rem;
+    height: 38rem;
+    border-radius: 999px;
+    filter: blur(90px);
+    opacity: 0.95;
+    pointer-events: none;
+  }
+
+  .omr-glow--left {
+    left: -10rem;
+    top: 12svh;
+    background: radial-gradient(circle, rgba(255, 87, 112, 0.22) 0%, rgba(255, 87, 112, 0) 72%);
+    animation: omrGlowDrift 18s ease-in-out infinite;
+  }
+
+  .omr-glow--right {
+    right: -12rem;
+    bottom: -8rem;
+    background: radial-gradient(circle, rgba(52, 72, 104, 0.44) 0%, rgba(52, 72, 104, 0) 74%);
+    animation: omrGlowDrift 20s ease-in-out infinite reverse;
+  }
+
+  .omr-scan-line {
+    position: absolute;
+    inset-inline: 0;
+    top: 18%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 87, 112, 0) 0%, rgba(255, 87, 112, 0.65) 20%, rgba(255, 255, 255, 0.24) 50%, rgba(255, 87, 112, 0.65) 80%, rgba(255, 87, 112, 0) 100%);
+    opacity: 0.65;
+    animation: omrScanLine 14s linear infinite;
+    pointer-events: none;
+  }
+
+  .omr-poster::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: calc(2rem - 1px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01) 32%, rgba(255, 255, 255, 0.03));
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
   .cursor-click-ripple {
     animation: cursorRipple 0.7s ease-out forwards;
   }
@@ -415,6 +484,36 @@
     }
   }
 
+  @keyframes omrGlowDrift {
+    0%, 100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(1.5rem, -1rem, 0) scale(1.06);
+    }
+  }
+
+  @keyframes omrScanLine {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    8% {
+      opacity: 0.65;
+    }
+    50% {
+      transform: translateY(46svh);
+      opacity: 0.55;
+    }
+    92% {
+      opacity: 0.15;
+    }
+    100% {
+      transform: translateY(88svh);
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .btn-gradient-shift,
     .btn-glass-shift,
@@ -422,7 +521,9 @@
     .update-marquee-track,
     .hero-ripple-ring,
     .frosted-blob,
-    .cursor-click-ripple {
+    .cursor-click-ripple,
+    .omr-glow,
+    .omr-scan-line {
       animation: none !important;
       transition: none !important;
     }
