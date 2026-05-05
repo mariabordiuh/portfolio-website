@@ -35,7 +35,7 @@ const CV_NOTES = [
   },
   {
     title: 'Education',
-    body: 'I’m finishing a Diploma in VFX & 3D Animation at SAE Institute Hamburg, after a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv.',
+    body: 'I completed a Diploma in VFX & 3D Animation at SAE Institute Hamburg, after a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv.',
   },
   {
     title: 'Tools + tech',
