@@ -1,4 +1,4 @@
-const CACHE_PREFIX = 'maria-portfolio:v2:';
+const CACHE_PREFIX = 'maria-portfolio:v3:';
 
 export const readSessionCache = <T,>(key: string): T | null => {
   if (typeof window === 'undefined') return null;

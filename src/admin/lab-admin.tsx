@@ -269,10 +269,10 @@ export function LabAdmin() {
           ? Math.min(200, Math.max(100, thumbnailZoomRaw))
           : 100,
         thumbnailPositionX: Number.isFinite(thumbnailPositionXRaw)
-          ? Math.min(100, Math.max(0, thumbnailPositionXRaw))
+          ? Math.min(200, Math.max(0, thumbnailPositionXRaw))
           : 50,
         thumbnailPositionY: Number.isFinite(thumbnailPositionYRaw)
-          ? Math.min(100, Math.max(0, thumbnailPositionYRaw))
+          ? Math.min(200, Math.max(0, thumbnailPositionYRaw))
           : 50,
         heroImage:
           trimValue(draft.heroImage) ||
@@ -692,7 +692,7 @@ export function LabAdmin() {
                 label="Thumbnail horizontal position (%)"
                 value={draft.thumbnailPositionX}
                 min={0}
-                max={100}
+                max={200}
                 onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
                 hint="50 = centered. Lower moves the crop left, higher moves it right."
               />
@@ -700,7 +700,7 @@ export function LabAdmin() {
                 label="Thumbnail vertical position (%)"
                 value={draft.thumbnailPositionY}
                 min={0}
-                max={100}
+                max={200}
                 onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
                 hint="50 = centered. Lower moves the crop up, higher moves it down."
               />

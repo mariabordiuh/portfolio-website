@@ -555,11 +555,11 @@ export function ProjectsAdmin() {
       : 100;
     const thumbnailPositionXRaw = Number(draft.thumbnailPositionX || '50');
     const thumbnailPositionX = Number.isFinite(thumbnailPositionXRaw)
-      ? Math.min(100, Math.max(0, thumbnailPositionXRaw))
+      ? Math.min(200, Math.max(0, thumbnailPositionXRaw))
       : 50;
     const thumbnailPositionYRaw = Number(draft.thumbnailPositionY || '50');
     const thumbnailPositionY = Number.isFinite(thumbnailPositionYRaw)
-      ? Math.min(100, Math.max(0, thumbnailPositionYRaw))
+      ? Math.min(200, Math.max(0, thumbnailPositionYRaw))
       : 50;
     const workPriorityRank = draft.workPriorityRank ? Number(draft.workPriorityRank) : null;
     const basePayload = {
@@ -1153,7 +1153,7 @@ export function ProjectsAdmin() {
                     label="Thumbnail horizontal position (%)"
                     value={draft.thumbnailPositionX}
                     min={0}
-                    max={100}
+                    max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
                     hint="50 = centered. Lower moves the crop left, higher moves it right."
                   />
@@ -1161,7 +1161,7 @@ export function ProjectsAdmin() {
                     label="Thumbnail vertical position (%)"
                     value={draft.thumbnailPositionY}
                     min={0}
-                    max={100}
+                    max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
                     hint="50 = centered. Lower moves the crop up, higher moves it down."
                   />
@@ -1495,7 +1495,7 @@ export function ProjectsAdmin() {
                     label="Thumbnail horizontal position (%)"
                     value={draft.thumbnailPositionX}
                     min={0}
-                    max={100}
+                    max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
                     hint="50 = centered. Lower moves the crop left, higher moves it right."
                   />
@@ -1503,7 +1503,7 @@ export function ProjectsAdmin() {
                     label="Thumbnail vertical position (%)"
                     value={draft.thumbnailPositionY}
                     min={0}
-                    max={100}
+                    max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
                     hint="50 = centered. Lower moves the crop up, higher moves it down."
                   />
