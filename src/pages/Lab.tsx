@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -289,16 +289,15 @@ export const Lab = () => {
         </div>
 
         {/* Lab Item Modal */}
-        <AnimatePresence>
-          {activeItem ? createPortal(
+        {activeItem ? createPortal(
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6"
               onClick={closeActiveItem}
             >
               <button 
+                type="button"
                 ref={closeButtonRef}
                 className="absolute top-8 right-8 z-10 text-white hover:text-brand-accent transition-colors"
                 onClick={closeActiveItem}
@@ -310,7 +309,6 @@ export const Lab = () => {
                 ref={modalScrollRef}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
                 className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto overscroll-contain glass rounded-[3rem] p-8 md:p-12"
                 onClick={e => e.stopPropagation()}
                 role="dialog"
@@ -458,7 +456,6 @@ export const Lab = () => {
             </motion.div>,
             document.body,
           ) : null}
-        </AnimatePresence>
       </div>
     </PageTransition>
   );
