@@ -29,6 +29,8 @@ export type ProjectDraft = {
   heroPositionY: string;
   thumbnail: string;
   thumbnailZoom: string;
+  thumbnailPositionX: string;
+  thumbnailPositionY: string;
   year: string;
   client: string;
   timeline: string;
@@ -144,6 +146,8 @@ export const defaultProjectDraft = (): ProjectDraft => ({
   heroPositionY: '50',
   thumbnail: '',
   thumbnailZoom: '100',
+  thumbnailPositionX: '50',
+  thumbnailPositionY: '50',
   year: '',
   client: '',
   timeline: '',
@@ -518,6 +522,8 @@ export function toProjectDraft(project?: Project): ProjectDraft {
     heroPositionY: String(project.heroPositionY ?? 50),
     thumbnail: project.thumbnail || project.heroImage || primaryImage,
     thumbnailZoom: String(project.thumbnailZoom ?? 100),
+    thumbnailPositionX: String(project.thumbnailPositionX ?? 50),
+    thumbnailPositionY: String(project.thumbnailPositionY ?? 50),
     year: project.year || '',
     client: project.client || '',
     timeline: project.timelineText || '',

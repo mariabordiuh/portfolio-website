@@ -77,6 +77,7 @@ const MasonryCard = memo(({
   const isArt = isArtDirectionItem(item) && item.routeId;
   const isPriorityImage = index < 4;
   const thumbnailScale = Math.max(1, (item.thumbnailZoom ?? 100) / 100);
+  const thumbnailPosition = `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`;
   const previewFrames = useMemo(() => {
     const uniqueFrames = new Set<string>();
     const orderedFrames = [imageSrc, ...item.images]
@@ -145,7 +146,11 @@ const MasonryCard = memo(({
                 fetchPriority={isPriorityImage ? 'high' : 'auto'}
                 onImageLoad={(size) => onImageLoad(activeImageKey, size)}
                 className="block h-full w-full object-cover text-transparent transition-transform duration-[1400ms] ease-out"
-                style={{ transform: `scale(${thumbnailScale})` }}
+                style={{
+                  transform: `scale(${thumbnailScale})`,
+                  transformOrigin: 'center center',
+                  objectPosition: thumbnailPosition,
+                }}
               />
             ) : null}
           </div>

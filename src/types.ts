@@ -52,6 +52,8 @@ export interface Project {
   description: string;
   thumbnail: string;
   thumbnailZoom?: number;
+  thumbnailPositionX?: number;
+  thumbnailPositionY?: number;
   heroZoom?: number;
   heroPositionX?: number;
   heroPositionY?: number;

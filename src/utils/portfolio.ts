@@ -29,6 +29,8 @@ export type PortfolioItem = {
   description: string;
   thumbnail: string;
   thumbnailZoom?: number;
+  thumbnailPositionX?: number;
+  thumbnailPositionY?: number;
   heroZoom?: number;
   heroPositionX?: number;
   heroPositionY?: number;
@@ -294,6 +296,8 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     description: trim(project.description),
     thumbnail: trim(project.thumbnail) || heroImage || mediaUrl,
     thumbnailZoom: project.thumbnailZoom ?? 100,
+    thumbnailPositionX: project.thumbnailPositionX ?? 50,
+    thumbnailPositionY: project.thumbnailPositionY ?? 50,
     heroZoom: project.heroZoom ?? 100,
     heroPositionX: project.heroPositionX ?? 50,
     heroPositionY: project.heroPositionY ?? 50,
@@ -384,6 +388,8 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     description: normalized.description,
     thumbnail: normalized.thumbnail || normalized.heroImage || normalized.mediaUrl || images[0] || '',
     thumbnailZoom: normalized.thumbnailZoom ?? 100,
+    thumbnailPositionX: normalized.thumbnailPositionX ?? 50,
+    thumbnailPositionY: normalized.thumbnailPositionY ?? 50,
     heroZoom: normalized.heroZoom ?? 100,
     heroPositionX: normalized.heroPositionX ?? 50,
     heroPositionY: normalized.heroPositionY ?? 50,

@@ -553,6 +553,14 @@ export function ProjectsAdmin() {
     const thumbnailZoom = Number.isFinite(thumbnailZoomRaw)
       ? Math.min(200, Math.max(100, thumbnailZoomRaw))
       : 100;
+    const thumbnailPositionXRaw = Number(draft.thumbnailPositionX || '50');
+    const thumbnailPositionX = Number.isFinite(thumbnailPositionXRaw)
+      ? Math.min(100, Math.max(0, thumbnailPositionXRaw))
+      : 50;
+    const thumbnailPositionYRaw = Number(draft.thumbnailPositionY || '50');
+    const thumbnailPositionY = Number.isFinite(thumbnailPositionYRaw)
+      ? Math.min(100, Math.max(0, thumbnailPositionYRaw))
+      : 50;
     const workPriorityRank = draft.workPriorityRank ? Number(draft.workPriorityRank) : null;
     const basePayload = {
       title,
@@ -564,6 +572,8 @@ export function ProjectsAdmin() {
       description,
       thumbnail,
       thumbnailZoom,
+      thumbnailPositionX,
+      thumbnailPositionY,
       heroZoom,
       heroPositionX,
       heroPositionY,
@@ -1128,6 +1138,7 @@ export function ProjectsAdmin() {
                     onUploadingChange={(uploading) => handleUploadStateChange('thumbnail', uploading)}
                     hint="Optional. Leave it matching the hero image unless the Work card needs a better crop."
                     previewScale={Math.max(1, Number(draft.thumbnailZoom || '100') / 100)}
+                    previewPosition={`${Number(draft.thumbnailPositionX || '50')}% ${Number(draft.thumbnailPositionY || '50')}%`}
                     onError={setError}
                   />
                   <NumberField
@@ -1137,6 +1148,22 @@ export function ProjectsAdmin() {
                     max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailZoom: value }))}
                     hint="100 = original fit. Increase this to crop in tighter on the Work/archive thumbnail."
+                  />
+                  <NumberField
+                    label="Thumbnail horizontal position (%)"
+                    value={draft.thumbnailPositionX}
+                    min={0}
+                    max={100}
+                    onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
+                    hint="50 = centered. Lower moves the crop left, higher moves it right."
+                  />
+                  <NumberField
+                    label="Thumbnail vertical position (%)"
+                    value={draft.thumbnailPositionY}
+                    min={0}
+                    max={100}
+                    onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
+                    hint="50 = centered. Lower moves the crop up, higher moves it down."
                   />
                   <LongField
                     label="Intro / opening copy"
@@ -1453,6 +1480,7 @@ export function ProjectsAdmin() {
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnail: value }))}
                     onUploadingChange={(uploading) => handleUploadStateChange('thumbnail', uploading)}
                     previewScale={Math.max(1, Number(draft.thumbnailZoom || '100') / 100)}
+                    previewPosition={`${Number(draft.thumbnailPositionX || '50')}% ${Number(draft.thumbnailPositionY || '50')}%`}
                     onError={setError}
                   />
                   <NumberField
@@ -1462,6 +1490,22 @@ export function ProjectsAdmin() {
                     max={200}
                     onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailZoom: value }))}
                     hint="Increase this if the thumbnail needs a tighter crop on the Work page."
+                  />
+                  <NumberField
+                    label="Thumbnail horizontal position (%)"
+                    value={draft.thumbnailPositionX}
+                    min={0}
+                    max={100}
+                    onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionX: value }))}
+                    hint="50 = centered. Lower moves the crop left, higher moves it right."
+                  />
+                  <NumberField
+                    label="Thumbnail vertical position (%)"
+                    value={draft.thumbnailPositionY}
+                    min={0}
+                    max={100}
+                    onChange={(value) => setDraft((prev) => ({ ...prev, thumbnailPositionY: value }))}
+                    hint="50 = centered. Lower moves the crop up, higher moves it down."
                   />
                   <LongField
                     label="Description"
