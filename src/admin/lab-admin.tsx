@@ -629,6 +629,17 @@ export function LabAdmin() {
                   )
                 }
               />
+              <LongField
+                label="Tools"
+                className="md:col-span-2"
+                hint="One per line or comma-separated. These show on the Lab card and inside the opened post."
+                placeholder="Midjourney, Firefly, Vite, Firebase"
+                value={draft.tools}
+                onChange={(value) => setDraft((prev) => ({ ...prev, tools: value }))}
+                suggestions={toolSuggestions}
+                quickPicks={quickToolPicks}
+                suggestionMode="list"
+              />
             </div>
           </EditorSection>
 
@@ -837,17 +848,6 @@ export function LabAdmin() {
                   value={draft.code}
                   onChange={(value) => setDraft((prev) => ({ ...prev, code: value }))}
                   className={isThoughtPost ? 'md:col-span-2' : undefined}
-                />
-                <LongField
-                  label="Tools"
-                  className="md:col-span-2"
-                  hint="One per line or comma-separated"
-                  placeholder="Runway, Blender, ChatGPT"
-                  value={draft.tools}
-                  onChange={(value) => setDraft((prev) => ({ ...prev, tools: value }))}
-                  suggestions={toolSuggestions}
-                  quickPicks={quickToolPicks}
-                  suggestionMode="list"
                 />
               </div>
             </EditorSection>
