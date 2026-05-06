@@ -412,6 +412,12 @@ export const ProjectDetail = () => {
   const { projects, loading } = useData();
   const project = projects.find((entry) => entry.id === id);
 
+  useEffect(() => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  }, [id]);
+
   if (loading) {
     return (
       <div className="px-6 pt-40 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">

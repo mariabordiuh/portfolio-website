@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
@@ -88,6 +89,10 @@ export const Lab = () => {
   const { labItems, loading } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeItem, setActiveItem] = useState<LabItem | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const modalScrollRef = useRef<HTMLDivElement | null>(null);
+  const modalTitleId = useId();
+  const modalDescriptionId = useId();
   const previewId = searchParams.get('preview');
   const sortOrder = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
   const sortedLabItems = React.useMemo(
@@ -110,6 +115,54 @@ export const Lab = () => {
       setActiveItem(match);
     }
   }, [previewId, sortedLabItems]);
+
+  useEffect(() => {
+    if (!activeItem) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    document.body.style.overflow = 'hidden';
+
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+      modalScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('preview');
+        setSearchParams(nextParams, { replace: true });
+        setActiveItem(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [activeItem, searchParams, setSearchParams]);
+
+  const closeActiveItem = () => {
+    setActiveItem(null);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('preview');
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const openItem = (item: LabItem) => {
+    setActiveItem(item);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('preview', item.id);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <PageTransition>
@@ -179,7 +232,7 @@ export const Lab = () => {
                 <RevealOnScroll key={item.id} delay={index * 0.05}>
                   <button
                     type="button"
-                    onClick={() => setActiveItem(item)}
+                    onClick={() => openItem(item)}
                     className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
                   >
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -237,30 +290,33 @@ export const Lab = () => {
 
         {/* Lab Item Modal */}
         <AnimatePresence>
-          {activeItem && (
+          {activeItem ? createPortal(
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6"
+              onClick={closeActiveItem}
             >
               <button 
-                className="absolute top-8 right-8 text-white hover:text-brand-accent transition-colors"
-                onClick={() => {
-                  setActiveItem(null);
-                  const nextParams = new URLSearchParams(searchParams);
-                  nextParams.delete('preview');
-                  setSearchParams(nextParams, { replace: true });
-                }}
+                ref={closeButtonRef}
+                className="absolute top-8 right-8 z-10 text-white hover:text-brand-accent transition-colors"
+                onClick={closeActiveItem}
+                aria-label="Close lab post"
               >
                 <X size={32} />
               </button>
               <motion.div
+                ref={modalScrollRef}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto glass rounded-[3rem] p-8 md:p-12"
+                className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto overscroll-contain glass rounded-[3rem] p-8 md:p-12"
                 onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={modalTitleId}
+                aria-describedby={activeItem.excerpt || activeItem.content ? modalDescriptionId : undefined}
               >
                 {getLabHeroImage(activeItem) ? (
                   <div className="mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03]">
@@ -282,8 +338,8 @@ export const Lab = () => {
                   </span>
                   <span className="text-sm font-mono text-brand-muted">{activeItem.date}</span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-3 leading-none">{activeItem.title}</h2>
-                <p className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.excerpt ?? activeItem.content}</p>
+                <h2 id={modalTitleId} className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-3 leading-none">{activeItem.title}</h2>
+                <p id={modalDescriptionId} className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.excerpt ?? activeItem.content}</p>
 
                 {/* Case study meta row */}
                 {(activeItem.timeline || activeItem.role || activeItem.readingTime || activeItem.author) && (
@@ -399,8 +455,9 @@ export const Lab = () => {
                   </div>
                 )}
               </motion.div>
-            </motion.div>
-          )}
+            </motion.div>,
+            document.body,
+          ) : null}
         </AnimatePresence>
       </div>
     </PageTransition>
