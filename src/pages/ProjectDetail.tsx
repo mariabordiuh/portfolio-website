@@ -46,10 +46,12 @@ const DetailImage = ({
   src,
   alt,
   mediaClassName,
+  videoPresentation = 'default',
 }: {
   src: string;
   alt: string;
   mediaClassName?: string;
+  videoPresentation?: 'default' | 'ambient';
 }) => {
   if (isEmbeddableVideoUrl(src)) {
     return (
@@ -71,8 +73,12 @@ const DetailImage = ({
       <div className="overflow-hidden border border-white/8 bg-black/20">
         <video
           src={src}
-          controls
+          controls={videoPresentation === 'default'}
+          autoPlay={videoPresentation === 'ambient'}
+          muted={videoPresentation === 'ambient'}
+          loop={videoPresentation === 'ambient'}
           playsInline
+          preload="metadata"
           className={mediaClassName ?? 'aspect-video w-full object-cover'}
         />
       </div>
@@ -131,6 +137,8 @@ const GallerySection = ({
   columns = 2,
   mediaClassName,
   compact = false,
+  frameClassName,
+  videoPresentation = 'default',
 }: {
   eyebrow: string;
   title: string;
@@ -139,6 +147,8 @@ const GallerySection = ({
   columns?: 1 | 2 | 3 | 5;
   mediaClassName?: string;
   compact?: boolean;
+  frameClassName?: string;
+  videoPresentation?: 'default' | 'ambient';
 }) => {
   if (!images.length) {
     return null;
@@ -161,12 +171,13 @@ const GallerySection = ({
           {images.map((image, index) => (
             <MediaFrame
               key={`${image}-${index}`}
-              className={compact ? 'max-w-3xl' : ''}
+              className={[compact ? 'max-w-3xl' : '', frameClassName ?? ''].filter(Boolean).join(' ')}
             >
               <DetailImage
                 src={image}
                 alt={`${title} ${index + 1}`}
                 mediaClassName={mediaClassName}
+                videoPresentation={videoPresentation}
               />
             </MediaFrame>
           ))}
@@ -672,6 +683,8 @@ export const ProjectDetail = () => {
                 images={moodboardImages}
                 columns={1}
                 mediaClassName="aspect-square w-full object-cover"
+                frameClassName="p-0"
+                videoPresentation="ambient"
               />
 
               <GallerySection
