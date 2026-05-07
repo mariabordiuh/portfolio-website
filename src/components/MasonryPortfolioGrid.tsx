@@ -15,17 +15,19 @@ const WIDE_CASE_RATIO = { width: 16, height: 9 };
 
 const imageRatioCache = new Map<string, { width: number; height: number }>();
 
-const getColumnCount = (width: number) => {
+const getColumnCount = (width: number, maxColumns = 4) => {
+  const clampColumns = (value: number) => Math.min(value, Math.max(1, maxColumns));
+
   if (width >= 1280) {
-    return 4;
+    return clampColumns(4);
   }
 
   if (width >= 1024) {
-    return 3;
+    return clampColumns(3);
   }
 
   if (width >= 768) {
-    return 2;
+    return clampColumns(2);
   }
 
   return 1;
@@ -187,12 +189,14 @@ MasonryCard.displayName = 'MasonryCard';
 export const MasonryPortfolioGrid = ({
   items,
   onPreview,
+  maxColumns = 4,
 }: {
   items: PortfolioItem[];
   onPreview: (item: PortfolioItem) => void;
+  maxColumns?: number;
 }) => {
   const [columnCount, setColumnCount] = useState(() =>
-    getColumnCount(typeof window === 'undefined' ? 1440 : window.innerWidth),
+    getColumnCount(typeof window === 'undefined' ? 1440 : window.innerWidth, maxColumns),
   );
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   const [measuredRatios, setMeasuredRatios] = useState<Record<string, { width: number; height: number }>>({});
@@ -206,12 +210,12 @@ export const MasonryPortfolioGrid = ({
 
   useEffect(() => {
     const handleResize = () => {
-      setColumnCount(getColumnCount(window.innerWidth));
+      setColumnCount(getColumnCount(window.innerWidth, maxColumns));
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [maxColumns]);
 
   useEffect(() => {
     const activeImageKeys = new Set(items.map((item) => `${item.id}:${getPortfolioImageSrc(item)}`));
@@ -263,8 +267,17 @@ export const MasonryPortfolioGrid = ({
   }, [columnCount, items]);
 
   if (useBalancedGrid) {
+    const balancedGridClass =
+      columnCount >= 4
+        ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        : columnCount === 3
+          ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3'
+          : columnCount === 2
+            ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2'
+            : 'grid grid-cols-1 items-start gap-6';
+
     return (
-      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className={balancedGridClass}>
         {items.map((item, index) => {
           const imageSrc = getPortfolioImageSrc(item);
           const imageKey = `${item.id}:${imageSrc}`;

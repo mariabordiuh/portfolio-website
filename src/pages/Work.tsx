@@ -187,6 +187,7 @@ export const Work = () => {
   }, [previewId, workItems]);
 
   const visibleItems = filteredItems;
+  const gridMaxColumns = activePillar === 'Animation & Motion' ? 2 : 4;
 
   useEffect(() => {
     const preloadLinks: HTMLLinkElement[] = [];
@@ -368,7 +369,11 @@ export const Work = () => {
           </div>
         ) : (
           <div className="mt-8 transition-opacity duration-500 will-change-transform">
-            <MasonryPortfolioGrid items={visibleItems} onPreview={setActivePreview} />
+            <MasonryPortfolioGrid
+              items={visibleItems}
+              onPreview={setActivePreview}
+              maxColumns={gridMaxColumns}
+            />
           </div>
         )}
       </div>
