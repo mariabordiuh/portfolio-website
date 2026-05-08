@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -10,6 +10,7 @@ import { ButtonClickSound } from './components/ButtonClickSound';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
+import { initGoogleAnalytics, isGoogleAnalyticsEnabled, trackPageView } from './lib/google-analytics';
 import { UnderConstruction } from './pages/UnderConstruction';
 import {
   loadAboutRoute,
@@ -107,6 +108,30 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isOmr = location.pathname.startsWith('/omr');
+
+  useEffect(() => {
+    if (!isGoogleAnalyticsEnabled()) {
+      return;
+    }
+
+    initGoogleAnalytics();
+  }, []);
+
+  useEffect(() => {
+    if (!isGoogleAnalyticsEnabled()) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      trackPageView({
+        pageLocation: window.location.href,
+        pagePath: `${location.pathname}${location.search}`,
+        pageTitle: document.title,
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.search]);
 
   return (
     <>

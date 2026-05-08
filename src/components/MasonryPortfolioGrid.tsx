@@ -207,6 +207,15 @@ export const MasonryPortfolioGrid = ({
   );
 
   const useBalancedGrid = items.length <= Math.max(columnCount * 2, 6);
+  const isForcedTwoColumnGrid = maxColumns === 2;
+  const gridClassName =
+    columnCount >= 4
+      ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      : columnCount === 3
+        ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3'
+        : columnCount === 2
+          ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2'
+          : 'grid grid-cols-1 items-start gap-6';
 
   useEffect(() => {
     const handleResize = () => {
@@ -246,6 +255,36 @@ export const MasonryPortfolioGrid = ({
     });
   }, []);
 
+  if (isForcedTwoColumnGrid) {
+    return (
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+        {items.map((item, index) => {
+          const imageSrc = getPortfolioImageSrc(item);
+          const imageKey = `${item.id}:${imageSrc}`;
+          const ratio = getDisplayRatio(
+            item,
+            index,
+            measuredRatios[imageKey] ?? imageRatioCache.get(imageKey),
+          );
+          const imageLoaded = !imageSrc || loadedImages[imageKey];
+
+          return (
+            <MasonryCard
+              key={item.id}
+              imageLoaded={imageLoaded}
+              imageRatio={ratio}
+              imageSrc={imageSrc}
+              index={index}
+              item={item}
+              onImageLoad={handleImageLoad}
+              onPreview={onPreview}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
   const columns = useMemo(() => {
     const nextColumns = Array.from({ length: columnCount }, () => ({
       height: 0,
@@ -267,17 +306,8 @@ export const MasonryPortfolioGrid = ({
   }, [columnCount, items]);
 
   if (useBalancedGrid) {
-    const balancedGridClass =
-      columnCount >= 4
-        ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-        : columnCount === 3
-          ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3'
-          : columnCount === 2
-            ? 'grid grid-cols-1 items-start gap-6 md:grid-cols-2'
-            : 'grid grid-cols-1 items-start gap-6';
-
     return (
-      <div className={balancedGridClass}>
+      <div className={gridClassName}>
         {items.map((item, index) => {
           const imageSrc = getPortfolioImageSrc(item);
           const imageKey = `${item.id}:${imageSrc}`;
@@ -306,7 +336,7 @@ export const MasonryPortfolioGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={gridClassName}>
       {columns.map((columnItems, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-6">
           {columnItems.map(({ item, index }, itemIndex) => {

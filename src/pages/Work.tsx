@@ -120,6 +120,7 @@ export const Work = () => {
 
   const highlightId = searchParams.get('highlight');
   const previewId = searchParams.get('preview');
+  const pillarParam = searchParams.get('pillar');
 
   const filteredItems = useMemo(() => {
     const rawItems = workItems.filter((item) => {
@@ -187,7 +188,9 @@ export const Work = () => {
   }, [previewId, workItems]);
 
   const visibleItems = filteredItems;
-  const gridMaxColumns = activePillar === 'Animation & Motion' ? 2 : 4;
+  const isAnimationAndMotionView =
+    pillarParam === 'Animation & Motion' || activePillar === 'Animation & Motion';
+  const gridMaxColumns = isAnimationAndMotionView ? 2 : 4;
 
   useEffect(() => {
     const preloadLinks: HTMLLinkElement[] = [];

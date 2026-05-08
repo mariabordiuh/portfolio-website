@@ -4,6 +4,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { PrefetchLink } from '../components/PrefetchLink';
 import { PageTransition } from '../components/PageTransition';
 import { db } from '../firebase-firestore';
+import { trackGoogleEvent } from '../lib/google-analytics';
 
 const OMR_VISIT_SESSION_KEY = 'omr-visit-tracked';
 
@@ -54,6 +55,11 @@ export const Omr = () => {
 
       trackedSources.push(source);
       window.sessionStorage.setItem(OMR_VISIT_SESSION_KEY, JSON.stringify(trackedSources));
+
+      trackGoogleEvent('omr_visit', {
+        source,
+        entry_path: window.location.pathname,
+      });
 
       void addDoc(collection(db, 'omrVisits'), {
         source,
