@@ -152,3 +152,15 @@ export const updateAnalyticsConsent = (choice: AnalyticsConsentChoice) => {
     choice === 'accepted' ? ACCEPTED_CONSENT : REJECTED_CONSENT,
   );
 };
+
+export const resetAnalyticsConsent = () => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(ANALYTICS_CONSENT_STORAGE_KEY);
+  }
+
+  if (!initGoogleAnalytics()) {
+    return;
+  }
+
+  window.gtag?.('consent', 'update', DEFAULT_CONSENT);
+};

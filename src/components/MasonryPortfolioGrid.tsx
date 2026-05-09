@@ -99,6 +99,12 @@ const MasonryCard = memo(({
   const activeFrameSrc = previewFrames[activeFrameIndex] || imageSrc;
   const activeImageKey = `${item.id}:${activeFrameSrc}`;
   const Wrapper = isArt ? Link : 'button';
+  const cursorMode =
+    item.contentType === 'ai-video' ||
+    item.contentType === 'motion-video' ||
+    item.contentType === 'motion-embed'
+      ? 'play'
+      : 'card';
   const extraProps = isArt ? { to: `/work/${item.routeId}` } : { type: 'button' as const, onClick: () => onPreview(item) };
 
   useEffect(() => {
@@ -118,6 +124,7 @@ const MasonryCard = memo(({
     <Wrapper
       className="group block w-full text-left"
       data-click-sound="true"
+      data-cursor={cursorMode}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onBlur={() => setIsHovered(false)}

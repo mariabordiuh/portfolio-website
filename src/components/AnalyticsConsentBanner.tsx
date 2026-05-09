@@ -4,6 +4,7 @@ import {
   getStoredAnalyticsConsent,
   initGoogleAnalytics,
   isGoogleAnalyticsEnabled,
+  resetAnalyticsConsent,
   trackPageView,
   updateAnalyticsConsent,
   type AnalyticsConsentChoice,
@@ -18,8 +19,25 @@ export const AnalyticsConsentBanner = () => {
     setConsentChoice(getStoredAnalyticsConsent());
   }, []);
 
-  if (!isGoogleAnalyticsEnabled() || consentChoice) {
+  if (!isGoogleAnalyticsEnabled()) {
     return null;
+  }
+
+  if (consentChoice) {
+    return (
+      <div className="fixed bottom-4 left-4 z-[120] md:bottom-6 md:left-6">
+        <button
+          type="button"
+          onClick={() => {
+            resetAnalyticsConsent();
+            setConsentChoice(null);
+          }}
+          className="rounded-full border border-white/10 bg-black/55 px-3 py-2 font-mono text-[9px] font-black uppercase tracking-[0.24em] text-white/68 backdrop-blur-md transition-colors hover:border-white/18 hover:text-white"
+        >
+          Cookies
+        </button>
+      </div>
+    );
   }
 
   const handleChoice = (choice: AnalyticsConsentChoice) => {

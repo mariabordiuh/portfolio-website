@@ -233,6 +233,7 @@ export const Lab = () => {
                   <button
                     type="button"
                     onClick={() => openItem(item)}
+                    data-cursor="card"
                     className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
                   >
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
