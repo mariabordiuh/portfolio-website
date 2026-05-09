@@ -42,8 +42,8 @@ export const AnalyticsConsentBanner = () => {
         isHomePage ? 'md:left-6 md:right-auto' : 'md:right-6'
       }`}
     >
-      <div className="relative overflow-hidden rounded-[1.35rem] border border-brand-accent/45 bg-[linear-gradient(145deg,rgba(255,87,112,0.97),rgba(221,63,94,0.94))] p-4 shadow-[0_26px_90px_rgba(255,87,112,0.24)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_48%),radial-gradient(circle_at_bottom_left,rgba(10,10,10,0.18),transparent_46%)]" />
+      <div className="relative overflow-hidden rounded-[1.35rem] border border-brand-accent/45 bg-[linear-gradient(145deg,rgba(255,87,112,0.98)_0%,rgba(255,87,112,0.94)_58%,rgba(10,10,10,0.92)_140%)] p-4 shadow-[0_26px_90px_rgba(255,87,112,0.24)] backdrop-blur-2xl">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_44%),radial-gradient(circle_at_bottom_left,rgba(10,10,10,0.28),transparent_42%)]" />
         <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
         <p className="relative font-mono text-[9px] uppercase tracking-[0.3em] text-black/72">
           Cookies for the coffee?
