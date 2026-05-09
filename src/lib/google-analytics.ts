@@ -3,12 +3,36 @@ const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? '';
 let hasInjectedScript = false;
 let hasConfiguredTag = false;
 
+export type AnalyticsConsentChoice = 'accepted' | 'rejected';
+
+export const ANALYTICS_CONSENT_STORAGE_KEY = 'maria-analytics-consent-v1';
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
   }
 }
+
+const DEFAULT_CONSENT = {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'denied',
+  functionality_storage: 'granted',
+  security_storage: 'granted',
+};
+
+const ACCEPTED_CONSENT = {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'granted',
+  functionality_storage: 'granted',
+  security_storage: 'granted',
+};
+
+const REJECTED_CONSENT = DEFAULT_CONSENT;
 
 const ensureDataLayer = () => {
   if (typeof window === 'undefined') {
@@ -25,6 +49,21 @@ const ensureDataLayer = () => {
 };
 
 export const isGoogleAnalyticsEnabled = () => Boolean(GA_MEASUREMENT_ID);
+
+export const getStoredAnalyticsConsent = (): AnalyticsConsentChoice | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const value = window.localStorage.getItem(ANALYTICS_CONSENT_STORAGE_KEY);
+  if (value === 'accepted' || value === 'rejected') {
+    return value;
+  }
+
+  return null;
+};
+
+export const hasGrantedAnalyticsConsent = () => getStoredAnalyticsConsent() === 'accepted';
 
 export const initGoogleAnalytics = () => {
   if (!isGoogleAnalyticsEnabled() || typeof document === 'undefined') {
@@ -49,6 +88,16 @@ export const initGoogleAnalytics = () => {
   }
 
   if (!hasConfiguredTag) {
+    const storedConsent = getStoredAnalyticsConsent();
+
+    window.gtag?.('consent', 'default', DEFAULT_CONSENT);
+
+    if (storedConsent === 'accepted') {
+      window.gtag?.('consent', 'update', ACCEPTED_CONSENT);
+    } else if (storedConsent === 'rejected') {
+      window.gtag?.('consent', 'update', REJECTED_CONSENT);
+    }
+
     window.gtag?.('js', new Date());
     window.gtag?.('config', GA_MEASUREMENT_ID, {
       send_page_view: false,
@@ -66,7 +115,7 @@ type PageViewPayload = {
 };
 
 export const trackPageView = ({ pageLocation, pagePath, pageTitle }: PageViewPayload) => {
-  if (!initGoogleAnalytics()) {
+  if (!hasGrantedAnalyticsConsent() || !initGoogleAnalytics()) {
     return;
   }
 
@@ -81,9 +130,25 @@ export const trackGoogleEvent = (
   eventName: string,
   params: Record<string, string | number | boolean | null | undefined> = {},
 ) => {
-  if (!initGoogleAnalytics()) {
+  if (!hasGrantedAnalyticsConsent() || !initGoogleAnalytics()) {
     return;
   }
 
   window.gtag?.('event', eventName, params);
+};
+
+export const updateAnalyticsConsent = (choice: AnalyticsConsentChoice) => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(ANALYTICS_CONSENT_STORAGE_KEY, choice);
+  }
+
+  if (!initGoogleAnalytics()) {
+    return;
+  }
+
+  window.gtag?.(
+    'consent',
+    'update',
+    choice === 'accepted' ? ACCEPTED_CONSENT : REJECTED_CONSENT,
+  );
 };

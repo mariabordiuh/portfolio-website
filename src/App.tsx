@@ -7,6 +7,7 @@ import { Footer } from './components/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CircleCursor } from './components/CircleCursor';
 import { ButtonClickSound } from './components/ButtonClickSound';
+import { AnalyticsConsentBanner } from './components/AnalyticsConsentBanner';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
@@ -151,6 +152,7 @@ const AppShell = () => {
             <AnimatedRoutes />
           </main>
           <ScrollToTop />
+          <AnalyticsConsentBanner />
           {!isOmr ? <Footer /> : null}
         </div>
       </SmoothScrollProvider>
