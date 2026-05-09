@@ -42,26 +42,27 @@ export const AnalyticsConsentBanner = () => {
         isHomePage ? 'md:left-6 md:right-auto' : 'md:right-6'
       }`}
     >
-      <div className="relative overflow-hidden rounded-[1.35rem] border border-white/12 bg-black/78 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
-        <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-brand-accent">
+      <div className="relative overflow-hidden rounded-[1.35rem] border border-brand-accent/45 bg-[linear-gradient(145deg,rgba(255,87,112,0.97),rgba(221,63,94,0.94))] p-4 shadow-[0_26px_90px_rgba(255,87,112,0.24)] backdrop-blur-2xl">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_48%),radial-gradient(circle_at_bottom_left,rgba(10,10,10,0.18),transparent_46%)]" />
+        <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+        <p className="relative font-mono text-[9px] uppercase tracking-[0.3em] text-black/72">
           Cookies for the coffee?
         </p>
-        <h2 className="mt-2 text-[0.98rem] font-semibold leading-tight text-white">
+        <h2 className="relative mt-2 text-[0.98rem] font-semibold leading-tight text-black">
           I use simple analytics to learn what people actually open on the site. That’s all.
         </h2>
         <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
           <button
             type="button"
             onClick={() => handleChoice('accepted')}
-            className="btn-gradient-shift px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em]"
+            className="rounded-full border border-black/16 bg-black px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-white transition-colors hover:bg-black/90"
           >
             Okidoki
           </button>
           <button
             type="button"
             onClick={() => handleChoice('rejected')}
-            className="rounded-full border border-white/12 px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-white/68 transition-colors hover:border-white/24 hover:text-white"
+            className="rounded-full border border-black/14 bg-white/12 px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-black/72 transition-colors hover:border-black/24 hover:bg-white/18 hover:text-black"
           >
             Nope
           </button>
