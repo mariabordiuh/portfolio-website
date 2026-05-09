@@ -43,26 +43,22 @@ export const AnalyticsConsentBanner = () => {
           Cookies for the coffee?
         </p>
         <h2 className="mt-2 text-[0.98rem] font-semibold leading-tight text-white">
-          I use a few analytics cookies to see what people actually open.
+          I use simple analytics to learn what people actually open on the site. That’s all.
         </h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-white/66">
-          Just anonymous visit stats. No ads, no weirdness. Mostly so I know whether people end up
-          on the right pages.
-        </p>
         <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
           <button
             type="button"
             onClick={() => handleChoice('accepted')}
             className="btn-gradient-shift px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em]"
           >
-            Yes, okay
+            Okidoki
           </button>
           <button
             type="button"
             onClick={() => handleChoice('rejected')}
             className="rounded-full border border-white/12 px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-white/68 transition-colors hover:border-white/24 hover:text-white"
           >
-            Maybe later
+            Nope
           </button>
         </div>
       </div>
