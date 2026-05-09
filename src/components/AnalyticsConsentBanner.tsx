@@ -12,6 +12,7 @@ import {
 export const AnalyticsConsentBanner = () => {
   const location = useLocation();
   const [consentChoice, setConsentChoice] = useState<AnalyticsConsentChoice | null>(null);
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     setConsentChoice(getStoredAnalyticsConsent());
@@ -36,7 +37,11 @@ export const AnalyticsConsentBanner = () => {
   };
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-[140] md:inset-x-auto md:bottom-6 md:right-6 md:max-w-[24rem]">
+    <div
+      className={`fixed inset-x-4 bottom-4 z-[140] md:inset-x-auto md:bottom-6 md:max-w-[24rem] ${
+        isHomePage ? 'md:left-6 md:right-auto' : 'md:right-6'
+      }`}
+    >
       <div className="relative overflow-hidden rounded-[1.35rem] border border-white/12 bg-black/78 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
         <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
         <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-brand-accent">
