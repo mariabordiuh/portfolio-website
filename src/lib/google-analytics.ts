@@ -1,4 +1,6 @@
-const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? '';
+const DEFAULT_GA_MEASUREMENT_ID = 'G-FPDWFLWWFB';
+const GA_MEASUREMENT_ID =
+  import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || DEFAULT_GA_MEASUREMENT_ID;
 
 let hasInjectedScript = false;
 let hasConfiguredTag = false;
@@ -115,11 +117,11 @@ type PageViewPayload = {
 };
 
 export const trackPageView = ({ pageLocation, pagePath, pageTitle }: PageViewPayload) => {
-  if (!hasGrantedAnalyticsConsent() || !initGoogleAnalytics()) {
+  if (!initGoogleAnalytics()) {
     return;
   }
 
-  window.gtag?.('event', 'page_view', {
+  window.gtag?.('config', GA_MEASUREMENT_ID, {
     page_location: pageLocation,
     page_path: pagePath,
     page_title: pageTitle,

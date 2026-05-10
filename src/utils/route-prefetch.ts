@@ -43,7 +43,6 @@ const prefetchOnce = (key: string, loader: () => Promise<unknown>) => {
 
 export const prefetchRoute = (to: string) => {
   if (to === '/') {
-    prefetchOnce('projectsData', loadProjectsDataShell);
     prefetchOnce('home', loadHomeRoute);
     return;
   }

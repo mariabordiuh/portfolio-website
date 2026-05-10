@@ -14,7 +14,6 @@ import {
   type PortfolioItem,
   WORK_PILLARS,
   galleryToPortfolioItem,
-  getPortfolioImageSrc,
   toPortfolioItem,
   videoToPortfolioItem,
 } from '../utils/portfolio';
@@ -191,29 +190,6 @@ export const Work = () => {
   const isAnimationAndMotionView =
     pillarParam === 'Animation & Motion' || activePillar === 'Animation & Motion';
   const gridMaxColumns = isAnimationAndMotionView ? 2 : 4;
-
-  useEffect(() => {
-    const preloadLinks: HTMLLinkElement[] = [];
-
-    for (const item of filteredItems.slice(0, 12)) {
-      const imageSrc = getPortfolioImageSrc(item);
-      if (!imageSrc) {
-        continue;
-      }
-
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = imageSrc;
-      link.fetchPriority = 'high';
-      document.head.appendChild(link);
-      preloadLinks.push(link);
-    }
-
-    return () => {
-      preloadLinks.forEach((link) => link.remove());
-    };
-  }, [filteredItems]);
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);

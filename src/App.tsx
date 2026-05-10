@@ -81,8 +81,8 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<SuspenseRoute><Home /></SuspenseRoute>} />
         <Route element={<SuspenseRoute><ProjectsDataShell /></SuspenseRoute>}>
-          <Route path="/" element={<SuspenseRoute><Home /></SuspenseRoute>} />
           <Route path="/work/:id" element={<SuspenseRoute><ProjectDetail /></SuspenseRoute>} />
         </Route>
 
@@ -109,17 +109,18 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isOmr = location.pathname.startsWith('/omr');
+  const isAdmin = location.pathname.startsWith('/admin');
 
   useEffect(() => {
-    if (!isGoogleAnalyticsEnabled()) {
+    if (!isGoogleAnalyticsEnabled() || isAdmin) {
       return;
     }
 
     initGoogleAnalytics();
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
-    if (!isGoogleAnalyticsEnabled()) {
+    if (!isGoogleAnalyticsEnabled() || isAdmin) {
       return;
     }
 
@@ -132,7 +133,34 @@ const AppShell = () => {
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [location.pathname, location.search]);
+  }, [isAdmin, location.pathname, location.search]);
+
+  const appFrame = (
+    <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[200] focus:rounded-full focus:bg-brand-accent focus:px-5 focus:py-3 focus:text-[10px] focus:font-black focus:uppercase focus:tracking-[0.24em] focus:text-brand-bg"
+      >
+        Skip to content
+      </a>
+      {!isOmr && !isAdmin ? <Nav /> : null}
+      <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
+        <AnimatedRoutes />
+      </main>
+      {!isAdmin ? <ScrollToTop /> : null}
+      {!isAdmin ? <AnalyticsConsentBanner /> : null}
+      {!isOmr && !isAdmin ? <Footer /> : null}
+    </div>
+  );
+
+  if (isAdmin) {
+    return (
+      <>
+        <Seo />
+        {appFrame}
+      </>
+    );
+  }
 
   return (
     <>
@@ -140,21 +168,7 @@ const AppShell = () => {
       <SmoothScrollProvider>
         <CircleCursor />
         <ButtonClickSound />
-        <div className="min-h-screen flex flex-col selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white">
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[200] focus:rounded-full focus:bg-brand-accent focus:px-5 focus:py-3 focus:text-[10px] focus:font-black focus:uppercase focus:tracking-[0.24em] focus:text-brand-bg"
-          >
-            Skip to content
-          </a>
-          {!isOmr ? <Nav /> : null}
-          <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
-            <AnimatedRoutes />
-          </main>
-          <ScrollToTop />
-          <AnalyticsConsentBanner />
-          {!isOmr ? <Footer /> : null}
-        </div>
+        {appFrame}
       </SmoothScrollProvider>
     </>
   );

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase-firestore';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, query, where } from 'firebase/firestore/lite';
+import { dbLite } from '../firebase-firestore-lite';
 import { Project, Video, GalleryImage } from '../types';
 import { normalizeProject, toPortfolioItem, videoToPortfolioItem, galleryToPortfolioItem, PortfolioItem } from '../utils/portfolio';
 import { readSessionCache, writeSessionCache } from '../utils/session-cache';
@@ -14,81 +14,56 @@ export const useFeaturedItems = () => {
   const [loading, setLoading] = useState(() => !readSessionCache<PortfolioItem[]>('featured-items'));
 
   useEffect(() => {
-    let projectsDone = false;
-    let videosDone = false;
-    let galleryDone = false;
+    let cancelled = false;
 
-    let featuredProjects: PortfolioItem[] = [];
-    let featuredVideos: PortfolioItem[] = [];
-    let featuredGallery: PortfolioItem[] = [];
-
-    const handleListenerError = (collectionName: string, markDone: () => void) => (error: unknown) => {
-      console.error(`Failed to load featured ${collectionName}:`, error);
-      markDone();
-      merge();
-    };
-
-    const merge = () => {
-      if (projectsDone && videosDone && galleryDone) {
-        const nextItems = [...featuredProjects, ...featuredVideos, ...featuredGallery];
-        setItems(nextItems);
-        writeSessionCache('featured-items', nextItems);
+    const loadFeaturedItems = async () => {
+      if (!dbLite) {
         setLoading(false);
+        return;
       }
-    };
 
-    const unsubProjects = onSnapshot(
-      query(collection(db, 'projects'), where('featured', '==', true)),
-      (snapshot) => {
-        featuredProjects = snapshot.docs
+      try {
+        const [projectsSnapshot, videosSnapshot, gallerySnapshot] = await Promise.all([
+          getDocs(query(collection(dbLite, 'projects'), where('featured', '==', true))),
+          getDocs(query(collection(dbLite, 'videos'), where('featured', '==', true))),
+          getDocs(query(collection(dbLite, 'gallery'), where('featured', '==', true))),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const featuredProjects = projectsSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
           .filter((item) => item.status !== 'draft')
           .map((item) => toPortfolioItem(normalizeProject(item)));
-        projectsDone = true;
-        merge();
-      },
-      handleListenerError('projects', () => {
-        featuredProjects = [];
-        projectsDone = true;
-      }),
-    );
 
-    const unsubVideos = onSnapshot(
-      query(collection(db, 'videos'), where('featured', '==', true)),
-      (snapshot) => {
-        featuredVideos = snapshot.docs
+        const featuredVideos = videosSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Video))
           .filter((item) => item.status !== 'draft')
           .map((item) => videoToPortfolioItem(item));
-        videosDone = true;
-        merge();
-      },
-      handleListenerError('videos', () => {
-        featuredVideos = [];
-        videosDone = true;
-      }),
-    );
 
-    const unsubGallery = onSnapshot(
-      query(collection(db, 'gallery'), where('featured', '==', true)),
-      (snapshot) => {
-        featuredGallery = snapshot.docs
+        const featuredGallery = gallerySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as GalleryImage))
           .filter((item) => item.status !== 'draft')
           .map((item) => galleryToPortfolioItem(item));
-        galleryDone = true;
-        merge();
-      },
-      handleListenerError('gallery images', () => {
-        featuredGallery = [];
-        galleryDone = true;
-      }),
-    );
+
+        const nextItems = [...featuredProjects, ...featuredVideos, ...featuredGallery];
+        setItems(nextItems);
+        writeSessionCache('featured-items', nextItems);
+      } catch (error) {
+        console.error('Failed to load featured portfolio items:', error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadFeaturedItems();
 
     return () => {
-      unsubProjects();
-      unsubVideos();
-      unsubGallery();
+      cancelled = true;
     };
   }, []);
 

@@ -44,6 +44,10 @@ export const Nav = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const clickCountRef = useRef(0);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -69,8 +73,21 @@ export const Nav = () => {
 
   useEffect(() => {
     if (!isOpen) {
+      if (previouslyFocusedRef.current) {
+        previouslyFocusedRef.current.focus();
+        previouslyFocusedRef.current = null;
+      }
       return;
     }
+
+    previouslyFocusedRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : toggleButtonRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -78,8 +95,39 @@ export const Nav = () => {
       }
     };
 
+    const handleTabTrap = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusable = mobileMenuRef.current?.querySelectorAll<HTMLElement>(
+        'a, button, [tabindex]:not([tabindex="-1"])',
+      );
+
+      if (!focusable?.length) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleTabTrap);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleTabTrap);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isOpen]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -151,6 +199,7 @@ export const Nav = () => {
 
       {/* Mobile Toggle */}
       <button 
+        ref={toggleButtonRef}
         className="md:hidden text-white" 
         onClick={() => setIsOpen(!isOpen)}
         data-click-sound="true"
@@ -166,6 +215,7 @@ export const Nav = () => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={mobileMenuRef}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
@@ -176,6 +226,7 @@ export const Nav = () => {
           className="fixed inset-0 bg-brand-bg flex flex-col items-center justify-center gap-8 z-[60] px-6 pt-24 pb-16 overflow-y-auto md:hidden"
         >
           <button
+            ref={closeButtonRef}
             className="absolute top-8 right-6 text-white"
             onClick={() => setIsOpen(false)}
             data-click-sound="true"

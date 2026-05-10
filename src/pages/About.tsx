@@ -61,19 +61,67 @@ const CV_NOTES = [
 
 export const About = () => {
   const [isLokiOpen, setIsLokiOpen] = React.useState(false);
+  const lokiDialogRef = React.useRef<HTMLDivElement | null>(null);
+  const lokiCloseButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (typeof document === 'undefined') {
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
-
-    if (isLokiOpen) {
-      document.body.style.overflow = 'hidden';
+    if (!isLokiOpen) {
+      if (previouslyFocusedRef.current) {
+        previouslyFocusedRef.current.focus();
+        previouslyFocusedRef.current = null;
+      }
+      return;
     }
 
+    const previousOverflow = document.body.style.overflow;
+    previouslyFocusedRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.style.overflow = 'hidden';
+
+    window.requestAnimationFrame(() => {
+      lokiCloseButtonRef.current?.focus();
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLokiOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusable = lokiDialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], [tabindex]:not([tabindex="-1"])',
+      );
+
+      if (!focusable?.length) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
     };
   }, [isLokiOpen]);
@@ -247,11 +295,15 @@ export const About = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Loki photo viewer"
                   className="fixed inset-0 z-[120] bg-black/92 p-5 backdrop-blur-2xl"
                   onClick={() => setIsLokiOpen(false)}
                 >
                   <div className="flex h-full items-center justify-center">
                     <motion.div
+                      ref={lokiDialogRef}
                       initial={{ opacity: 0, scale: 0.94, y: 18 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.98, y: 10 }}
@@ -260,6 +312,7 @@ export const About = () => {
                       onClick={(event) => event.stopPropagation()}
                     >
                       <button
+                        ref={lokiCloseButtonRef}
                         type="button"
                         aria-label="Close Loki photo"
                         onClick={() => setIsLokiOpen(false)}

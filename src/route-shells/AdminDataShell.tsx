@@ -1,14 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
-import { DataProvider } from '../context/DataContext';
+import { AdminDataProvider } from '../context/AdminDataProvider';
 
 export const AdminDataShell = () => (
   <AuthProvider>
-    <DataProvider
+    <AdminDataProvider
       collections={{ projects: true, videos: true, labItems: true, galleryImages: true, homeHero: true }}
       includeDrafts
     >
       <Outlet />
-    </DataProvider>
+    </AdminDataProvider>
   </AuthProvider>
 );

@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router-dom';
-import { DataProvider } from '../context/DataContext';
+import { PublicDataProvider } from '../context/PublicDataProvider';
 
 export const PortfolioDataShell = () => (
-  <DataProvider collections={{ projects: true, videos: true, labItems: false, galleryImages: true }}>
+  <PublicDataProvider
+    collections={{ projects: true, videos: true, labItems: false, galleryImages: true }}
+  >
     <Outlet />
-  </DataProvider>
+  </PublicDataProvider>
 );

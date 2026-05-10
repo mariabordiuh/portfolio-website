@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router-dom';
-import { DataProvider } from '../context/DataContext';
+import { PublicDataProvider } from '../context/PublicDataProvider';
 
 export const LabDataShell = () => (
-  <DataProvider collections={{ projects: false, videos: false, labItems: true, galleryImages: false }}>
+  <PublicDataProvider
+    collections={{ projects: false, videos: false, labItems: true, galleryImages: false }}
+  >
     <Outlet />
-  </DataProvider>
+  </PublicDataProvider>
 );

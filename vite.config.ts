@@ -58,16 +58,6 @@ export default defineConfig(({mode}) => {
             }
 
             if (
-              packageName === 'firebase' ||
-              packageName.startsWith('@firebase/') ||
-              packageName === 'idb' ||
-              packageName === 'cookie' ||
-              packageName === 'set-cookie-parser'
-            ) {
-              return 'firebase';
-            }
-
-            if (
               packageName === 'motion' ||
               packageName === 'framer-motion' ||
               packageName.startsWith('motion-')
