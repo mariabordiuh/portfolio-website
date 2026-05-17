@@ -34,11 +34,6 @@ const ROUTE_META = [
     description: 'About Maria Bordiuh, a Hamburg-based Art Director and AI Creative Director.',
   },
   {
-    test: (pathname: string) => pathname === '/omr',
-    title: 'OMR — Maria Bordiuh',
-    description: 'Quick intro, selected work, and a QR-friendly OMR landing page for Maria Bordiuh.',
-  },
-  {
     test: (pathname: string) => pathname === '/impressum',
     title: 'Impressum — Maria Bordiuh',
     description: 'Impressum gemäß § 5 DDG für mariabordiuh.com.',

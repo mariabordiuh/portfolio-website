@@ -117,7 +117,7 @@ type PageViewPayload = {
 };
 
 export const trackPageView = ({ pageLocation, pagePath, pageTitle }: PageViewPayload) => {
-  if (!initGoogleAnalytics()) {
+  if (!hasGrantedAnalyticsConsent() || !initGoogleAnalytics()) {
     return;
   }
 

@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { Nav } from './components/Nav';
@@ -42,7 +42,6 @@ const Impressum = lazy(() =>
 const Datenschutz = lazy(() =>
   loadDatenschutzRoute().then((module) => ({ default: module.Datenschutz })),
 );
-const Omr = lazy(() => import('./pages/Omr').then((module) => ({ default: module.Omr })));
 const Admin = lazy(() => loadAdminRoute().then((module) => ({ default: module.Admin })));
 const NotFound = lazy(() =>
   loadNotFoundRoute().then((module) => ({ default: module.NotFound })),
@@ -109,7 +108,7 @@ const AnimatedRoutes = () => {
         <Route path="/about" element={<SuspenseRoute><About /></SuspenseRoute>} />
         <Route path="/impressum" element={<SuspenseRoute><Impressum /></SuspenseRoute>} />
         <Route path="/datenschutz" element={<SuspenseRoute><Datenschutz /></SuspenseRoute>} />
-        <Route path="/omr" element={<SuspenseRoute><Omr /></SuspenseRoute>} />
+        <Route path="/omr" element={<Navigate to="/" replace />} />
         <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
       </Routes>
     </AnimatePresence>
@@ -118,7 +117,6 @@ const AnimatedRoutes = () => {
 
 const AppShell = () => {
   const location = useLocation();
-  const isOmr = location.pathname.startsWith('/omr');
   const isAdmin = location.pathname.startsWith('/admin');
 
   useEffect(() => {
@@ -153,13 +151,13 @@ const AppShell = () => {
       >
         Skip to content
       </a>
-      {!isOmr && !isAdmin ? <Nav /> : null}
+      {!isAdmin ? <Nav /> : null}
       <main id="main-content" className="flex-grow relative z-10 min-h-[100svh]" tabIndex={-1}>
         <AnimatedRoutes />
       </main>
       {!isAdmin ? <ScrollToTop /> : null}
       {!isAdmin ? <AnalyticsConsentBanner /> : null}
-      {!isOmr && !isAdmin ? <Footer /> : null}
+      {!isAdmin ? <Footer /> : null}
     </div>
   );
 
