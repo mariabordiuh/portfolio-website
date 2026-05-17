@@ -4,7 +4,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { PrefetchLink } from '../components/PrefetchLink';
 import { PageTransition } from '../components/PageTransition';
 import { db } from '../firebase-firestore';
-import { trackGoogleEvent } from '../lib/google-analytics';
+import { hasGrantedAnalyticsConsent, trackGoogleEvent } from '../lib/google-analytics';
 
 const OMR_VISIT_SESSION_KEY = 'omr-visit-tracked';
 
@@ -44,6 +44,10 @@ export const Omr = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (!hasGrantedAnalyticsConsent()) {
       return;
     }
 
@@ -240,6 +244,21 @@ export const Omr = () => {
               </div>
             </aside>
           </div>
+        </div>
+
+        <div className="relative z-10 mt-8 flex flex-wrap items-center gap-4 border-t border-white/10 pt-5">
+          <PrefetchLink
+            to="/impressum"
+            className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/46 transition-colors hover:text-white"
+          >
+            Impressum
+          </PrefetchLink>
+          <PrefetchLink
+            to="/datenschutz"
+            className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/46 transition-colors hover:text-white"
+          >
+            Datenschutz
+          </PrefetchLink>
         </div>
       </section>
     </PageTransition>

@@ -39,6 +39,16 @@ const ROUTE_META = [
     description: 'Quick intro, selected work, and a QR-friendly OMR landing page for Maria Bordiuh.',
   },
   {
+    test: (pathname: string) => pathname === '/impressum',
+    title: 'Impressum — Maria Bordiuh',
+    description: 'Impressum gemäß § 5 DDG für mariabordiuh.com.',
+  },
+  {
+    test: (pathname: string) => pathname === '/datenschutz',
+    title: 'Datenschutz — Maria Bordiuh',
+    description: 'Datenschutzerklärung für mariabordiuh.com.',
+  },
+  {
     test: (pathname: string) => pathname === '/admin',
     title: 'Admin — Maria Bordiuh',
     description: 'Private portfolio administration workspace.',

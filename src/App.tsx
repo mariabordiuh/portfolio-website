@@ -17,7 +17,9 @@ import {
   loadAboutRoute,
   loadAdminDataShell,
   loadAdminRoute,
+  loadDatenschutzRoute,
   loadHomeRoute,
+  loadImpressumRoute,
   loadLabDataShell,
   loadLabRoute,
   loadNotFoundRoute,
@@ -34,6 +36,12 @@ const ProjectDetail = lazy(() =>
 );
 const Lab = lazy(() => loadLabRoute().then((module) => ({ default: module.Lab })));
 const About = lazy(() => loadAboutRoute().then((module) => ({ default: module.About })));
+const Impressum = lazy(() =>
+  loadImpressumRoute().then((module) => ({ default: module.Impressum })),
+);
+const Datenschutz = lazy(() =>
+  loadDatenschutzRoute().then((module) => ({ default: module.Datenschutz })),
+);
 const Omr = lazy(() => import('./pages/Omr').then((module) => ({ default: module.Omr })));
 const Admin = lazy(() => loadAdminRoute().then((module) => ({ default: module.Admin })));
 const NotFound = lazy(() =>
@@ -99,6 +107,8 @@ const AnimatedRoutes = () => {
         </Route>
 
         <Route path="/about" element={<SuspenseRoute><About /></SuspenseRoute>} />
+        <Route path="/impressum" element={<SuspenseRoute><Impressum /></SuspenseRoute>} />
+        <Route path="/datenschutz" element={<SuspenseRoute><Datenschutz /></SuspenseRoute>} />
         <Route path="/omr" element={<SuspenseRoute><Omr /></SuspenseRoute>} />
         <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
       </Routes>

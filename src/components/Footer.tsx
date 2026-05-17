@@ -511,6 +511,20 @@ export const Footer = () => {
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted/60">
           brewed in Hamburg. powered by caffeine and one black cat.
         </span>
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <PrefetchLink
+            to="/impressum"
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted/70 transition-colors hover:text-white"
+          >
+            Impressum
+          </PrefetchLink>
+          <PrefetchLink
+            to="/datenschutz"
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted/70 transition-colors hover:text-white"
+          >
+            Datenschutz
+          </PrefetchLink>
+        </div>
       </div>
     </footer>
   );

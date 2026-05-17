@@ -4,6 +4,8 @@ const pageLoaders = {
   projectDetail: () => import('../pages/ProjectDetail'),
   lab: () => import('../pages/Lab'),
   about: () => import('../pages/About'),
+  impressum: () => import('../pages/Impressum'),
+  datenschutz: () => import('../pages/Datenschutz'),
   admin: () => import('../pages/Admin'),
   notFound: () => import('../pages/NotFound'),
 };
@@ -20,6 +22,8 @@ export const loadWorkRoute = pageLoaders.work;
 export const loadProjectDetailRoute = pageLoaders.projectDetail;
 export const loadLabRoute = pageLoaders.lab;
 export const loadAboutRoute = pageLoaders.about;
+export const loadImpressumRoute = pageLoaders.impressum;
+export const loadDatenschutzRoute = pageLoaders.datenschutz;
 export const loadAdminRoute = pageLoaders.admin;
 export const loadNotFoundRoute = pageLoaders.notFound;
 
@@ -67,6 +71,16 @@ export const prefetchRoute = (to: string) => {
 
   if (to === '/about') {
     prefetchOnce('about', loadAboutRoute);
+    return;
+  }
+
+  if (to === '/impressum') {
+    prefetchOnce('impressum', loadImpressumRoute);
+    return;
+  }
+
+  if (to === '/datenschutz') {
+    prefetchOnce('datenschutz', loadDatenschutzRoute);
     return;
   }
 

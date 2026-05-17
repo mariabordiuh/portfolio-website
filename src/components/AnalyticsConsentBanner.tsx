@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { PrefetchLink } from './PrefetchLink';
 import {
   getStoredAnalyticsConsent,
   initGoogleAnalytics,
@@ -69,6 +70,13 @@ export const AnalyticsConsentBanner = () => {
         <h2 className="relative mt-2 text-[0.98rem] font-semibold leading-tight text-black">
           I use simple analytics to learn what people actually open on the site. That’s all.
         </h2>
+        <p className="relative mt-3 text-[12px] leading-relaxed text-black/72">
+          Details live in{' '}
+          <PrefetchLink to="/datenschutz" className="font-medium underline underline-offset-4">
+            Datenschutz
+          </PrefetchLink>
+          .
+        </p>
         <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
           <button
             type="button"
