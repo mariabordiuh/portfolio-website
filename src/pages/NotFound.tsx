@@ -691,18 +691,26 @@ export const NotFound = () => {
                           return (
                             <div
                               key={`${rowIndex}-${columnIndex}`}
-                              className="relative aspect-square overflow-hidden rounded-[0.72rem] border"
+                              className="relative aspect-square overflow-hidden rounded-[0.6rem] border"
                               style={{
-                                borderColor: cell ? palette?.border : 'rgba(255,255,255,0.05)',
-                                background: cell ? palette?.fill : 'rgba(255,255,255,0.025)',
+                                borderColor: cell ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)',
+                                background: cell ? 'rgba(255,255,255,0.018)' : 'rgba(255,255,255,0.025)',
                                 boxShadow: cell ? '0 10px 20px rgba(0,0,0,0.18)' : 'none',
                               }}
                             >
                               {cell ? (
                                 <>
-                                  <div className="absolute inset-x-[16%] top-[13%] h-[11%] rounded-full bg-white/32" />
-                                  <div className="absolute inset-x-[24%] bottom-[28%] h-[18%] rounded-full bg-black/10" />
-                                  <div className="absolute inset-x-[12%] bottom-[12%] h-[8%] rounded-full bg-white/8" />
+                                  <div className="absolute inset-x-[8%] top-[12%] h-[11%] rounded-full border border-white/10 bg-white/28" />
+                                  <div
+                                    className="absolute left-[17%] right-[17%] top-[20%] bottom-[10%]"
+                                    style={{
+                                      background: palette?.fill,
+                                      clipPath: 'polygon(10% 0%, 90% 0%, 76% 100%, 24% 100%)',
+                                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                                    }}
+                                  />
+                                  <div className="absolute inset-x-[30%] top-[38%] h-[18%] rounded-[40%] bg-black/10" />
+                                  <div className="absolute inset-x-[25%] bottom-[20%] h-[9%] rounded-full bg-white/10" />
                                 </>
                               ) : null}
                             </div>
