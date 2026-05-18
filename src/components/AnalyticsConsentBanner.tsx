@@ -26,11 +26,7 @@ export const AnalyticsConsentBanner = () => {
 
   if (consentChoice) {
     return (
-      <div
-        className={`fixed bottom-4 z-[120] md:bottom-6 ${
-          isHomePage ? 'left-4 md:left-6' : 'right-4 md:right-6'
-        }`}
-      >
+      <div className="fixed right-4 bottom-20 z-[120] md:right-6 md:bottom-24">
         <button
           type="button"
           onClick={() => {
