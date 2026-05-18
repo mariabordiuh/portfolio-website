@@ -22,11 +22,11 @@ export const CatHero = () => {
       <NeatHeroGradient />
       <div className="hero-grid-overlay absolute inset-0" aria-hidden="true" />
       <div
-        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.84)_4%,rgba(6,6,10,0.42)_42%,rgba(6,6,10,0.76)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.68)_4%,rgba(6,6,10,0.24)_42%,rgba(6,6,10,0.6)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.08)_34%,rgba(6,6,10,0.62)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.12)_0%,rgba(6,6,10,0.04)_34%,rgba(6,6,10,0.52)_100%)]"
         aria-hidden="true"
       />
       <div
