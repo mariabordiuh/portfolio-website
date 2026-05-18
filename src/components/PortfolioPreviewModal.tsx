@@ -27,6 +27,25 @@ const videoFrameStyle = {
   maxHeight: 'calc(100svh - 260px)',
 } as const;
 
+const getPreviewLabel = (item: PortfolioItem) => {
+  switch (item.contentType) {
+    case 'ai-video':
+      return 'AI film';
+    case 'motion-video':
+    case 'motion-embed':
+    case 'motion-gif':
+      return 'Motion';
+    case 'ai-image':
+      return 'AI still';
+    case 'illustration':
+      return 'Image';
+    case 'art-direction':
+      return 'Case study';
+    default:
+      return item.pillar;
+  }
+};
+
 export const PortfolioPreviewModal = ({
   item,
   onClose,
@@ -39,6 +58,7 @@ export const PortfolioPreviewModal = ({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const isAIItem = item.contentType === 'ai-image' || item.contentType === 'ai-video';
+  const previewLabel = getPreviewLabel(item);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -184,6 +204,9 @@ export const PortfolioPreviewModal = ({
               <span className="rounded-full border border-brand-accent/30 bg-brand-accent/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
                 {item.pillar}
               </span>
+              <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-white/64">
+                {previewLabel}
+              </span>
               {item.year ? (
                 <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-white/60">
                   {item.year}
@@ -191,13 +214,16 @@ export const PortfolioPreviewModal = ({
               ) : null}
             </div>
             <div>
-              <h2 id={titleId} className="text-2xl font-black uppercase tracking-tight sm:text-3xl md:text-5xl">
+              <h2
+                id={titleId}
+                className="font-sans text-[clamp(2rem,2.8vw,4rem)] font-semibold normal-case leading-[0.94] tracking-[-0.05em] text-white"
+              >
                 {item.title}
               </h2>
               {item.description ? (
                 <p
                   id={descriptionId}
-                  className="mt-3 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base"
+                  className="mt-3 max-w-3xl text-sm leading-relaxed text-white/66 md:text-base"
                 >
                   {item.description}
                 </p>

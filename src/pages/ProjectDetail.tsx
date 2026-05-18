@@ -6,8 +6,8 @@ import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { isEmbeddableVideoUrl, isVideoFileUrl, normalizeProject, toEmbedUrl } from '../utils/portfolio';
 
-const PAGE_SHELL_CLASS = 'mx-auto max-w-[1380px] px-4 sm:px-6 md:px-8 xl:px-10';
-const ARTICLE_TEXT_CLASS = 'max-w-5xl';
+const PAGE_SHELL_CLASS = 'mx-auto max-w-[1440px] px-5 sm:px-6 md:px-8 xl:px-12';
+const ARTICLE_TEXT_CLASS = 'max-w-4xl';
 const ARTICLE_MEDIA_CLASS = 'max-w-6xl';
 
 const SectionHeader = ({
@@ -23,11 +23,13 @@ const SectionHeader = ({
     <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">
       {eyebrow}
     </p>
-    <h2 className="text-xl font-black uppercase tracking-tight text-white sm:text-2xl md:text-3xl">
+    <h2 className="font-sans text-[clamp(1.9rem,1.45rem+1.4vw,3.35rem)] font-semibold normal-case leading-[0.96] tracking-[-0.045em] text-white">
       {title}
     </h2>
     {description ? (
-      <p className="mt-4 max-w-none text-sm leading-relaxed text-white/65 sm:text-base md:max-w-2xl">{description}</p>
+      <p className="mt-4 max-w-none text-sm leading-relaxed text-white/63 sm:text-base md:max-w-2xl">
+        {description}
+      </p>
     ) : null}
   </div>
 );
@@ -39,7 +41,9 @@ const MediaFrame = ({
   children: ReactNode;
   className?: string;
 }) => (
-  <div className={`bg-[#151515] p-4 md:p-6 ${className}`}>{children}</div>
+  <div className={`rounded-[2rem] border border-white/8 bg-white/[0.03] p-3 shadow-[0_16px_42px_rgba(0,0,0,0.16)] md:p-4 ${className}`}>
+    {children}
+  </div>
 );
 
 const DetailImage = ({
@@ -55,7 +59,7 @@ const DetailImage = ({
 }) => {
   if (isEmbeddableVideoUrl(src)) {
     return (
-      <div className="overflow-hidden border border-white/8 bg-black/20">
+      <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
         <iframe
           src={toEmbedUrl(src)}
           title={alt}
@@ -70,7 +74,7 @@ const DetailImage = ({
 
   if (isVideoFileUrl(src)) {
     return (
-      <div className="overflow-hidden border border-white/8 bg-black/20">
+      <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
         <video
           src={src}
           controls={videoPresentation === 'default'}
@@ -86,7 +90,7 @@ const DetailImage = ({
   }
 
   return (
-    <div className="overflow-hidden border border-white/8 bg-black/20">
+    <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
       <img
         src={src}
         alt={alt}
@@ -120,10 +124,12 @@ const TextSection = ({
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="text-xl font-black uppercase tracking-tight text-white sm:text-2xl md:text-3xl">
+        <h2 className="font-sans text-[clamp(1.9rem,1.45rem+1.4vw,3.35rem)] font-semibold normal-case leading-[0.96] tracking-[-0.045em] text-white">
           {title}
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-white/74 sm:text-base md:text-[1.02rem]">{body}</p>
+        <p className="mt-4 text-sm leading-relaxed text-white/74 sm:text-base md:text-[1.02rem]">
+          {body}
+        </p>
       </div>
     </section>
   );
@@ -411,8 +417,10 @@ const MetaBlock = ({
   }
 
   return (
-    <div className="space-y-2 border-t border-white/8 pt-4 first:border-t-0 first:pt-0">
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">{label}</p>
+    <div className="space-y-3">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">
+        {label}
+      </p>
       <div className="space-y-2 text-sm leading-relaxed text-white/74">{value}</div>
     </div>
   );
@@ -590,14 +598,14 @@ export const ProjectDetail = () => {
   return (
     <PageTransition>
       <article className="overflow-x-hidden bg-brand-bg text-white">
-        <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[140px_minmax(0,1fr)] md:gap-12`}>
+        <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[148px_minmax(0,1fr)] md:gap-12`}>
           <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">
             <SideRail links={caseStudyLinks} />
           </div>
 
           <div>
             <section id="overview" className="border-b border-white/5">
-              <div className="pb-14 pt-24 sm:pb-16 sm:pt-28 md:pt-32">
+              <div className="pb-14 pt-24 sm:pb-16 sm:pt-28 md:pb-20 md:pt-32">
                 <Link
                   to="/work"
                   className="mb-10 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/60 transition-colors hover:text-white md:hidden"
@@ -611,9 +619,9 @@ export const ProjectDetail = () => {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: 'easeOut' }}
-                    className="overflow-hidden bg-[#151515]"
+                    className="rounded-[2.3rem] border border-white/8 bg-white/[0.03] p-3 shadow-[0_20px_58px_rgba(0,0,0,0.2)] md:p-4"
                   >
-                    <div className="relative aspect-[16/9] overflow-hidden border border-white/8 bg-black/20">
+                    <div className="relative aspect-[16/9] overflow-hidden rounded-[1.85rem] border border-white/8 bg-black/20">
                       <img
                         src={heroImage}
                         alt={normalized.title}
@@ -636,18 +644,18 @@ export const ProjectDetail = () => {
                   className="mt-10 space-y-8"
                 >
                   <div className="max-w-5xl">
-                    <h1 className="text-fluid-xl font-black uppercase leading-[0.92] tracking-tighter text-white">
+                    <h1 className="font-sans text-[clamp(2.8rem,5vw,6rem)] font-semibold normal-case leading-[0.92] tracking-[-0.06em] text-white">
                       {normalized.title}
                     </h1>
                     {normalized.description ? (
-                      <p className="mt-5 max-w-4xl text-base leading-relaxed text-white/74 sm:text-lg md:mt-6 md:text-xl">
+                      <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/68 sm:text-lg md:mt-6 md:text-[1.18rem]">
                         {normalized.description}
                       </p>
                     ) : null}
                   </div>
 
                   {hasMeta ? (
-                    <div className="grid grid-cols-1 gap-6 border-t border-white/8 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-6 rounded-[2rem] border border-white/8 bg-white/[0.02] px-6 py-6 sm:grid-cols-2 md:px-7 md:py-7 lg:grid-cols-4">
                       {metaEntries.map((entry) => (
                         <div
                           key={entry.label}
@@ -662,7 +670,7 @@ export const ProjectDetail = () => {
               </div>
             </section>
 
-            <div className="space-y-14 py-14 sm:space-y-16 md:space-y-24 md:py-20">
+            <div className="space-y-16 py-14 sm:space-y-20 md:space-y-24 md:py-20">
               {sections[0] ? <TextSection {...sections[0]} /> : null}
               {sections[1] ? <TextSection {...sections[1]} /> : null}
 

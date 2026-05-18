@@ -54,7 +54,7 @@ const renderArticleBody = (item: LabItem) => {
     .filter(Boolean);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-[44rem] space-y-7">
       {blocks.map((block, index) => {
         if (block === ARTICLE_IMAGE_TOKEN) {
           if (!item.bodyImage?.url) {
@@ -62,7 +62,7 @@ const renderArticleBody = (item: LabItem) => {
           }
 
           return (
-            <div key={`article-image-${index}`} className="pt-2">
+            <div key={`article-image-${index}`} className="pt-3">
               <img
                 src={item.bodyImage.url}
                 alt={item.bodyImage.alt ?? ''}
@@ -76,7 +76,10 @@ const renderArticleBody = (item: LabItem) => {
         }
 
         return (
-          <p key={`article-paragraph-${index}`} className="text-white/84 text-base leading-relaxed md:text-lg">
+          <p
+            key={`article-paragraph-${index}`}
+            className="text-[1.02rem] leading-[1.95] text-white/84 md:text-[1.08rem]"
+          >
             {renderInlineMarkdown(block)}
           </p>
         );
@@ -166,8 +169,8 @@ export const Lab = () => {
 
   return (
     <PageTransition>
-      <div className={`${SITE_SHELL_CLASS} pb-32 pt-40`}>
-        <header className="mb-20">
+      <div className={`${SITE_SHELL_CLASS} pb-28 pt-36 md:pb-32 md:pt-40`}>
+        <header className="mb-16 md:mb-20">
           <motion.h1 
             initial="hidden"
             animate="visible"
@@ -217,7 +220,7 @@ export const Lab = () => {
           </RevealOnScroll>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2">
           {loading ? (
             Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
           ) : !sortedLabItems.length ? (
@@ -234,7 +237,8 @@ export const Lab = () => {
                     type="button"
                     onClick={() => openItem(item)}
                     data-cursor="card"
-                    className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-left transition-colors hover:bg-white/10"
+                    className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-white/[0.055] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:p-7"
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
                   >
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                     <div className="flex items-start justify-between z-10">
@@ -244,7 +248,7 @@ export const Lab = () => {
                       <span className="font-mono text-[10px] text-brand-muted">{item.date}</span>
                     </div>
                     {thumbnail ? (
-                      <div className="z-10 aspect-[5/4] overflow-hidden rounded-xl bg-black/20">
+                      <div className="z-10 aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-black/20">
                         <img
                           src={thumbnail}
                           alt={item.title}
@@ -252,7 +256,8 @@ export const Lab = () => {
                           height={400}
                           loading="lazy"
                           decoding="async"
-                          className="h-full w-full object-cover opacity-80 transition-all duration-700 grayscale group-hover:opacity-100 group-hover:grayscale-0"
+                          sizes="(min-width: 768px) 46vw, 100vw"
+                          className="h-full w-full object-cover opacity-84 transition-all duration-700 saturate-[0.88] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:saturate-100"
                           style={{
                             transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
                             transformOrigin: 'center center',
@@ -263,23 +268,26 @@ export const Lab = () => {
                       </div>
                     ) : null}
                     <div className="z-10">
-                      <h3 className="mb-3 text-xl font-bold leading-[1.04] tracking-tight transition-colors group-hover:text-brand-accent md:text-[1.65rem]">
+                      <h3 className="mb-3 font-sans text-[clamp(1.45rem,1.16rem+0.8vw,2rem)] font-semibold normal-case leading-[1.02] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
                         {item.title}
                       </h3>
-                      <p className="mb-4 line-clamp-4 text-sm italic leading-relaxed text-brand-muted md:text-[0.96rem]">
+                      <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-white/58 md:text-[0.98rem]">
                         {item.excerpt ?? item.content}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {item.tools.map((tool) => (
-                          <Tag
-                            key={tool}
-                            name={tool}
-                            onClick={(e) => {
-                              e?.stopPropagation();
-                              window.location.href = `/work?tool=${tool}`;
-                            }}
-                          />
+                          <span key={tool} className="tool-pill">
+                            {tool}
+                          </span>
                         ))}
+                      </div>
+                      <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/8 pt-4">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+                          {item.bodyMarkdown ? 'Open article' : 'Open entry'}
+                        </span>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/32">
+                          {item.readingTime ?? 'Lab note'}
+                        </span>
                       </div>
                     </div>
                   </button>
@@ -294,7 +302,7 @@ export const Lab = () => {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6"
+              className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-4 md:p-6"
               onClick={closeActiveItem}
             >
               <button 
@@ -310,7 +318,7 @@ export const Lab = () => {
                 ref={modalScrollRef}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto overscroll-contain glass rounded-[3rem] p-8 md:p-12"
+                className="relative max-h-[90svh] w-full max-w-[68rem] overflow-y-auto overscroll-contain rounded-[2.5rem] border border-white/10 bg-[#0b0b0e]/96 p-6 shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-10"
                 onClick={e => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
@@ -331,18 +339,25 @@ export const Lab = () => {
                 ) : null}
 
                 {/* Header */}
-                <div className="flex justify-between items-start mb-8">
+                <div className="mb-8 flex items-start justify-between">
                   <span className="px-3 py-1 rounded-full bg-brand-accent/20 text-brand-accent text-xs uppercase tracking-widest font-bold font-mono">
                     {activeItem.category ?? activeItem.type}
                   </span>
                   <span className="text-sm font-mono text-brand-muted">{activeItem.date}</span>
                 </div>
-                <h2 id={modalTitleId} className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-3 leading-none">{activeItem.title}</h2>
-                <p id={modalDescriptionId} className="text-brand-muted text-base md:text-lg leading-relaxed mb-8 italic">{activeItem.excerpt ?? activeItem.content}</p>
+                <h2
+                  id={modalTitleId}
+                  className="mb-3 font-sans text-[clamp(2.3rem,3vw,4.4rem)] font-semibold normal-case leading-[0.94] tracking-[-0.05em] text-white"
+                >
+                  {activeItem.title}
+                </h2>
+                <p id={modalDescriptionId} className="mb-8 max-w-3xl text-base leading-relaxed text-white/62 md:text-lg">
+                  {activeItem.excerpt ?? activeItem.content}
+                </p>
 
                 {/* Case study meta row */}
                 {(activeItem.timeline || activeItem.role || activeItem.readingTime || activeItem.author) && (
-                  <div className="flex flex-wrap gap-6 mb-10 pb-8 border-b border-white/10">
+                  <div className="mb-10 grid gap-6 border-b border-white/10 pb-8 sm:grid-cols-2 lg:grid-cols-4">
                     {activeItem.readingTime && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Reading time</p>
@@ -403,7 +418,7 @@ export const Lab = () => {
                             {section.value && (
                               <>
                                 <h3 className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-3">{section.label}</h3>
-                                <p className="whitespace-pre-line text-white/80 text-base leading-relaxed">{section.value}</p>
+                                <p className="whitespace-pre-line max-w-[44rem] text-white/80 text-base leading-[1.9]">{section.value}</p>
                               </>
                             )}
                             {sectionImages(section.key).map((img, i) => (

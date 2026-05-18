@@ -9,11 +9,19 @@ const headlineLines = [
   'AI-led image systems.',
 ];
 
-const capabilityChips = [
-  'Campaign visuals',
-  'Motion systems',
-  'AI image direction',
-  'Brand worlds',
+const supportNotes = [
+  {
+    label: 'Campaign visuals',
+    value: 'Brand worlds, launch systems, and key art with a clear point of view.',
+  },
+  {
+    label: 'Motion systems',
+    value: 'Films, cut-outs, and moving layouts that translate cleanly across channels.',
+  },
+  {
+    label: 'AI image direction',
+    value: 'Generative workflows shaped by design judgment, not just tool novelty.',
+  },
 ];
 
 export const CatHero = () => {
@@ -21,153 +29,117 @@ export const CatHero = () => {
     <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
       <NeatHeroGradient />
       <div
-        className="absolute inset-0 bg-[linear-gradient(130deg,rgba(6,6,10,0.68)_0%,rgba(6,6,10,0.3)_44%,rgba(6,6,10,0.64)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(130deg,rgba(6,6,10,0.74)_0%,rgba(6,6,10,0.42)_45%,rgba(6,6,10,0.72)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.06)_34%,rgba(6,6,10,0.46)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.26)_0%,rgba(6,6,10,0.08)_38%,rgba(6,6,10,0.58)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(6,6,10,0.04)_0%,rgba(6,6,10,0.14)_54%,rgba(6,6,10,0.36)_100%)]"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_52%_38%,rgba(6,6,10,0.08)_0%,rgba(6,6,10,0.18)_52%,rgba(6,6,10,0.4)_100%)]"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-14 pt-32 md:px-12 md:pb-20 md:pt-36">
-        <div className="grid items-end gap-12 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="max-w-[62rem]">
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-6 font-mono text-[10px] uppercase tracking-[0.38em] text-white/58"
-            >
-              Maria Bordiuh // Hamburg
-            </motion.p>
-
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: {},
-                visible: {
-                  transition: {
-                    staggerChildren: 0.12,
-                  },
-                },
-              }}
-              className="mb-6"
-            >
-              {headlineLines.map((line) => (
-                <motion.h1
-                  key={line}
-                  variants={{
-                    hidden: { opacity: 0, y: 26 },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
-                    },
-                  }}
-                  className="pb-[0.08em] font-display text-[clamp(3rem,7vw,7.4rem)] font-bold uppercase leading-[0.86] tracking-[-0.05em] text-white"
-                >
-                  {line === 'AI-led image systems.' ? (
-                    <>
-                      AI-led image systems<span className="text-brand-accent">.</span>
-                    </>
-                  ) : (
-                    line
-                  )}
-                </motion.h1>
-              ))}
-            </motion.div>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-[52rem] text-[clamp(1rem,0.82rem+0.55vw,1.28rem)] leading-relaxed text-white/72"
-            >
-              I shape visual worlds for brands, campaigns, and moving image projects, blending
-              art direction, AI workflows, and motion design into systems that still feel human.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.42, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap"
-            >
-              <PrefetchLink
-                to="/work"
-                data-click-sound="true"
-                className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-              >
-                See selected work
-                <ArrowUpRight size={16} />
-              </PrefetchLink>
-              <PrefetchLink
-                to="/about"
-                data-click-sound="true"
-                className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-              >
-                Why work with me
-                <ArrowUpRight size={16} />
-              </PrefetchLink>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.52, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 flex flex-wrap gap-2.5"
-            >
-              {capabilityChips.map((chip) => (
-                <span
-                  key={chip}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/62 backdrop-blur-sm"
-                >
-                  {chip}
-                </span>
-              ))}
-            </motion.div>
-          </div>
-
-          <motion.aside
-            initial={{ opacity: 0, x: 28, y: 18 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden xl:block"
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-12 pt-28 md:px-12 md:pb-16 md:pt-32">
+        <div className="max-w-[74rem]">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-6 font-mono text-[10px] uppercase tracking-[0.38em] text-white/58"
           >
-            <div className="frosted-panel-scene p-6">
-              <div className="frosted-blob frosted-blob--1" />
-              <div className="frosted-blob frosted-blob--2" />
-              <div className="frosted-blob frosted-blob--3" />
+            Maria Bordiuh // Hamburg
+          </motion.p>
 
-              <div className="frosted-panel-element p-6">
-                <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/54">
-                  Current focus
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.12,
+                },
+              },
+            }}
+            className="mb-6"
+          >
+            {headlineLines.map((line) => (
+              <motion.h1
+                key={line}
+                variants={{
+                  hidden: { opacity: 0, y: 26 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
+                  },
+                }}
+                className="pb-[0.08em] font-display text-[clamp(3.15rem,7vw,7.6rem)] font-bold uppercase leading-[0.84] tracking-[-0.055em] text-white"
+              >
+                {line === 'AI-led image systems.' ? (
+                  <>
+                    AI-led image systems<span className="text-brand-accent">.</span>
+                  </>
+                ) : (
+                  line
+                )}
+              </motion.h1>
+            ))}
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-[46rem] text-[clamp(1rem,0.82rem+0.55vw,1.28rem)] leading-relaxed text-white/72"
+          >
+            I build visual worlds for brands, campaigns, and moving image projects, blending
+            art direction, AI workflows, and motion design into systems that still feel authored.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.42, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap"
+          >
+            <PrefetchLink
+              to="/work"
+              data-click-sound="true"
+              className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+            >
+              See selected work
+              <ArrowUpRight size={16} />
+            </PrefetchLink>
+            <PrefetchLink
+              to="/about"
+              data-click-sound="true"
+              className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+            >
+              Why work with me
+              <ArrowUpRight size={16} />
+            </PrefetchLink>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.52, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-12 grid max-w-[62rem] gap-4 border-t border-white/10 pt-5 sm:grid-cols-3"
+          >
+            {supportNotes.map((note) => (
+              <div key={note.label} className="space-y-2">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
+                  {note.label}
                 </p>
-                <h3 className="mt-5 text-xl font-bold uppercase leading-tight text-white">
-                  Moving brands with mood, motion, and systems.
-                </h3>
-                <p className="mt-4 text-sm leading-relaxed text-white/58">
-                  Campaign visuals, generative image direction, and motion languages that can
-                  actually ship.
+                <p className="max-w-sm text-sm leading-relaxed text-white/62">
+                  {note.value}
                 </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {['Available', 'Remote', 'Selected projects'].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-white/62"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
               </div>
-            </div>
-          </motion.aside>
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>
