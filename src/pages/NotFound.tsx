@@ -583,14 +583,14 @@ export const NotFound = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 text-[24vw] font-display leading-none tracking-[-0.05em]"
+        className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 text-[18vw] font-display leading-none tracking-[-0.04em]"
         style={{ color: 'rgba(255, 87, 112, 0.11)' }}
       >
         404
       </motion.div>
 
-      <div className="relative mx-auto flex h-full max-w-[1240px] items-center px-5 py-4 sm:px-8 sm:py-6 lg:px-12 lg:py-8">
-        <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] lg:items-center">
+      <div className="relative mx-auto flex h-full max-w-[1180px] items-center px-4 py-3 sm:px-6 sm:py-4 lg:px-10 lg:py-5">
+        <div className="grid w-full gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,0.94fr)] lg:items-center">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -601,70 +601,53 @@ export const NotFound = () => {
               404 / coffee break
             </p>
             <h1
-              className="mt-4 max-w-[11ch] font-sans text-white normal-case tracking-[-0.02em]"
-              style={{ fontSize: 'clamp(3rem, 6vw, 5.6rem)', lineHeight: 0.92, wordSpacing: '0.08em' }}
+              className="mt-3 max-w-[11.5ch] font-sans text-white normal-case tracking-[-0.01em]"
+              style={{ fontSize: 'clamp(2.35rem, 4.9vw, 4.8rem)', lineHeight: 0.92, wordSpacing: '0.07em' }}
             >
               This page wandered off for a coffee break.
             </h1>
-            <p className="mt-4 max-w-[24rem] text-base leading-7 text-white/62 sm:text-lg">
+            <p className="mt-3 max-w-[22rem] text-sm leading-6 text-white/62 sm:text-base">
               Stack the takeaway cups while you wait.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-2.5">
               <Link
                 to="/work"
-                className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                className="btn-gradient-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 <span>See selected work</span>
               </Link>
               <Link
                 to="/"
-                className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                className="btn-glass-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 <span>Go home</span>
               </Link>
             </div>
 
-            <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
+            <div className="mt-5 rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-4">
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
                 {snapshot.running ? 'Controls' : 'How it works'}
               </p>
               <h2
-                className="mt-2 font-sans text-2xl normal-case tracking-[-0.015em] text-white"
+                className="mt-2 font-sans text-[1.35rem] normal-case tracking-[-0.01em] text-white sm:text-[1.5rem]"
                 style={{ wordSpacing: '0.04em' }}
               >
                 {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
               </h2>
-              <p className="mt-3 max-w-[28rem] text-sm leading-6 text-white/58">
+              <p className="mt-2.5 max-w-[26rem] text-sm leading-5.5 text-white/58">
                 Full rows disappear. The stack gets faster as you go. It is basically coffee Tetris, which is already a much better 404 situation.
               </p>
             </div>
 
-            <div className="mt-4 hidden grid-cols-2 gap-2 sm:grid">
-              {controlButtons.map((button) => (
-                <button
-                  key={button.helper}
-                  type="button"
-                  onClick={button.action}
-                  data-click-sound="true"
-                  className="btn-glass-shift justify-between px-4 py-3 font-mono text-[10px] font-black uppercase tracking-[0.18em]"
-                >
-                  <span>{button.helper}</span>
-                  <span className="text-base">{button.label}</span>
-                </button>
-              ))}
+            <div className="mt-3 hidden flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/38 sm:flex">
+              <span><span className="text-white/76">← →</span> move</span>
+              <span><span className="text-white/76">↑</span> rotate</span>
+              <span><span className="text-white/76">↓</span> drop</span>
+              <span><span className="text-white/76">Enter</span> start</span>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-[0.22em] text-white/34">
-              <span>Music: {musicEnabled ? 'On' : 'Off'}</span>
-              <button
-                type="button"
-                onClick={() => void toggleMusic()}
-                data-click-sound="true"
-                className="text-brand-accent transition-colors hover:text-white"
-              >
-                Toggle music
-              </button>
+            <div className="mt-4 flex flex-wrap items-center gap-3 font-mono text-[9px] uppercase tracking-[0.2em] text-white/34">
               <Link to="/impressum" className="transition-colors hover:text-white">Impressum</Link>
               <Link to="/datenschutz" className="transition-colors hover:text-white">Datenschutz</Link>
             </div>
@@ -676,7 +659,7 @@ export const NotFound = () => {
             transition={{ delay: 0.1, duration: 0.72, ease: 'easeOut' }}
             className="order-1 lg:order-2"
           >
-            <div className="relative ml-auto w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-6">
+            <div className="relative ml-auto w-full max-w-[500px] overflow-hidden rounded-[1.7rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-4 shadow-[0_32px_90px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:p-5">
               <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/26 to-transparent" />
               <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,87,112,0.28),transparent_72%)] blur-3xl" />
 
@@ -697,8 +680,8 @@ export const NotFound = () => {
                   </button>
                 </div>
 
-                <div className="mt-5 flex flex-col items-center">
-                  <div className="relative w-full max-w-[24rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0c0c0c] p-3">
+                <div className="mt-4 flex flex-col items-center">
+                  <div className="relative w-full max-w-[20.5rem] overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0c0c0c] p-2.5">
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,87,112,0.08),transparent_30%)]" />
                     <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))` }}>
                       {displayBoard.flatMap((row, rowIndex) =>
@@ -734,12 +717,12 @@ export const NotFound = () => {
                           {snapshot.gameOver ? 'Shelf collapsed' : 'Ready?'}
                         </p>
                         <h2
-                          className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.02em] text-white sm:text-4xl"
+                          className="mt-2.5 max-w-[14ch] font-sans text-[1.75rem] normal-case tracking-[-0.01em] text-white sm:text-[2.2rem]"
                           style={{ wordSpacing: '0.06em' }}
                         >
                           {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
                         </h2>
-                        <p className="mt-3 max-w-[22rem] text-sm leading-6 text-white/58">
+                        <p className="mt-2.5 max-w-[20rem] text-sm leading-5.5 text-white/58">
                           {snapshot.gameOver
                             ? 'Turns out cups are bad at staying up forever.'
                             : 'Classic left, right, rotate, drop. Much cuter when it is coffee.'}
@@ -748,7 +731,7 @@ export const NotFound = () => {
                           type="button"
                           onClick={() => void startGame()}
                           data-click-sound="true"
-                          className="btn-gradient-shift mt-6 px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                          className="btn-gradient-shift mt-5 px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
                         >
                           <span>{snapshot.gameOver ? 'Stack again' : 'Start stacking'}</span>
                         </button>
@@ -756,7 +739,7 @@ export const NotFound = () => {
                     ) : null}
                   </div>
 
-                  <div className="mt-4 grid w-full max-w-[24rem] grid-cols-4 gap-2 sm:hidden">
+                  <div className="mt-3 grid w-full max-w-[20.5rem] grid-cols-4 gap-1.5 sm:hidden">
                     {controlButtons.map((button) => (
                       <button
                         key={button.helper}
