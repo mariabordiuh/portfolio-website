@@ -583,7 +583,8 @@ export const NotFound = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 text-[24vw] font-display leading-none tracking-[-0.08em] text-white/[0.03]"
+        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 text-[24vw] font-display leading-none tracking-[-0.05em]"
+        style={{ color: 'rgba(255, 87, 112, 0.11)' }}
       >
         404
       </motion.div>
@@ -600,8 +601,8 @@ export const NotFound = () => {
               404 / coffee break
             </p>
             <h1
-              className="mt-4 max-w-[11ch] font-sans text-white normal-case tracking-[-0.05em]"
-              style={{ fontSize: 'clamp(3rem, 6vw, 5.6rem)', lineHeight: 0.92 }}
+              className="mt-4 max-w-[11ch] font-sans text-white normal-case tracking-[-0.02em]"
+              style={{ fontSize: 'clamp(3rem, 6vw, 5.6rem)', lineHeight: 0.92, wordSpacing: '0.08em' }}
             >
               This page wandered off for a coffee break.
             </h1>
@@ -628,7 +629,10 @@ export const NotFound = () => {
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
                 {snapshot.running ? 'Controls' : 'How it works'}
               </p>
-              <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
+              <h2
+                className="mt-2 font-sans text-2xl normal-case tracking-[-0.015em] text-white"
+                style={{ wordSpacing: '0.04em' }}
+              >
                 {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
               </h2>
               <p className="mt-3 max-w-[28rem] text-sm leading-6 text-white/58">
@@ -729,7 +733,10 @@ export const NotFound = () => {
                         <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
                           {snapshot.gameOver ? 'Shelf collapsed' : 'Ready?'}
                         </p>
-                        <h2 className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.05em] text-white sm:text-4xl">
+                        <h2
+                          className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.02em] text-white sm:text-4xl"
+                          style={{ wordSpacing: '0.06em' }}
+                        >
                           {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
                         </h2>
                         <p className="mt-3 max-w-[22rem] text-sm leading-6 text-white/58">
