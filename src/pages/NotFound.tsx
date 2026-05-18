@@ -583,190 +583,190 @@ export const NotFound = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 text-[28vw] font-display leading-none tracking-[-0.08em] text-white/[0.03]"
+        className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 text-[24vw] font-display leading-none tracking-[-0.08em] text-white/[0.03]"
       >
         404
       </motion.div>
 
-      <div className="relative mx-auto flex min-h-screen max-w-[1160px] flex-col justify-center px-6 py-20 text-center sm:px-10">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-        >
-          <p className="font-mono text-[10px] font-black uppercase tracking-[0.34em] text-brand-accent">
-            404 / coffee break
-          </p>
-          <h1
-            className="mx-auto mt-5 max-w-[14ch] font-sans text-white normal-case tracking-[-0.05em]"
-            style={{ fontSize: 'clamp(3.2rem, 7vw, 6.6rem)', lineHeight: 0.92 }}
+      <div className="relative mx-auto flex min-h-[calc(100svh-5rem)] max-w-[1240px] items-center px-6 py-6 sm:px-10 sm:py-8 lg:px-14 lg:py-10">
+        <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] lg:items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: 'easeOut' }}
+            className="order-2 text-left lg:order-1"
           >
-            This page wandered off for a coffee break.
-          </h1>
-          <p className="mx-auto mt-5 max-w-[28rem] text-base leading-7 text-white/64 sm:text-lg">
-            Stack the takeaway cups while you wait.
-          </p>
-        </motion.div>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.34em] text-brand-accent">
+              404 / coffee break
+            </p>
+            <h1
+              className="mt-4 max-w-[11ch] font-sans text-white normal-case tracking-[-0.05em]"
+              style={{ fontSize: 'clamp(3rem, 6vw, 5.6rem)', lineHeight: 0.92 }}
+            >
+              This page wandered off for a coffee break.
+            </h1>
+            <p className="mt-4 max-w-[24rem] text-base leading-7 text-white/62 sm:text-lg">
+              Stack the takeaway cups while you wait.
+            </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.72, ease: 'easeOut' }}
-          className="relative mx-auto mt-12 w-full max-w-[860px] overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-6 shadow-[0_40px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-8"
-        >
-          <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/26 to-transparent" />
-          <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,87,112,0.28),transparent_72%)] blur-3xl" />
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/work"
+                className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              >
+                <span>See selected work</span>
+              </Link>
+              <Link
+                to="/"
+                className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              >
+                <span>Go home</span>
+              </Link>
+            </div>
 
-          <div className="relative z-10">
-            <div className="flex flex-wrap items-center justify-between gap-4 text-left">
-              <div className="flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
-                <span>Score {snapshot.score}</span>
-                <span>Rows {snapshot.lines}</span>
-                <span>Best {bestScore}</span>
-              </div>
+            <div className="mt-6 rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
+                {snapshot.running ? 'Controls' : 'How it works'}
+              </p>
+              <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
+                {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
+              </h2>
+              <p className="mt-3 max-w-[28rem] text-sm leading-6 text-white/58">
+                Full rows disappear. The stack gets faster as you go. It is basically coffee Tetris, which is already a much better 404 situation.
+              </p>
+            </div>
+
+            <div className="mt-4 hidden grid-cols-2 gap-2 sm:grid">
+              {controlButtons.map((button) => (
+                <button
+                  key={button.helper}
+                  type="button"
+                  onClick={button.action}
+                  data-click-sound="true"
+                  className="btn-glass-shift justify-between px-4 py-3 font-mono text-[10px] font-black uppercase tracking-[0.18em]"
+                >
+                  <span>{button.helper}</span>
+                  <span className="text-base">{button.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-4 font-mono text-[10px] uppercase tracking-[0.22em] text-white/34">
+              <span>Music: {musicEnabled ? 'On' : 'Off'}</span>
               <button
                 type="button"
                 onClick={() => void toggleMusic()}
                 data-click-sound="true"
-                className="btn-glass-shift px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                className="text-brand-accent transition-colors hover:text-white"
               >
-                <span>{musicEnabled ? 'Music on' : 'Music off'}</span>
+                Toggle music
               </button>
+              <Link to="/impressum" className="transition-colors hover:text-white">Impressum</Link>
+              <Link to="/datenschutz" className="transition-colors hover:text-white">Datenschutz</Link>
             </div>
+          </motion.div>
 
-            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-              <div className="flex flex-col items-center">
-                <div className="relative w-full max-w-[26rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0c0c0c] p-3">
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,87,112,0.08),transparent_30%)]" />
-                  <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))` }}>
-                    {displayBoard.flatMap((row, rowIndex) =>
-                      row.map((cell, columnIndex) => {
-                        const palette = cell ? CUP_COLORS[cell] : null;
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.72, ease: 'easeOut' }}
+            className="order-1 lg:order-2"
+          >
+            <div className="relative ml-auto w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-5 shadow-[0_40px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-6">
+              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/26 to-transparent" />
+              <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,87,112,0.28),transparent_72%)] blur-3xl" />
 
-                        return (
-                          <div
-                            key={`${rowIndex}-${columnIndex}`}
-                            className="relative aspect-square overflow-hidden rounded-[0.72rem] border"
-                            style={{
-                              borderColor: cell ? palette?.border : 'rgba(255,255,255,0.05)',
-                              background: cell ? palette?.fill : 'rgba(255,255,255,0.025)',
-                              boxShadow: cell ? '0 10px 20px rgba(0,0,0,0.18)' : 'none',
-                            }}
-                          >
-                            {cell ? (
-                              <>
-                                <div className="absolute inset-x-[16%] top-[13%] h-[11%] rounded-full bg-white/32" />
-                                <div className="absolute inset-x-[24%] bottom-[28%] h-[18%] rounded-full bg-black/10" />
-                                <div className="absolute inset-x-[12%] bottom-[12%] h-[8%] rounded-full bg-white/8" />
-                              </>
-                            ) : null}
-                          </div>
-                        );
-                      }),
-                    )}
+              <div className="relative z-10">
+                <div className="flex flex-wrap items-center justify-between gap-4 text-left">
+                  <div className="flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
+                    <span>Score {snapshot.score}</span>
+                    <span>Rows {snapshot.lines}</span>
+                    <span>Best {bestScore}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void toggleMusic()}
+                    data-click-sound="true"
+                    className="btn-glass-shift px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                  >
+                    <span>{musicEnabled ? 'Music on' : 'Music off'}</span>
+                  </button>
+                </div>
+
+                <div className="mt-5 flex flex-col items-center">
+                  <div className="relative w-full max-w-[24rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0c0c0c] p-3">
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,87,112,0.08),transparent_30%)]" />
+                    <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))` }}>
+                      {displayBoard.flatMap((row, rowIndex) =>
+                        row.map((cell, columnIndex) => {
+                          const palette = cell ? CUP_COLORS[cell] : null;
+
+                          return (
+                            <div
+                              key={`${rowIndex}-${columnIndex}`}
+                              className="relative aspect-square overflow-hidden rounded-[0.72rem] border"
+                              style={{
+                                borderColor: cell ? palette?.border : 'rgba(255,255,255,0.05)',
+                                background: cell ? palette?.fill : 'rgba(255,255,255,0.025)',
+                                boxShadow: cell ? '0 10px 20px rgba(0,0,0,0.18)' : 'none',
+                              }}
+                            >
+                              {cell ? (
+                                <>
+                                  <div className="absolute inset-x-[16%] top-[13%] h-[11%] rounded-full bg-white/32" />
+                                  <div className="absolute inset-x-[24%] bottom-[28%] h-[18%] rounded-full bg-black/10" />
+                                  <div className="absolute inset-x-[12%] bottom-[12%] h-[8%] rounded-full bg-white/8" />
+                                </>
+                              ) : null}
+                            </div>
+                          );
+                        }),
+                      )}
+                    </div>
+
+                    {!snapshot.running ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a]/78 px-6 text-center backdrop-blur-sm">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
+                          {snapshot.gameOver ? 'Shelf collapsed' : 'Ready?'}
+                        </p>
+                        <h2 className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.05em] text-white sm:text-4xl">
+                          {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
+                        </h2>
+                        <p className="mt-3 max-w-[22rem] text-sm leading-6 text-white/58">
+                          {snapshot.gameOver
+                            ? 'Turns out cups are bad at staying up forever.'
+                            : 'Classic left, right, rotate, drop. Much cuter when it is coffee.'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => void startGame()}
+                          data-click-sound="true"
+                          className="btn-gradient-shift mt-6 px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                        >
+                          <span>{snapshot.gameOver ? 'Stack again' : 'Start stacking'}</span>
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
 
-                  {!snapshot.running ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a]/78 px-6 text-center backdrop-blur-sm">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
-                        {snapshot.gameOver ? 'Shelf collapsed' : 'Ready?'}
-                      </p>
-                      <h2 className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.05em] text-white sm:text-4xl">
-                        {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
-                      </h2>
-                      <p className="mt-3 max-w-[24rem] text-sm leading-6 text-white/58">
-                        {snapshot.gameOver
-                          ? 'Turns out cups are bad at staying up forever.'
-                          : 'Classic left, right, rotate, drop. Much cuter when it is coffee.'}
-                      </p>
+                  <div className="mt-4 grid w-full max-w-[24rem] grid-cols-4 gap-2 sm:hidden">
+                    {controlButtons.map((button) => (
                       <button
+                        key={button.helper}
                         type="button"
-                        onClick={() => void startGame()}
+                        onClick={button.action}
                         data-click-sound="true"
-                        className="btn-gradient-shift mt-6 px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                        className="btn-glass-shift aspect-square px-0 py-0 font-mono text-lg font-black"
                       >
-                        <span>{snapshot.gameOver ? 'Stack again' : 'Start stacking'}</span>
+                        <span>{button.label}</span>
                       </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="mt-5 grid w-full max-w-[26rem] grid-cols-4 gap-2 sm:hidden">
-                  {controlButtons.map((button) => (
-                    <button
-                      key={button.helper}
-                      type="button"
-                      onClick={button.action}
-                      data-click-sound="true"
-                      className="btn-glass-shift aspect-square px-0 py-0 font-mono text-lg font-black"
-                    >
-                      <span>{button.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-left">
-                <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
-                    {snapshot.running ? 'Controls' : 'How it works'}
-                  </p>
-                  <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
-                    {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
-                  </h2>
-                  <p className="mt-3 text-sm leading-6 text-white/58">
-                    Full rows disappear. The stack gets faster as you go. This is basically Tetris, just with more coffee and better outfits.
-                  </p>
-                </div>
-
-                <div className="mt-4 hidden grid-cols-2 gap-2 sm:grid">
-                  {controlButtons.map((button) => (
-                    <button
-                      key={button.helper}
-                      type="button"
-                      onClick={button.action}
-                      data-click-sound="true"
-                      className="btn-glass-shift justify-between px-4 py-3 font-mono text-[10px] font-black uppercase tracking-[0.18em]"
-                    >
-                      <span>{button.helper}</span>
-                      <span className="text-base">{button.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">Keyboard</p>
-                  <p className="mt-3 text-sm leading-6 text-white/58">
-                    <span className="text-white/78">← →</span> move,
-                    {' '}
-                    <span className="text-white/78">↑</span> rotate,
-                    {' '}
-                    <span className="text-white/78">↓</span> drop,
-                    {' '}
-                    <span className="text-white/78">Enter</span> start,
-                    {' '}
-                    <span className="text-white/78">M</span> music.
-                  </p>
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
-                    to="/work"
-                    className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-                  >
-                    <span>See selected work</span>
-                  </Link>
-                  <Link
-                    to="/"
-                    className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-                  >
-                    <span>Go home</span>
-                  </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

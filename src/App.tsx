@@ -118,6 +118,16 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const isKnownPublicPath =
+    location.pathname === '/' ||
+    location.pathname === '/work' ||
+    location.pathname === '/lab' ||
+    location.pathname === '/about' ||
+    location.pathname === '/impressum' ||
+    location.pathname === '/datenschutz' ||
+    location.pathname === '/omr' ||
+    location.pathname.startsWith('/work/');
+  const isNotFoundRoute = !isAdmin && !isKnownPublicPath;
 
   useEffect(() => {
     if (!isGoogleAnalyticsEnabled() || isAdmin) {
@@ -157,7 +167,7 @@ const AppShell = () => {
       </main>
       {!isAdmin ? <ScrollToTop /> : null}
       {!isAdmin ? <AnalyticsConsentBanner /> : null}
-      {!isAdmin ? <Footer /> : null}
+      {!isAdmin && !isNotFoundRoute ? <Footer /> : null}
     </div>
   );
 
