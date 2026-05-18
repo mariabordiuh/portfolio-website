@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
 import { PrefetchLink } from './PrefetchLink';
+import { reopenAnalyticsConsent } from '../lib/google-analytics';
 
 const SHOW_ASCII_FOOTER = false;
 
@@ -524,6 +525,13 @@ export const Footer = () => {
           >
             Datenschutz
           </PrefetchLink>
+          <button
+            type="button"
+            onClick={reopenAnalyticsConsent}
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted/70 transition-colors hover:text-white"
+          >
+            Cookies
+          </button>
         </div>
       </div>
     </footer>

@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PrefetchLink } from './PrefetchLink';
 import {
+  ANALYTICS_CONSENT_OPEN_EVENT,
   getStoredAnalyticsConsent,
   initGoogleAnalytics,
   isGoogleAnalyticsEnabled,
-  resetAnalyticsConsent,
   trackPageView,
   updateAnalyticsConsent,
   type AnalyticsConsentChoice,
@@ -20,25 +20,24 @@ export const AnalyticsConsentBanner = () => {
     setConsentChoice(getStoredAnalyticsConsent());
   }, []);
 
+  useEffect(() => {
+    const openBanner = () => {
+      setConsentChoice(null);
+    };
+
+    window.addEventListener(ANALYTICS_CONSENT_OPEN_EVENT, openBanner);
+
+    return () => {
+      window.removeEventListener(ANALYTICS_CONSENT_OPEN_EVENT, openBanner);
+    };
+  }, []);
+
   if (!isGoogleAnalyticsEnabled()) {
     return null;
   }
 
   if (consentChoice) {
-    return (
-      <div className="fixed right-4 bottom-20 z-[120] md:right-6 md:bottom-24">
-        <button
-          type="button"
-          onClick={() => {
-            resetAnalyticsConsent();
-            setConsentChoice(null);
-          }}
-          className="rounded-full border border-white/10 bg-black/55 px-3 py-2 font-mono text-[9px] font-black uppercase tracking-[0.24em] text-white/68 backdrop-blur-md transition-colors hover:border-white/18 hover:text-white"
-        >
-          Cookies
-        </button>
-      </div>
-    );
+    return null;
   }
 
   const handleChoice = (choice: AnalyticsConsentChoice) => {

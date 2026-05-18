@@ -8,6 +8,7 @@ let hasConfiguredTag = false;
 export type AnalyticsConsentChoice = 'accepted' | 'rejected';
 
 export const ANALYTICS_CONSENT_STORAGE_KEY = 'maria-analytics-consent-v1';
+export const ANALYTICS_CONSENT_OPEN_EVENT = 'maria-analytics-consent-open';
 
 declare global {
   interface Window {
@@ -165,4 +166,12 @@ export const resetAnalyticsConsent = () => {
   }
 
   window.gtag?.('consent', 'update', DEFAULT_CONSENT);
+};
+
+export const reopenAnalyticsConsent = () => {
+  resetAnalyticsConsent();
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ANALYTICS_CONSENT_OPEN_EVENT));
+  }
 };
