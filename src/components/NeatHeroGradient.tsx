@@ -4,6 +4,10 @@ import type { NeatConfig, NeatGradient as NeatGradientInstance } from '@firecms/
 const neatHeroConfig: NeatConfig = {
   colors: [
     {
+      color: '#0A0A0A',
+      enabled: true,
+    },
+    {
       color: '#FF5772',
       enabled: true,
     },
@@ -21,10 +25,6 @@ const neatHeroConfig: NeatConfig = {
     },
     {
       color: '#F5D6DE',
-      enabled: true,
-    },
-    {
-      color: '#FFE8EE',
       enabled: true,
     },
   ],
