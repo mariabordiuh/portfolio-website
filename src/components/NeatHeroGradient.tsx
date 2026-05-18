@@ -28,7 +28,7 @@ const neatHeroConfig: NeatConfig = {
       enabled: true,
     },
   ],
-  speed: 2.5,
+  speed: 4.1,
   horizontalPressure: 3,
   verticalPressure: 4,
   waveFrequencyX: 2,
@@ -128,6 +128,8 @@ export const NeatHeroGradient = () => {
         speed: prefersReducedMotion ? 0 : neatHeroConfig.speed,
         resolution: isMobile ? 0.82 : 1,
       });
+
+      canvasRef.current.parentElement?.querySelector('a[data-n]')?.remove();
 
       syncScrollOffset();
       window.addEventListener('scroll', handleScroll, { passive: true });

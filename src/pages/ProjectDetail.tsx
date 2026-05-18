@@ -51,15 +51,21 @@ const DetailImage = ({
   alt,
   mediaClassName,
   videoPresentation = 'default',
+  flush = false,
 }: {
   src: string;
   alt: string;
   mediaClassName?: string;
   videoPresentation?: 'default' | 'ambient';
+  flush?: boolean;
 }) => {
+  const wrapperClassName = flush
+    ? 'overflow-hidden bg-black/20'
+    : 'overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20';
+
   if (isEmbeddableVideoUrl(src)) {
     return (
-      <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
+      <div className={wrapperClassName}>
         <iframe
           src={toEmbedUrl(src)}
           title={alt}
@@ -74,7 +80,7 @@ const DetailImage = ({
 
   if (isVideoFileUrl(src)) {
     return (
-      <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
+      <div className={wrapperClassName}>
         <video
           src={src}
           controls={videoPresentation === 'default'}
@@ -90,7 +96,7 @@ const DetailImage = ({
   }
 
   return (
-    <div className="overflow-hidden rounded-[1.55rem] border border-white/8 bg-black/20">
+    <div className={wrapperClassName}>
       <img
         src={src}
         alt={alt}
@@ -145,6 +151,7 @@ const GallerySection = ({
   compact = false,
   frameClassName,
   videoPresentation = 'default',
+  flushMedia = false,
 }: {
   eyebrow: string;
   title: string;
@@ -155,6 +162,7 @@ const GallerySection = ({
   compact?: boolean;
   frameClassName?: string;
   videoPresentation?: 'default' | 'ambient';
+  flushMedia?: boolean;
 }) => {
   if (!images.length) {
     return null;
@@ -184,6 +192,7 @@ const GallerySection = ({
                 alt={`${title} ${index + 1}`}
                 mediaClassName={mediaClassName}
                 videoPresentation={videoPresentation}
+                flush={flushMedia}
               />
             </MediaFrame>
           ))}
@@ -691,8 +700,9 @@ export const ProjectDetail = () => {
                 images={moodboardImages}
                 columns={1}
                 mediaClassName="aspect-square w-full object-cover"
-                frameClassName="p-0"
+                frameClassName="p-0 md:p-0"
                 videoPresentation="ambient"
+                flushMedia
               />
 
               <GallerySection

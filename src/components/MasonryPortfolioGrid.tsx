@@ -44,27 +44,8 @@ const getDisplayRatio = (item: PortfolioItem) => {
   return STILL_RATIO;
 };
 
-const getCardLabel = (item: PortfolioItem) => {
-  switch (item.contentType) {
-    case 'art-direction':
-      return 'Case study';
-    case 'ai-video':
-      return 'AI film';
-    case 'motion-video':
-    case 'motion-embed':
-    case 'motion-gif':
-      return 'Motion';
-    case 'ai-image':
-      return 'AI still';
-    case 'illustration':
-      return 'Image';
-    default:
-      return item.pillar;
-  }
-};
-
 const getCardSubline = (item: PortfolioItem) =>
-  item.client || item.year || item.subCategory || item.pillar;
+  item.client || item.year || item.subCategory || '';
 
 const getHoverLabel = (item: PortfolioItem) => {
   if (item.contentType === 'art-direction') {
@@ -170,12 +151,6 @@ const MasonryCard = memo(({
             <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/18 to-transparent animate-[shimmer_1.35s_infinite]" />
           </div>
 
-          <div className="absolute left-4 top-4 z-20">
-            <span className="rounded-full border border-white/12 bg-black/45 px-3 py-2 font-mono text-[10px] font-black uppercase tracking-[0.22em] text-white/72 backdrop-blur-md">
-              {getCardLabel(item)}
-            </span>
-          </div>
-
           <div
             className={`pointer-events-none absolute inset-0 z-10 transition-opacity duration-500 ${
               isVideo ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
@@ -228,36 +203,30 @@ const MasonryCard = memo(({
 
           {isVideo ? (
             <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/50 px-4 py-3 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/84 backdrop-blur-md transition-all duration-400 group-hover:scale-[1.04] group-hover:border-brand-accent/40 group-hover:bg-black/58 group-hover:text-white">
-                <Play size={12} className="fill-current" />
-                Play preview
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/12 bg-black/50 text-white/84 backdrop-blur-md transition-all duration-400 group-hover:scale-[1.04] group-hover:border-brand-accent/40 group-hover:bg-black/58 group-hover:text-white">
+                <Play size={16} className="fill-current" />
               </span>
             </div>
           ) : (
             <div className="pointer-events-none absolute right-4 top-4 z-20 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/45 px-3 py-2 font-mono text-[10px] font-black uppercase tracking-[0.22em] text-white/78 backdrop-blur-md">
-                {getHoverLabel(item)}
-                <ArrowUpRight size={12} />
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-black/45 text-white/78 backdrop-blur-md">
+                <ArrowUpRight size={14} />
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex items-start justify-between gap-4 px-1">
+        <div className="px-1">
           <div className="min-w-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
-              {getCardLabel(item)}
-            </p>
-            <p className="mt-2 line-clamp-2 text-[clamp(1rem,0.94rem+0.32vw,1.28rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
+            <p className="line-clamp-2 text-[clamp(1rem,0.94rem+0.32vw,1.28rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
               {item.title}
             </p>
-            <p className="mt-2 truncate text-sm text-white/46">
-              {getCardSubline(item)}
-            </p>
+            {getCardSubline(item) ? (
+              <p className="mt-2 truncate text-sm text-white/46">
+                {getCardSubline(item)}
+              </p>
+            ) : null}
           </div>
-          <span className="shrink-0 pt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/34">
-            {isVideo ? 'Moving image' : isArt ? 'Project' : 'Still'}
-          </span>
         </div>
       </div>
     </Wrapper>

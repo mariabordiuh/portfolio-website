@@ -234,19 +234,19 @@ export const About = () => {
               </h2>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
+            <div className="mt-10 grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
               {CV_NOTES.map((note) => (
                 <article
                   key={note.title}
-                  className="relative h-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-6 backdrop-blur-sm"
+                  className="relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-5 backdrop-blur-sm md:p-6"
                 >
                   <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/46">
                     {note.title}
                   </p>
-                  <p className="mt-4 text-[0.98rem] leading-relaxed text-white/72">{note.body}</p>
+                  <p className="mt-3 text-[0.97rem] leading-[1.72] text-white/72">{note.body}</p>
                   {note.title === 'Outside work' ? (
-                    <div className="mt-5 rounded-[1.15rem] border border-white/10 bg-black/20 p-3">
+                    <div className="mt-4 rounded-[1.15rem] border border-white/10 bg-black/20 p-3">
                       <div className="flex items-center gap-4">
                         <motion.button
                           type="button"
