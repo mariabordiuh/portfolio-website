@@ -1,72 +1,220 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
-const TARGET_TIME = 28;
-const TARGET_YIELD = 36;
-const MAX_TIME = 40;
-const BEST_SCORE_KEY = 'portfolio-404-espresso-best-score';
+const BOARD_WIDTH = 8;
+const BOARD_HEIGHT = 14;
+const BEST_SCORE_KEY = 'portfolio-404-cup-stack-best';
 
-type Phase = 'idle' | 'running' | 'result';
+type Cell = number | null;
 
-type ResultState = {
-  title: string;
-  detail: string;
-  score: number;
+type ActivePiece = {
+  matrix: number[][];
+  x: number;
+  y: number;
+  color: number;
 };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+type GameSnapshot = {
+  board: Cell[][];
+  piece: ActivePiece | null;
+  score: number;
+  lines: number;
+  running: boolean;
+  gameOver: boolean;
+};
 
-const evaluateShot = (seconds: number, grams: number): ResultState => {
-  const score = clamp(
-    Math.round(100 - Math.abs(seconds - TARGET_TIME) * 4.8 - Math.abs(grams - TARGET_YIELD) * 2.4),
-    0,
-    100,
-  );
+type PieceDefinition = {
+  color: number;
+  shape: number[][];
+};
 
-  if (score >= 94) {
-    return {
-      title: 'God shot',
-      detail: 'Sweet, balanced, and mildly smug. Exactly what the missing page would have wanted.',
-      score,
-    };
-  }
+type AudioBundle = {
+  context: AudioContext;
+  gain: GainNode;
+};
 
-  if (seconds < 25 || grams > 39) {
-    return {
-      title: 'Too fast',
-      detail: 'It rushed out of there. Bright, sharp, and a little chaotic.',
-      score,
-    };
-  }
+const PIECES: PieceDefinition[] = [
+  { color: 1, shape: [[1, 1], [1, 1]] },
+  { color: 2, shape: [[1, 1, 1, 1]] },
+  { color: 3, shape: [[1, 1, 1], [0, 1, 0]] },
+  { color: 4, shape: [[1, 1, 0], [0, 1, 1]] },
+  { color: 5, shape: [[0, 1, 1], [1, 1, 0]] },
+  { color: 6, shape: [[1, 0, 0], [1, 1, 1]] },
+  { color: 7, shape: [[0, 0, 1], [1, 1, 1]] },
+];
 
-  if (seconds > 31 || grams < 33) {
-    return {
-      title: 'Too long',
-      detail: 'You really made that shot work for it. Dense, bitter, dramatic.',
-      score,
-    };
-  }
+const CUP_COLORS: Record<number, { fill: string; border: string }> = {
+  1: { fill: 'linear-gradient(180deg, #fff4ee, #e2b08b)', border: 'rgba(255,255,255,0.34)' },
+  2: { fill: 'linear-gradient(180deg, #ffd7df, #ff6e84)', border: 'rgba(255,177,196,0.46)' },
+  3: { fill: 'linear-gradient(180deg, #e8ddd3, #a97455)', border: 'rgba(255,226,204,0.28)' },
+  4: { fill: 'linear-gradient(180deg, #f5e4d3, #d08754)', border: 'rgba(255,230,201,0.38)' },
+  5: { fill: 'linear-gradient(180deg, #ffe7de, #f09d8d)', border: 'rgba(255,211,200,0.38)' },
+  6: { fill: 'linear-gradient(180deg, #f4efea, #c4a28d)', border: 'rgba(255,255,255,0.3)' },
+  7: { fill: 'linear-gradient(180deg, #ffe9ef, #ff8ba1)', border: 'rgba(255,192,206,0.38)' },
+};
+
+const emptyBoard = (): Cell[][] =>
+  Array.from({ length: BOARD_HEIGHT }, () => Array.from({ length: BOARD_WIDTH }, () => null as Cell));
+
+const cloneBoard = (board: Cell[][]) => board.map((row) => [...row]);
+
+const rotateMatrix = (matrix: number[][]) =>
+  matrix[0].map((_, columnIndex) => matrix.map((row) => row[columnIndex]).reverse());
+
+const createPiece = (): ActivePiece => {
+  const definition = PIECES[Math.floor(Math.random() * PIECES.length)];
+  const matrix = definition.shape.map((row) => [...row]);
 
   return {
-    title: 'Pretty decent',
-    detail: 'Not mythical, but honestly solid. You can serve that with confidence.',
-    score,
+    matrix,
+    x: Math.floor((BOARD_WIDTH - matrix[0].length) / 2),
+    y: 0,
+    color: definition.color,
   };
 };
 
-export const NotFound = () => {
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [seconds, setSeconds] = useState(0);
-  const [grams, setGrams] = useState(0);
-  const [result, setResult] = useState<ResultState | null>(null);
-  const [bestScore, setBestScore] = useState(0);
+const collides = (board: Cell[][], piece: ActivePiece, x: number, y: number, matrix = piece.matrix) => {
+  for (let rowIndex = 0; rowIndex < matrix.length; rowIndex += 1) {
+    for (let columnIndex = 0; columnIndex < matrix[rowIndex].length; columnIndex += 1) {
+      if (!matrix[rowIndex][columnIndex]) {
+        continue;
+      }
 
+      const boardX = x + columnIndex;
+      const boardY = y + rowIndex;
+
+      if (boardX < 0 || boardX >= BOARD_WIDTH || boardY >= BOARD_HEIGHT) {
+        return true;
+      }
+
+      if (boardY >= 0 && board[boardY][boardX] !== null) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+const mergePiece = (board: Cell[][], piece: ActivePiece) => {
+  const nextBoard = cloneBoard(board);
+
+  piece.matrix.forEach((row, rowIndex) => {
+    row.forEach((value, columnIndex) => {
+      if (!value) {
+        return;
+      }
+
+      const boardY = piece.y + rowIndex;
+      const boardX = piece.x + columnIndex;
+
+      if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+        nextBoard[boardY][boardX] = piece.color;
+      }
+    });
+  });
+
+  return nextBoard;
+};
+
+const clearRows = (board: Cell[][]) => {
+  const remainingRows = board.filter((row) => row.some((cell) => cell === null));
+  const cleared = BOARD_HEIGHT - remainingRows.length;
+
+  while (remainingRows.length < BOARD_HEIGHT) {
+    remainingRows.unshift(Array.from({ length: BOARD_WIDTH }, () => null as Cell));
+  }
+
+  return {
+    board: remainingRows,
+    cleared,
+  };
+};
+
+const getDropInterval = (lines: number) => Math.max(170, 720 - lines * 18);
+
+const getAudioContextConstructor = () =>
+  window.AudioContext ||
+  (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+const playTone = (
+  context: AudioContext,
+  destination: AudioNode,
+  frequency: number,
+  {
+    duration = 0.18,
+    gain = 0.014,
+    type = 'triangle',
+    when = context.currentTime,
+  }: {
+    duration?: number;
+    gain?: number;
+    type?: OscillatorType;
+    when?: number;
+  } = {},
+) => {
+  const oscillator = context.createOscillator();
+  const gainNode = context.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, when);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(50, frequency * 0.92), when + duration);
+
+  gainNode.gain.setValueAtTime(0.0001, when);
+  gainNode.gain.exponentialRampToValueAtTime(gain, when + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(destination);
+  oscillator.start(when);
+  oscillator.stop(when + duration + 0.02);
+};
+
+const syncSnapshot = (
+  setSnapshot: React.Dispatch<React.SetStateAction<GameSnapshot>>,
+  state: GameSnapshot & { lastDrop: number },
+) => {
+  setSnapshot({
+    board: cloneBoard(state.board),
+    piece: state.piece
+      ? {
+          ...state.piece,
+          matrix: state.piece.matrix.map((row) => [...row]),
+        }
+      : null,
+    score: state.score,
+    lines: state.lines,
+    running: state.running,
+    gameOver: state.gameOver,
+  });
+};
+
+export const NotFound = () => {
+  const [snapshot, setSnapshot] = useState<GameSnapshot>({
+    board: emptyBoard(),
+    piece: null,
+    score: 0,
+    lines: 0,
+    running: false,
+    gameOver: false,
+  });
+  const [bestScore, setBestScore] = useState(0);
+  const [musicEnabled, setMusicEnabled] = useState(true);
+
+  const gameRef = useRef<GameSnapshot & { lastDrop: number }>({
+    board: emptyBoard(),
+    piece: null,
+    score: 0,
+    lines: 0,
+    running: false,
+    gameOver: false,
+    lastDrop: 0,
+  });
   const frameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const secondsRef = useRef(0);
-  const gramsRef = useRef(0);
-  const finalizeRef = useRef<() => void>(() => undefined);
+  const audioRef = useRef<AudioBundle | null>(null);
+  const musicTimerRef = useRef<number | null>(null);
+  const musicStepRef = useRef(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -84,118 +232,350 @@ export const NotFound = () => {
     }
   }, []);
 
-  useEffect(() => {
-    secondsRef.current = seconds;
-  }, [seconds]);
-
-  useEffect(() => {
-    gramsRef.current = grams;
-  }, [grams]);
-
-  const stopShot = () => {
-    if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
+  const ensureAudio = async () => {
+    if (typeof window === 'undefined') {
+      return null;
     }
 
-    const nextResult = evaluateShot(secondsRef.current, gramsRef.current);
-    setPhase('result');
-    setResult(nextResult);
+    const AudioContextConstructor = getAudioContextConstructor();
+    if (!AudioContextConstructor) {
+      return null;
+    }
 
-    setBestScore((current) => {
-      const nextBest = Math.max(current, nextResult.score);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(BEST_SCORE_KEY, String(nextBest));
-      }
-      return nextBest;
-    });
+    if (!audioRef.current) {
+      const context = new AudioContextConstructor();
+      const gain = context.createGain();
+      gain.gain.value = 0.11;
+      gain.connect(context.destination);
+      audioRef.current = { context, gain };
+    }
+
+    if (audioRef.current.context.state === 'suspended') {
+      await audioRef.current.context.resume().catch(() => undefined);
+    }
+
+    return audioRef.current;
   };
 
-  finalizeRef.current = stopShot;
+  const stopMusic = () => {
+    if (musicTimerRef.current !== null) {
+      window.clearInterval(musicTimerRef.current);
+      musicTimerRef.current = null;
+    }
+  };
 
-  useEffect(() => {
-    if (phase !== 'running') {
+  const startMusic = async () => {
+    if (!musicEnabled || musicTimerRef.current !== null) {
       return;
     }
 
-    const tick = (timestamp: number) => {
-      if (startTimeRef.current === null) {
-        startTimeRef.current = timestamp;
+    const audio = await ensureAudio();
+    if (!audio) {
+      return;
+    }
+
+    const lead = [261.63, 329.63, 392, 329.63, 293.66, 246.94, 293.66, 329.63];
+    const bass = [130.81, 164.81, 196, 164.81, 146.83, 123.47, 146.83, 164.81];
+
+    musicStepRef.current = 0;
+    musicTimerRef.current = window.setInterval(() => {
+      const step = musicStepRef.current % lead.length;
+      const now = audio.context.currentTime;
+
+      playTone(audio.context, audio.gain, lead[step], {
+        duration: 0.2,
+        gain: 0.012,
+        type: 'triangle',
+        when: now,
+      });
+
+      if (step % 2 === 0) {
+        playTone(audio.context, audio.gain, bass[step], {
+          duration: 0.26,
+          gain: 0.008,
+          type: 'sine',
+          when: now,
+        });
       }
 
-      const elapsed = clamp((timestamp - startTimeRef.current) / 1000, 0, MAX_TIME);
-      const nextGrams = clamp(
-        elapsed * 1.32 - Math.max(0, elapsed - 17) * 0.08 + Math.sin(elapsed * 3.1) * 0.12,
-        0,
-        50,
-      );
+      musicStepRef.current += 1;
+    }, 320);
+  };
 
-      setSeconds(elapsed);
-      setGrams(nextGrams);
+  const playClearSound = async () => {
+    const audio = await ensureAudio();
+    if (!audio) {
+      return;
+    }
 
-      if (elapsed >= MAX_TIME) {
-        finalizeRef.current();
-        return;
-      }
+    const now = audio.context.currentTime;
+    playTone(audio.context, audio.gain, 392, { duration: 0.12, gain: 0.014, when: now });
+    playTone(audio.context, audio.gain, 523.25, { duration: 0.16, gain: 0.013, when: now + 0.05 });
+  };
 
-      frameRef.current = requestAnimationFrame(tick);
-    };
+  const playGameOverSound = async () => {
+    const audio = await ensureAudio();
+    if (!audio) {
+      return;
+    }
 
-    frameRef.current = requestAnimationFrame(tick);
+    const now = audio.context.currentTime;
+    playTone(audio.context, audio.gain, 246.94, { duration: 0.18, gain: 0.016, type: 'sawtooth', when: now });
+    playTone(audio.context, audio.gain, 174.61, { duration: 0.22, gain: 0.013, type: 'triangle', when: now + 0.12 });
+  };
 
+  useEffect(() => {
+    if (!snapshot.running) {
+      stopMusic();
+    }
+  }, [snapshot.running]);
+
+  useEffect(() => {
     return () => {
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
+
+      stopMusic();
+      void audioRef.current?.context.close().catch(() => undefined);
     };
-  }, [phase]);
+  }, []);
+
+  const endGame = async () => {
+    gameRef.current.running = false;
+    gameRef.current.gameOver = true;
+    syncSnapshot(setSnapshot, gameRef.current);
+    await playGameOverSound();
+  };
+
+  const spawnPiece = async () => {
+    const nextPiece = createPiece();
+
+    if (collides(gameRef.current.board, nextPiece, nextPiece.x, nextPiece.y)) {
+      await endGame();
+      return false;
+    }
+
+    gameRef.current.piece = nextPiece;
+    return true;
+  };
+
+  const stepGame = async () => {
+    const { piece } = gameRef.current;
+
+    if (!piece) {
+      const spawned = await spawnPiece();
+      if (!spawned) {
+        return;
+      }
+      syncSnapshot(setSnapshot, gameRef.current);
+      return;
+    }
+
+    if (!collides(gameRef.current.board, piece, piece.x, piece.y + 1)) {
+      piece.y += 1;
+      syncSnapshot(setSnapshot, gameRef.current);
+      return;
+    }
+
+    gameRef.current.board = mergePiece(gameRef.current.board, piece);
+    const { board, cleared } = clearRows(gameRef.current.board);
+    gameRef.current.board = board;
+    gameRef.current.piece = null;
+
+    if (cleared > 0) {
+      gameRef.current.lines += cleared;
+      gameRef.current.score += [0, 120, 300, 520, 760][cleared] ?? cleared * 200;
+
+      setBestScore((current) => {
+        const nextBest = Math.max(current, gameRef.current.score);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(BEST_SCORE_KEY, String(nextBest));
+        }
+        return nextBest;
+      });
+
+      void playClearSound();
+    }
+
+    const spawned = await spawnPiece();
+    if (!spawned) {
+      return;
+    }
+
+    syncSnapshot(setSnapshot, gameRef.current);
+  };
+
+  const loop = async (timestamp: number) => {
+    if (!gameRef.current.running) {
+      return;
+    }
+
+    if (timestamp - gameRef.current.lastDrop >= getDropInterval(gameRef.current.lines)) {
+      gameRef.current.lastDrop = timestamp;
+      await stepGame();
+    }
+
+    frameRef.current = requestAnimationFrame((nextTimestamp) => {
+      void loop(nextTimestamp);
+    });
+  };
+
+  const startGame = async () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+
+    gameRef.current = {
+      board: emptyBoard(),
+      piece: createPiece(),
+      score: 0,
+      lines: 0,
+      running: true,
+      gameOver: false,
+      lastDrop: performance.now(),
+    };
+
+    syncSnapshot(setSnapshot, gameRef.current);
+    await startMusic();
+    frameRef.current = requestAnimationFrame((timestamp) => {
+      void loop(timestamp);
+    });
+  };
+
+  const movePiece = (direction: -1 | 1) => {
+    const { piece, board, running } = gameRef.current;
+    if (!running || !piece) {
+      return;
+    }
+
+    if (!collides(board, piece, piece.x + direction, piece.y)) {
+      piece.x += direction;
+      syncSnapshot(setSnapshot, gameRef.current);
+    }
+  };
+
+  const rotatePiece = () => {
+    const { piece, board, running } = gameRef.current;
+    if (!running || !piece) {
+      return;
+    }
+
+    const rotated = rotateMatrix(piece.matrix);
+    const kicks = [0, -1, 1, -2, 2];
+
+    for (const kick of kicks) {
+      if (!collides(board, piece, piece.x + kick, piece.y, rotated)) {
+        piece.matrix = rotated;
+        piece.x += kick;
+        syncSnapshot(setSnapshot, gameRef.current);
+        return;
+      }
+    }
+  };
+
+  const dropPiece = async () => {
+    if (!gameRef.current.running) {
+      return;
+    }
+
+    gameRef.current.lastDrop = performance.now();
+    await stepGame();
+  };
+
+  const toggleMusic = async () => {
+    setMusicEnabled((current) => !current);
+
+    if (musicEnabled) {
+      stopMusic();
+      return;
+    }
+
+    if (gameRef.current.running) {
+      await startMusic();
+    }
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== ' ' && event.key !== 'Enter') {
+      if ((event.key === 'Enter' || event.key === ' ') && !snapshot.running) {
+        event.preventDefault();
+        void startGame();
         return;
       }
 
-      event.preventDefault();
-
-      if (phase === 'idle') {
-        setResult(null);
-        setSeconds(0);
-        setGrams(0);
-        startTimeRef.current = null;
-        setPhase('running');
+      if (!snapshot.running) {
+        if (event.key.toLowerCase() === 'm') {
+          event.preventDefault();
+          void toggleMusic();
+        }
         return;
       }
 
-      if (phase === 'running') {
-        stopShot();
-        return;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        movePiece(-1);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        movePiece(1);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        rotatePiece();
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        void dropPiece();
+      } else if (event.key.toLowerCase() === 'm') {
+        event.preventDefault();
+        void toggleMusic();
       }
-
-      setResult(null);
-      setSeconds(0);
-      setGrams(0);
-      startTimeRef.current = null;
-      setPhase('idle');
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [phase]);
+  }, [snapshot.running, musicEnabled]);
 
-  const progress = clamp(seconds / MAX_TIME, 0, 1);
-  const fillProgress = clamp(grams / TARGET_YIELD, 0, 1.2);
+  const displayBoard = useMemo(() => {
+    const board = cloneBoard(snapshot.board);
+
+    if (!snapshot.piece) {
+      return board;
+    }
+
+    snapshot.piece.matrix.forEach((row, rowIndex) => {
+      row.forEach((value, columnIndex) => {
+        if (!value) {
+          return;
+        }
+
+        const boardY = snapshot.piece!.y + rowIndex;
+        const boardX = snapshot.piece!.x + columnIndex;
+
+        if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+          board[boardY][boardX] = snapshot.piece!.color;
+        }
+      });
+    });
+
+    return board;
+  }, [snapshot.board, snapshot.piece]);
+
+  const controlButtons = [
+    { label: '←', action: () => movePiece(-1), helper: 'Left' },
+    { label: '↻', action: () => rotatePiece(), helper: 'Rotate' },
+    { label: '→', action: () => movePiece(1), helper: 'Right' },
+    { label: '↓', action: () => void dropPiece(), helper: 'Drop' },
+  ];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-brand-bg text-brand-ink">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(255,87,112,0.18),transparent_28%),radial-gradient(circle_at_78%_20%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_72%_80%,rgba(122,81,53,0.2),transparent_24%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,87,112,0.18),transparent_28%),radial-gradient(circle_at_80%_22%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_72%_82%,rgba(145,94,59,0.18),transparent_24%)]" />
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-          backgroundSize: '56px 56px',
-          maskImage: 'linear-gradient(180deg, transparent 0%, black 14%, black 86%, transparent 100%)',
+            'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '52px 52px',
+          maskImage: 'linear-gradient(180deg, transparent 0%, black 16%, black 84%, transparent 100%)',
         }}
       />
 
@@ -203,12 +583,12 @@ export const NotFound = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="pointer-events-none absolute left-1/2 top-10 -translate-x-1/2 text-[28vw] font-display leading-none tracking-[-0.08em] text-white/[0.03]"
+        className="pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 text-[28vw] font-display leading-none tracking-[-0.08em] text-white/[0.03]"
       >
         404
       </motion.div>
 
-      <div className="relative mx-auto flex min-h-screen max-w-[1080px] flex-col justify-center px-6 py-20 text-center sm:px-10">
+      <div className="relative mx-auto flex min-h-screen max-w-[1160px] flex-col justify-center px-6 py-20 text-center sm:px-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -219,12 +599,12 @@ export const NotFound = () => {
           </p>
           <h1
             className="mx-auto mt-5 max-w-[14ch] font-sans text-white normal-case tracking-[-0.05em]"
-            style={{ fontSize: 'clamp(3.1rem, 7vw, 6.4rem)', lineHeight: 0.92 }}
+            style={{ fontSize: 'clamp(3.2rem, 7vw, 6.6rem)', lineHeight: 0.92 }}
           >
             This page wandered off for a coffee break.
           </h1>
-          <p className="mx-auto mt-5 max-w-[30rem] text-base leading-7 text-white/64 sm:text-lg">
-            Pull a decent espresso while you wait. Start the shot, then stop it as close as you can to 28 seconds and 36 grams.
+          <p className="mx-auto mt-5 max-w-[28rem] text-base leading-7 text-white/64 sm:text-lg">
+            Stack the takeaway cups while you wait.
           </p>
         </motion.div>
 
@@ -232,138 +612,147 @@ export const NotFound = () => {
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.72, ease: 'easeOut' }}
-          className="relative mx-auto mt-12 w-full max-w-[760px] overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-6 shadow-[0_40px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-8"
+          className="relative mx-auto mt-12 w-full max-w-[860px] overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-6 shadow-[0_40px_120px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-8"
         >
           <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/26 to-transparent" />
           <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,87,112,0.28),transparent_72%)] blur-3xl" />
 
           <div className="relative z-10">
-            <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.24em] text-white/38">
-              <span>Target: 28s / 36g</span>
-              <span>Best: {bestScore || '--'}</span>
+            <div className="flex flex-wrap items-center justify-between gap-4 text-left">
+              <div className="flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
+                <span>Score {snapshot.score}</span>
+                <span>Rows {snapshot.lines}</span>
+                <span>Best {bestScore}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => void toggleMusic()}
+                data-click-sound="true"
+                className="btn-glass-shift px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              >
+                <span>{musicEnabled ? 'Music on' : 'Music off'}</span>
+              </button>
             </div>
 
-            <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative flex h-[21rem] w-full max-w-[19rem] flex-col items-center justify-end">
-                  <div className="absolute top-0 h-7 w-28 rounded-full border border-white/14 bg-white/[0.04]" />
-                  {phase === 'running' ? (
-                    <motion.div
-                      className="absolute top-7 w-1.5 rounded-full bg-[linear-gradient(180deg,rgba(255,216,176,0.94),rgba(111,58,28,0.98))] shadow-[0_0_20px_rgba(183,96,45,0.4)]"
-                      animate={{ height: ['22%', '48%', '34%', '50%'] }}
-                      transition={{ duration: 0.75, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
-                      style={{ transformOrigin: 'top center' }}
-                    />
+            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+              <div className="flex flex-col items-center">
+                <div className="relative w-full max-w-[26rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0c0c0c] p-3">
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,87,112,0.08),transparent_30%)]" />
+                  <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))` }}>
+                    {displayBoard.flatMap((row, rowIndex) =>
+                      row.map((cell, columnIndex) => {
+                        const palette = cell ? CUP_COLORS[cell] : null;
+
+                        return (
+                          <div
+                            key={`${rowIndex}-${columnIndex}`}
+                            className="relative aspect-square overflow-hidden rounded-[0.72rem] border"
+                            style={{
+                              borderColor: cell ? palette?.border : 'rgba(255,255,255,0.05)',
+                              background: cell ? palette?.fill : 'rgba(255,255,255,0.025)',
+                              boxShadow: cell ? '0 10px 20px rgba(0,0,0,0.18)' : 'none',
+                            }}
+                          >
+                            {cell ? (
+                              <>
+                                <div className="absolute inset-x-[16%] top-[13%] h-[11%] rounded-full bg-white/32" />
+                                <div className="absolute inset-x-[24%] bottom-[28%] h-[18%] rounded-full bg-black/10" />
+                                <div className="absolute inset-x-[12%] bottom-[12%] h-[8%] rounded-full bg-white/8" />
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      }),
+                    )}
+                  </div>
+
+                  {!snapshot.running ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a]/78 px-6 text-center backdrop-blur-sm">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
+                        {snapshot.gameOver ? 'Shelf collapsed' : 'Ready?'}
+                      </p>
+                      <h2 className="mt-3 max-w-[14ch] font-sans text-3xl normal-case tracking-[-0.05em] text-white sm:text-4xl">
+                        {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
+                      </h2>
+                      <p className="mt-3 max-w-[24rem] text-sm leading-6 text-white/58">
+                        {snapshot.gameOver
+                          ? 'Turns out cups are bad at staying up forever.'
+                          : 'Classic left, right, rotate, drop. Much cuter when it is coffee.'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void startGame()}
+                        data-click-sound="true"
+                        className="btn-gradient-shift mt-6 px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                      >
+                        <span>{snapshot.gameOver ? 'Stack again' : 'Start stacking'}</span>
+                      </button>
+                    </div>
                   ) : null}
+                </div>
 
-                  <div className="relative mb-2 h-36 w-36 overflow-hidden rounded-[1.5rem] border border-white/12 bg-white/[0.04]">
-                    <div
-                      className="absolute inset-x-4 bottom-4 rounded-[1rem] bg-[linear-gradient(180deg,rgba(211,135,83,0.96),rgba(82,42,21,0.98))] transition-[height] duration-150"
-                      style={{ height: `${Math.max(0, Math.min(fillProgress * 82, 84))}%` }}
-                    />
-                    <div className="absolute inset-x-0 top-0 h-8 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),transparent)]" />
-                  </div>
-
-                  <div className="mt-5 w-full">
-                    <div className="relative h-3 overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className="absolute inset-y-0 rounded-full bg-brand-accent/28"
-                        style={{ left: '64%', width: '8%' }}
-                      />
-                      <div
-                        className="absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-white/80 bg-[#111111] shadow-[0_0_18px_rgba(255,255,255,0.14)] transition-[left] duration-100"
-                        style={{ left: `${progress * 100}%`, transform: 'translate(-50%, -50%)' }}
-                      />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-white/34">
-                      <span>0s</span>
-                      <span>sweet spot</span>
-                      <span>40s</span>
-                    </div>
-                  </div>
+                <div className="mt-5 grid w-full max-w-[26rem] grid-cols-4 gap-2 sm:hidden">
+                  {controlButtons.map((button) => (
+                    <button
+                      key={button.helper}
+                      type="button"
+                      onClick={button.action}
+                      data-click-sound="true"
+                      className="btn-glass-shift aspect-square px-0 py-0 font-mono text-lg font-black"
+                    >
+                      <span>{button.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="text-left">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <div className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] px-4 py-4">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/34">Time</p>
-                    <p className="mt-2 font-display text-4xl leading-none text-white">{seconds.toFixed(1)}s</p>
-                  </div>
-                  <div className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] px-4 py-4">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/34">Yield</p>
-                    <p className="mt-2 font-display text-4xl leading-none text-white">{grams.toFixed(1)}g</p>
-                  </div>
+                <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
+                    {snapshot.running ? 'Controls' : 'How it works'}
+                  </p>
+                  <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
+                    {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-white/58">
+                    Full rows disappear. The stack gets faster as you go. This is basically Tetris, just with more coffee and better outfits.
+                  </p>
                 </div>
 
-                <div className="mt-6 min-h-[8rem] rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-4 py-5">
-                  {phase === 'idle' ? (
-                    <>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">Ready</p>
-                      <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
-                        Start the shot and stop it before it gets weird.
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-white/56">
-                        That’s it. No dose charts. No tamp lecture. Just instincts and espresso.
-                      </p>
-                    </>
-                  ) : null}
+                <div className="mt-4 hidden grid-cols-2 gap-2 sm:grid">
+                  {controlButtons.map((button) => (
+                    <button
+                      key={button.helper}
+                      type="button"
+                      onClick={button.action}
+                      data-click-sound="true"
+                      className="btn-glass-shift justify-between px-4 py-3 font-mono text-[10px] font-black uppercase tracking-[0.18em]"
+                    >
+                      <span>{button.helper}</span>
+                      <span className="text-base">{button.label}</span>
+                    </button>
+                  ))}
+                </div>
 
-                  {phase === 'running' ? (
-                    <>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">Running</p>
-                      <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
-                        Okay, now stop it at the right moment.
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-white/56">
-                        Around 28 seconds and 36 grams is the sweet one.
-                      </p>
-                    </>
-                  ) : null}
-
-                  {phase === 'result' && result ? (
-                    <>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
-                        Score {result.score}
-                      </p>
-                      <h2 className="mt-2 font-sans text-2xl normal-case tracking-[-0.04em] text-white">
-                        {result.title}
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-white/56">
-                        {result.detail}
-                      </p>
-                    </>
-                  ) : null}
+                <div className="mt-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-5 py-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">Keyboard</p>
+                  <p className="mt-3 text-sm leading-6 text-white/58">
+                    <span className="text-white/78">← →</span> move,
+                    {' '}
+                    <span className="text-white/78">↑</span> rotate,
+                    {' '}
+                    <span className="text-white/78">↓</span> drop,
+                    {' '}
+                    <span className="text-white/78">Enter</span> start,
+                    {' '}
+                    <span className="text-white/78">M</span> music.
+                  </p>
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {phase !== 'running' ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setResult(null);
-                        setSeconds(0);
-                        setGrams(0);
-                        startTimeRef.current = null;
-                        setPhase('running');
-                      }}
-                      className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-                    >
-                      <span>{phase === 'result' ? 'Pull another' : 'Start shot'}</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={stopShot}
-                      className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
-                    >
-                      <span>Stop shot</span>
-                    </button>
-                  )}
-
                   <Link
                     to="/work"
-                    className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                    className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
                   >
                     <span>See selected work</span>
                   </Link>
@@ -374,10 +763,6 @@ export const NotFound = () => {
                     <span>Go home</span>
                   </Link>
                 </div>
-
-                <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.22em] text-white/36">
-                  Space also works.
-                </p>
               </div>
             </div>
           </div>
