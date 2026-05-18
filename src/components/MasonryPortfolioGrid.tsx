@@ -69,6 +69,7 @@ type MasonryCardProps = {
   item: PortfolioItem;
   onImageLoad: (imageKey: string) => void;
   onPreview: (item: PortfolioItem) => void;
+  showCaptions: boolean;
 };
 
 const MasonryCard = memo(({
@@ -80,6 +81,7 @@ const MasonryCard = memo(({
   item,
   onImageLoad,
   onPreview,
+  showCaptions,
 }: MasonryCardProps) => {
   const isArt = isArtDirectionItem(item) && item.routeId;
   const isVideo = isVideoItem(item);
@@ -139,7 +141,7 @@ const MasonryCard = memo(({
       }}
       {...(extraProps as any)}
     >
-      <div className="space-y-4">
+      <div className={showCaptions ? 'space-y-4' : undefined}>
         <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0b0b0e] shadow-[0_22px_56px_rgba(0,0,0,0.16)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-white/16 group-hover:shadow-[0_28px_70px_rgba(0,0,0,0.28)]">
           <div
             className={`pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-white/[0.045] transition-opacity duration-700 ${
@@ -216,18 +218,20 @@ const MasonryCard = memo(({
           )}
         </div>
 
-        <div className="px-1">
-          <div className="min-w-0">
-            <p className="line-clamp-2 text-[clamp(1rem,0.94rem+0.32vw,1.28rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
-              {item.title}
-            </p>
-            {getCardSubline(item) ? (
-              <p className="mt-2 truncate text-sm text-white/46">
-                {getCardSubline(item)}
+        {showCaptions ? (
+          <div className="px-1">
+            <div className="min-w-0">
+              <p className="line-clamp-2 text-[clamp(1rem,0.94rem+0.32vw,1.28rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-white">
+                {item.title}
               </p>
-            ) : null}
+              {getCardSubline(item) ? (
+                <p className="mt-2 truncate text-sm text-white/46">
+                  {getCardSubline(item)}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </Wrapper>
   );
@@ -239,10 +243,12 @@ export const MasonryPortfolioGrid = ({
   items,
   onPreview,
   maxColumns = 4,
+  showCaptions = true,
 }: {
   items: PortfolioItem[];
   onPreview: (item: PortfolioItem) => void;
   maxColumns?: number;
+  showCaptions?: boolean;
 }) => {
   const [columnCount, setColumnCount] = useState(() =>
     getColumnCount(typeof window === 'undefined' ? 1440 : window.innerWidth, maxColumns),
@@ -313,6 +319,7 @@ export const MasonryPortfolioGrid = ({
               item={item}
               onImageLoad={handleImageLoad}
               onPreview={onPreview}
+              showCaptions={showCaptions}
             />
           );
         })}
@@ -361,6 +368,7 @@ export const MasonryPortfolioGrid = ({
               item={item}
               onImageLoad={handleImageLoad}
               onPreview={onPreview}
+              showCaptions={showCaptions}
             />
           );
         })}
@@ -389,6 +397,7 @@ export const MasonryPortfolioGrid = ({
                 item={item}
                 onImageLoad={handleImageLoad}
                 onPreview={onPreview}
+                showCaptions={showCaptions}
               />
             );
           })}

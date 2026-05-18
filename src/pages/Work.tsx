@@ -352,6 +352,7 @@ export const Work = () => {
               items={visibleItems}
               onPreview={setActivePreview}
               maxColumns={gridMaxColumns}
+              showCaptions={false}
             />
           </div>
         )}
