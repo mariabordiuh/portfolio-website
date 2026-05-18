@@ -567,7 +567,7 @@ export const NotFound = () => {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-brand-bg text-brand-ink">
+    <div className="relative h-full min-h-0 overflow-hidden bg-brand-bg text-brand-ink">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,87,112,0.18),transparent_28%),radial-gradient(circle_at_80%_22%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_72%_82%,rgba(145,94,59,0.18),transparent_24%)]" />
       <div
         className="absolute inset-0 opacity-[0.08]"
@@ -588,7 +588,7 @@ export const NotFound = () => {
         404
       </motion.div>
 
-      <div className="relative mx-auto flex min-h-[calc(100svh-5rem)] max-w-[1240px] items-center px-6 py-6 sm:px-10 sm:py-8 lg:px-14 lg:py-10">
+      <div className="relative mx-auto flex h-full max-w-[1240px] items-center px-5 py-4 sm:px-8 sm:py-6 lg:px-12 lg:py-8">
         <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] lg:items-center">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
