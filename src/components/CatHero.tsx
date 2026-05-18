@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import { PrefetchLink } from './PrefetchLink';
+import { NeatHeroGradient } from './NeatHeroGradient';
 
 const headlineLines = [
   'Art direction,',
@@ -18,24 +19,24 @@ const capabilityChips = [
 export const CatHero = () => {
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
-      <div className="hero-mesh absolute inset-0" aria-hidden="true" />
+      <NeatHeroGradient />
       <div className="hero-grid-overlay absolute inset-0" aria-hidden="true" />
       <div
-        className="absolute -left-[16vw] top-[16vh] h-[42vw] w-[42vw] rounded-full bg-brand-accent/10 blur-[80px]"
+        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.84)_4%,rgba(6,6,10,0.42)_42%,rgba(6,6,10,0.76)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute right-[-14vw] top-[12vh] h-[32vw] w-[32vw] rounded-full bg-[#344868]/60 blur-[90px]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.08)_34%,rgba(6,6,10,0.62)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-[-14vw] left-[34%] h-[28vw] w-[28vw] rounded-full bg-[#f9c0c2]/12 blur-[85px]"
+        className="absolute left-[-14vw] top-[-14vh] h-[40vw] w-[40vw] rounded-full bg-brand-accent/14 blur-[120px]"
         aria-hidden="true"
       />
-
-      <div className="hero-ripple-ring hero-ripple-ring--pink left-[58%] top-[18%] h-[28rem] w-[28rem]" aria-hidden="true" />
-      <div className="hero-ripple-ring hero-ripple-ring--soft left-[46%] top-[40%] h-[40rem] w-[40rem] [animation-delay:-4s]" aria-hidden="true" />
-      <div className="hero-ripple-ring hero-ripple-ring--pink right-[-8rem] bottom-[-10rem] h-[32rem] w-[32rem] [animation-delay:-7s]" aria-hidden="true" />
+      <div
+        className="absolute -right-[10vw] bottom-[-12vh] h-[34vw] w-[34vw] rounded-full bg-[#f3d2d8]/10 blur-[120px]"
+        aria-hidden="true"
+      />
 
       <div className="grain-overlay opacity-25" aria-hidden="true" />
 
