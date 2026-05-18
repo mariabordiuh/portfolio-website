@@ -20,17 +20,16 @@ export const CatHero = () => {
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
       <NeatHeroGradient />
-      <div className="hero-grid-overlay absolute inset-0 opacity-[0.12]" aria-hidden="true" />
       <div
-        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.8)_0%,rgba(6,6,10,0.26)_42%,rgba(6,6,10,0.56)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(130deg,rgba(6,6,10,0.68)_0%,rgba(6,6,10,0.3)_44%,rgba(6,6,10,0.64)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.16)_0%,rgba(6,6,10,0.04)_34%,rgba(6,6,10,0.42)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.06)_34%,rgba(6,6,10,0.46)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-y-0 left-0 w-[58%] bg-[radial-gradient(circle_at_16%_38%,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.56)_52%,rgba(6,6,10,0)_100%)]"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(6,6,10,0.04)_0%,rgba(6,6,10,0.14)_54%,rgba(6,6,10,0.36)_100%)]"
         aria-hidden="true"
       />
 
