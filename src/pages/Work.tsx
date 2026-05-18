@@ -352,7 +352,7 @@ export const Work = () => {
               items={visibleItems}
               onPreview={setActivePreview}
               maxColumns={gridMaxColumns}
-              showCaptions={false}
+              captionMode="art-direction-only"
             />
           </div>
         )}

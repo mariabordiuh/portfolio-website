@@ -243,12 +243,12 @@ export const MasonryPortfolioGrid = ({
   items,
   onPreview,
   maxColumns = 4,
-  showCaptions = true,
+  captionMode = 'all',
 }: {
   items: PortfolioItem[];
   onPreview: (item: PortfolioItem) => void;
   maxColumns?: number;
-  showCaptions?: boolean;
+  captionMode?: 'all' | 'none' | 'art-direction-only';
 }) => {
   const [columnCount, setColumnCount] = useState(() =>
     getColumnCount(typeof window === 'undefined' ? 1440 : window.innerWidth, maxColumns),
@@ -319,7 +319,10 @@ export const MasonryPortfolioGrid = ({
               item={item}
               onImageLoad={handleImageLoad}
               onPreview={onPreview}
-              showCaptions={showCaptions}
+              showCaptions={
+                captionMode === 'all' ||
+                (captionMode === 'art-direction-only' && item.contentType === 'art-direction')
+              }
             />
           );
         })}
@@ -368,7 +371,10 @@ export const MasonryPortfolioGrid = ({
               item={item}
               onImageLoad={handleImageLoad}
               onPreview={onPreview}
-              showCaptions={showCaptions}
+              showCaptions={
+                captionMode === 'all' ||
+                (captionMode === 'art-direction-only' && item.contentType === 'art-direction')
+              }
             />
           );
         })}
@@ -397,7 +403,10 @@ export const MasonryPortfolioGrid = ({
                 item={item}
                 onImageLoad={handleImageLoad}
                 onPreview={onPreview}
-                showCaptions={showCaptions}
+                showCaptions={
+                  captionMode === 'all' ||
+                  (captionMode === 'art-direction-only' && item.contentType === 'art-direction')
+                }
               />
             );
           })}
