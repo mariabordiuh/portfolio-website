@@ -20,29 +20,19 @@ export const CatHero = () => {
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
       <NeatHeroGradient />
-      <div className="hero-grid-overlay absolute inset-0" aria-hidden="true" />
+      <div className="hero-grid-overlay absolute inset-0 opacity-[0.12]" aria-hidden="true" />
       <div
-        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.84)_2%,rgba(6,6,10,0.38)_44%,rgba(6,6,10,0.72)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(108deg,rgba(6,6,10,0.8)_0%,rgba(6,6,10,0.26)_42%,rgba(6,6,10,0.56)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.05)_34%,rgba(6,6,10,0.62)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.16)_0%,rgba(6,6,10,0.04)_34%,rgba(6,6,10,0.42)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-y-0 left-0 w-[62%] bg-[radial-gradient(circle_at_18%_40%,rgba(6,6,10,0.08)_0%,rgba(6,6,10,0.64)_52%,rgba(6,6,10,0)_100%)]"
+        className="absolute inset-y-0 left-0 w-[58%] bg-[radial-gradient(circle_at_16%_38%,rgba(6,6,10,0.18)_0%,rgba(6,6,10,0.56)_52%,rgba(6,6,10,0)_100%)]"
         aria-hidden="true"
       />
-      <div
-        className="absolute left-[-14vw] top-[-14vh] h-[40vw] w-[40vw] rounded-full bg-brand-accent/14 blur-[120px]"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -right-[10vw] bottom-[-12vh] h-[34vw] w-[34vw] rounded-full bg-[#f3d2d8]/10 blur-[120px]"
-        aria-hidden="true"
-      />
-
-      <div className="grain-overlay opacity-25" aria-hidden="true" />
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-14 pt-32 md:px-12 md:pb-20 md:pt-36">
         <div className="grid items-end gap-12 xl:grid-cols-[minmax(0,1fr)_22rem]">
