@@ -150,7 +150,7 @@ export const NeatHeroGradient = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div className="neat-hero-host absolute inset-0 overflow-hidden" aria-hidden="true">
       <canvas
         ref={canvasRef}
         className="block h-full w-full"

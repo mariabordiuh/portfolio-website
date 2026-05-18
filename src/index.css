@@ -98,6 +98,13 @@
     @apply border border-white/10 bg-white/5 backdrop-blur-md;
   }
 
+  .neat-hero-host a[data-n] {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+
   .btn-gradient-shift {
     position: relative;
     display: inline-flex;
