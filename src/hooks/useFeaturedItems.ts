@@ -2,11 +2,19 @@ import { useEffect, useState } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore/lite';
 import { dbLite } from '../firebase-firestore-lite';
 import { Project, Video, GalleryImage } from '../types';
-import { normalizeProject, toPortfolioItem, videoToPortfolioItem, galleryToPortfolioItem, PortfolioItem } from '../utils/portfolio';
+import {
+  normalizeProject,
+  toPortfolioItem,
+  videoToPortfolioItem,
+  galleryToPortfolioItem,
+  PortfolioItem,
+  WORK_PILLARS,
+} from '../utils/portfolio';
 import { readSessionCache, writeSessionCache } from '../utils/session-cache';
 
-const PERSISTED_FEATURED_ITEMS_KEY = 'featured-items-persisted-v1';
+const PERSISTED_FEATURED_ITEMS_KEY = 'featured-items-persisted-v2';
 const PERSISTED_FEATURED_ITEMS_TTL_MS = 1000 * 60 * 60 * 6;
+const FEATURED_SESSION_CACHE_KEY = 'featured-items-v2';
 
 type PersistedFeaturedItems = {
   items: PortfolioItem[];
@@ -58,13 +66,97 @@ const writePersistedFeaturedItems = (items: PortfolioItem[]) => {
   }
 };
 
+const SOURCE_WEIGHT: Record<PortfolioItem['source'], number> = {
+  project: 0,
+  video: 1,
+  gallery: 2,
+};
+
+const sortPriorityItems = (items: PortfolioItem[]) =>
+  [...items].sort((left, right) => {
+    const leftRank = left.workPriorityRank ?? Number.POSITIVE_INFINITY;
+    const rightRank = right.workPriorityRank ?? Number.POSITIVE_INFINITY;
+
+    if (leftRank !== rightRank) {
+      return leftRank - rightRank;
+    }
+
+    return left.title.localeCompare(right.title);
+  });
+
+const sortBalancedItems = (items: PortfolioItem[]) =>
+  [...items].sort((left, right) => {
+    const sourceDelta = SOURCE_WEIGHT[left.source] - SOURCE_WEIGHT[right.source];
+    if (sourceDelta !== 0) {
+      return sourceDelta;
+    }
+
+    return left.title.localeCompare(right.title);
+  });
+
+const uniqueById = (items: PortfolioItem[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) {
+      return false;
+    }
+
+    seen.add(item.id);
+    return true;
+  });
+};
+
+const buildBalancedFallback = (items: PortfolioItem[]) => {
+  const sorted = sortBalancedItems(items);
+  const preferred = sorted.filter((item) => item.source !== 'gallery');
+  const used = new Set<string>();
+  const pool: PortfolioItem[] = [];
+
+  for (const pillar of WORK_PILLARS) {
+    const candidate =
+      preferred.find((item) => item.pillar === pillar && !used.has(item.id)) ??
+      sorted.find((item) => item.pillar === pillar && !used.has(item.id));
+
+    if (!candidate) {
+      continue;
+    }
+
+    used.add(candidate.id);
+    pool.push(candidate);
+  }
+
+  for (const candidate of sorted) {
+    if (used.has(candidate.id)) {
+      continue;
+    }
+
+    used.add(candidate.id);
+    pool.push(candidate);
+  }
+
+  return pool;
+};
+
+const buildSelectedPool = (items: PortfolioItem[]) => {
+  const ranked = sortPriorityItems(items.filter((item) => typeof item.workPriorityRank === 'number'));
+
+  if (ranked.length > 0) {
+    const featured = sortBalancedItems(items.filter((item) => item.featured));
+    const fallback = buildBalancedFallback(items);
+    return uniqueById([...ranked, ...featured, ...fallback]).slice(0, 12);
+  }
+
+  return buildBalancedFallback(items).slice(0, 12);
+};
+
 /**
- * Lightweight hook that only fetches documents where `featured == true`.
- * This avoids downloading entire collections on the homepage.
+ * Homepage selection hook.
+ * Uses explicit ranking when available, otherwise falls back to a balanced
+ * published mix so the homepage never depends on a single optional flag.
  */
 export const useFeaturedItems = () => {
   const initialItems =
-    readSessionCache<PortfolioItem[]>('featured-items') || readPersistedFeaturedItems() || [];
+    readSessionCache<PortfolioItem[]>(FEATURED_SESSION_CACHE_KEY) || readPersistedFeaturedItems() || [];
   const [items, setItems] = useState<PortfolioItem[]>(initialItems);
   const [loading, setLoading] = useState(() => initialItems.length === 0);
 
@@ -72,7 +164,7 @@ export const useFeaturedItems = () => {
     let cancelled = false;
 
     if (initialItems.length > 0) {
-      writeSessionCache('featured-items', initialItems);
+      writeSessionCache(FEATURED_SESSION_CACHE_KEY, initialItems);
       return () => {
         cancelled = true;
       };
@@ -95,24 +187,25 @@ export const useFeaturedItems = () => {
           return;
         }
 
-        const featuredProjects = projectsSnapshot.docs
+        const publishedProjects = projectsSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
-          .filter((item) => item.featured)
           .map((item) => toPortfolioItem(normalizeProject(item)));
 
-        const featuredVideos = videosSnapshot.docs
+        const publishedVideos = videosSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Video))
-          .filter((item) => item.featured)
           .map((item) => videoToPortfolioItem(item));
 
-        const featuredGallery = gallerySnapshot.docs
+        const publishedGallery = gallerySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as GalleryImage))
-          .filter((item) => item.featured)
           .map((item) => galleryToPortfolioItem(item));
 
-        const nextItems = [...featuredProjects, ...featuredVideos, ...featuredGallery];
+        const nextItems = buildSelectedPool([
+          ...publishedProjects,
+          ...publishedVideos,
+          ...publishedGallery,
+        ]);
         setItems(nextItems);
-        writeSessionCache('featured-items', nextItems);
+        writeSessionCache(FEATURED_SESSION_CACHE_KEY, nextItems);
         writePersistedFeaturedItems(nextItems);
       } catch (error) {
         console.error('Failed to load featured portfolio items:', error);
