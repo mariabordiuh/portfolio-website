@@ -53,8 +53,23 @@ export type PortfolioItem = {
 
 const trim = (value?: string | null) => value?.trim() ?? '';
 
+const isBrokenDownloadUrl = (url?: string | null) => {
+  const value = trim(url);
+  return value.includes('token=undefined') || value.includes('token=null');
+};
+
+const normalizeMediaUrl = (url?: string | null) => {
+  const value = trim(url);
+  return value && !isBrokenDownloadUrl(value) ? value : '';
+};
+
 export const getPortfolioImageSrc = (item: Pick<PortfolioItem, 'thumbnailUrl' | 'previewUrl' | 'thumbnail' | 'heroImage' | 'images'>) =>
-  item.thumbnailUrl || item.previewUrl || item.thumbnail || item.heroImage || item.images[0] || '';
+  normalizeMediaUrl(item.thumbnailUrl) ||
+  normalizeMediaUrl(item.previewUrl) ||
+  normalizeMediaUrl(item.thumbnail) ||
+  normalizeMediaUrl(item.heroImage) ||
+  item.images.find((image) => normalizeMediaUrl(image)) ||
+  '';
 
 export const normalizePillar = (pillar?: LegacyProjectPillar | string | null): ProjectPillar => {
   switch (pillar) {
@@ -393,8 +408,8 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     heroZoom: normalized.heroZoom ?? 100,
     heroPositionX: normalized.heroPositionX ?? 50,
     heroPositionY: normalized.heroPositionY ?? 50,
-    thumbnailUrl: trim(project.thumbnailUrl) || trim(project.previewUrl),
-    previewUrl: trim(project.previewUrl) || trim(project.thumbnailUrl),
+    thumbnailUrl: normalizeMediaUrl(project.thumbnailUrl) || normalizeMediaUrl(project.previewUrl),
+    previewUrl: normalizeMediaUrl(project.previewUrl) || normalizeMediaUrl(project.thumbnailUrl),
     heroImage: normalized.heroImage || normalized.thumbnail || images[0] || '',
     images,
     mediaUrl: normalized.mediaUrl || normalized.videoUrl,
@@ -431,8 +446,8 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     contentType,
     description: trim(video.description),
     thumbnail: trim(video.thumbnail) || rawUrl,
-    thumbnailUrl: trim(video.thumbnailUrl) || trim(video.previewUrl),
-    previewUrl: trim(video.previewUrl) || trim(video.thumbnailUrl),
+    thumbnailUrl: normalizeMediaUrl(video.thumbnailUrl) || normalizeMediaUrl(video.previewUrl),
+    previewUrl: normalizeMediaUrl(video.previewUrl) || normalizeMediaUrl(video.thumbnailUrl),
     heroImage: trim(video.thumbnail) || rawUrl,
     images: trim(video.thumbnail) ? [trim(video.thumbnail)] : [],
     mediaUrl: embedUrl ? '' : rawUrl,
@@ -463,8 +478,8 @@ export const galleryToPortfolioItem = (image: GalleryImage): PortfolioItem => {
     contentType,
     description: trim(image.info),
     thumbnail: trim(image.url || (image as any).image),
-    thumbnailUrl: trim(image.thumbnailUrl) || trim(image.previewUrl),
-    previewUrl: trim(image.previewUrl) || trim(image.thumbnailUrl),
+    thumbnailUrl: normalizeMediaUrl(image.thumbnailUrl) || normalizeMediaUrl(image.previewUrl),
+    previewUrl: normalizeMediaUrl(image.previewUrl) || normalizeMediaUrl(image.thumbnailUrl),
     heroImage: trim(image.url || (image as any).image),
     images: trim(image.url || (image as any).image) ? [trim(image.url || (image as any).image)] : [],
     mediaUrl: '',
