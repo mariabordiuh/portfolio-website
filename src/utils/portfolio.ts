@@ -58,10 +58,39 @@ const isBrokenDownloadUrl = (url?: string | null) => {
   return value.includes('token=undefined') || value.includes('token=null');
 };
 
+const normalizeFirebasePublicUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'firebasestorage.googleapis.com' || !parsed.pathname.includes('/o/')) {
+      return url;
+    }
+
+    if (!parsed.searchParams.get('alt')) {
+      parsed.searchParams.set('alt', 'media');
+    }
+    parsed.searchParams.delete('token');
+
+    return parsed.toString();
+  } catch (_error) {
+    return url;
+  }
+};
+
 const normalizeMediaUrl = (url?: string | null) => {
   const value = trim(url);
-  return value && !isBrokenDownloadUrl(value) ? value : '';
+  if (!value) {
+    return '';
+  }
+
+  if (value.includes('firebasestorage.googleapis.com')) {
+    return normalizeFirebasePublicUrl(value);
+  }
+
+  return !isBrokenDownloadUrl(value) ? value : '';
 };
+
+const normalizeUrlList = (values?: Array<string | null | undefined>) =>
+  uniqueStrings((values ?? []).map((value) => normalizeMediaUrl(value)).filter(Boolean));
 
 export const getPortfolioImageSrc = (item: Pick<PortfolioItem, 'thumbnailUrl' | 'previewUrl' | 'thumbnail' | 'heroImage' | 'images'>) =>
   normalizeMediaUrl(item.thumbnailUrl) ||
@@ -270,17 +299,25 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
   const solution = trim(project.solution) || trim(project.approach);
   const outcome =
     trim(project.outcome) || trim(project.outcomeCopy) || trim(project.outcomeResultCopy) || trim(project.result);
-  const heroImage =
-    trim(project.heroImage) ||
-    trim(project.thumbnail) ||
-    uniqueStrings(project.images)[0] ||
-    uniqueStrings(project.moodboardImages)[0] ||
-    '';
-  const mediaUrl = trim(project.mediaUrl) || trim(project.videoUrl);
-  const images = uniqueStrings(project.images);
-  const outcomeImages = uniqueStrings(
+  const images = normalizeUrlList(project.images);
+  const moodboardImages = normalizeUrlList(project.moodboardImages);
+  const sketchImages = normalizeUrlList(project.sketchImages);
+  const childhoodImages = normalizeUrlList(project.childhoodImages);
+  const universityImages = normalizeUrlList(project.universityImages);
+  const workImages = normalizeUrlList(project.workImages);
+  const explorationImages = normalizeUrlList(project.explorationImages);
+  const explorationVideos = normalizeUrlList(project.explorationVideos);
+  const hybridizationImages = normalizeUrlList(project.hybridizationImages);
+  const outcomeImages = normalizeUrlList(
     project.outcomeImages?.length ? project.outcomeImages : project.outcomeVisuals,
   );
+  const heroImage =
+    normalizeMediaUrl(project.heroImage) ||
+    normalizeMediaUrl(project.thumbnail) ||
+    images[0] ||
+    moodboardImages[0] ||
+    '';
+  const mediaUrl = normalizeMediaUrl(project.mediaUrl) || normalizeMediaUrl(project.videoUrl);
   // Firestore data arrives untyped — `credits` may contain {name, role} objects
   // instead of strings if older documents were seeded incorrectly. Handle both.
   const rawCredits = (project.credits ?? []) as unknown[];
@@ -309,7 +346,7 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     category: categories.join(', ') || trim(project.category),
     categories,
     description: trim(project.description),
-    thumbnail: trim(project.thumbnail) || heroImage || mediaUrl,
+    thumbnail: normalizeMediaUrl(project.thumbnail) || heroImage || mediaUrl,
     thumbnailZoom: project.thumbnailZoom ?? 100,
     thumbnailPositionX: project.thumbnailPositionX ?? 50,
     thumbnailPositionY: project.thumbnailPositionY ?? 50,
@@ -344,31 +381,31 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
     solution,
     outcome,
     mariaRole: uniqueStrings(project.mariaRole),
-    moodboardImages: uniqueStrings(project.moodboardImages),
-    sketchImages: uniqueStrings(project.sketchImages),
-    childhoodImages: uniqueStrings(project.childhoodImages),
-    universityImages: uniqueStrings(project.universityImages),
-    workImages: uniqueStrings(project.workImages),
+    moodboardImages,
+    sketchImages,
+    childhoodImages,
+    universityImages,
+    workImages,
     explorationType: project.explorationType ?? 'masonry',
     slotMachineGridSize: project.slotMachineGridSize ?? 4,
     slotMachineFps: project.slotMachineFps ?? 12,
-    explorationImages: uniqueStrings(project.explorationImages),
-    explorationVideos: uniqueStrings(project.explorationVideos),
+    explorationImages,
+    explorationVideos,
     explorationCaption: trim(project.explorationCaption),
     decisionMomentCopy: trim(project.decisionMomentCopy),
     colorSystem: project.colorSystem ?? [],
-    animaticVideoUrl: trim(project.animaticVideoUrl),
+    animaticVideoUrl: normalizeMediaUrl(project.animaticVideoUrl) || trim(project.animaticVideoUrl),
     animaticVideoUrls: uniqueStrings(
       project.animaticVideoUrls?.length
-        ? project.animaticVideoUrls
+        ? project.animaticVideoUrls.map((url) => normalizeMediaUrl(url) || trim(url))
         : trim(project.animaticVideoUrl)
-          ? [trim(project.animaticVideoUrl)]
+          ? [normalizeMediaUrl(project.animaticVideoUrl) || trim(project.animaticVideoUrl)]
           : [],
     ),
     animaticCaption: trim(project.animaticCaption),
     processVideoTitle: trim(project.processVideoTitle),
     processVideoEyebrow: trim(project.processVideoEyebrow),
-    hybridizationImages: uniqueStrings(project.hybridizationImages),
+    hybridizationImages,
     hybridizationCaption: trim(project.hybridizationCaption),
     outcomeVisuals: outcomeImages,
     outcomeResultCopy:
@@ -428,7 +465,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
 
 export const videoToPortfolioItem = (video: Video): PortfolioItem => {
   const pillar = normalizePillar(video.pillar);
-  const rawUrl = trim(video.url);
+  const rawUrl = normalizeMediaUrl(video.url) || trim(video.url);
   const embedUrl = isEmbeddableVideoUrl(rawUrl) ? toEmbedUrl(rawUrl) : '';
   const contentType =
     pillar === 'Animation & Motion'
@@ -445,11 +482,11 @@ export const videoToPortfolioItem = (video: Video): PortfolioItem => {
     pillar,
     contentType,
     description: trim(video.description),
-    thumbnail: trim(video.thumbnail) || rawUrl,
+    thumbnail: normalizeMediaUrl(video.thumbnail) || rawUrl,
     thumbnailUrl: normalizeMediaUrl(video.thumbnailUrl) || normalizeMediaUrl(video.previewUrl),
     previewUrl: normalizeMediaUrl(video.previewUrl) || normalizeMediaUrl(video.thumbnailUrl),
-    heroImage: trim(video.thumbnail) || rawUrl,
-    images: trim(video.thumbnail) ? [trim(video.thumbnail)] : [],
+    heroImage: normalizeMediaUrl(video.thumbnail) || rawUrl,
+    images: normalizeMediaUrl(video.thumbnail) ? [normalizeMediaUrl(video.thumbnail)] : [],
     mediaUrl: embedUrl ? '' : rawUrl,
     embedUrl,
     tools: uniqueStrings(video.tools),
@@ -477,11 +514,13 @@ export const galleryToPortfolioItem = (image: GalleryImage): PortfolioItem => {
     pillar,
     contentType,
     description: trim(image.info),
-    thumbnail: trim(image.url || (image as any).image),
+    thumbnail: normalizeMediaUrl(image.url || (image as any).image),
     thumbnailUrl: normalizeMediaUrl(image.thumbnailUrl) || normalizeMediaUrl(image.previewUrl),
     previewUrl: normalizeMediaUrl(image.previewUrl) || normalizeMediaUrl(image.thumbnailUrl),
-    heroImage: trim(image.url || (image as any).image),
-    images: trim(image.url || (image as any).image) ? [trim(image.url || (image as any).image)] : [],
+    heroImage: normalizeMediaUrl(image.url || (image as any).image),
+    images: normalizeMediaUrl(image.url || (image as any).image)
+      ? [normalizeMediaUrl(image.url || (image as any).image)]
+      : [],
     mediaUrl: '',
     embedUrl: '',
     tools: uniqueStrings(image.software ? [image.software] : []),
