@@ -54,7 +54,7 @@ service cloud.firestore {
     }
 
     function hasValidStatus(data) {
-      return !('status' in data) || data.status in ['draft', 'published'];
+      return ('status' in data) && data.status in ['draft', 'published'];
     }
 
     function isDraft(data) {
@@ -120,35 +120,35 @@ service cloud.firestore {
     // ===============================================================
 
     match /projects/{projectId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published';
       allow create: if isAdmin() && isValidProject(request.resource.data);
       allow update: if isAdmin() && isValidProject(request.resource.data);
       allow delete: if isAdmin();
     }
 
     match /videos/{videoId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published';
       allow create: if isAdmin() && isValidVideo(request.resource.data);
       allow update: if isAdmin() && isValidVideo(request.resource.data);
       allow delete: if isAdmin();
     }
 
     match /labItems/{itemId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published';
       allow create: if isAdmin() && isValidLabItem(request.resource.data);
       allow update: if isAdmin() && isValidLabItem(request.resource.data);
       allow delete: if isAdmin();
     }
 
     match /gallery/{imageId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published';
       allow create: if isAdmin() && isValidGalleryImage(request.resource.data);
       allow update: if isAdmin() && isValidGalleryImage(request.resource.data);
       allow delete: if isAdmin();
     }
 
     match /settings/{settingId} {
-      allow read: if true;
+      allow read: if isAdmin() || settingId == 'homeHero';
       allow create, update: if isAdmin() &&
         settingId == 'homeHero' &&
         isValidHomeHeroSettings(request.resource.data);

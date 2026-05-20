@@ -86,9 +86,9 @@ export const useFeaturedItems = () => {
 
       try {
         const [projectsSnapshot, videosSnapshot, gallerySnapshot] = await Promise.all([
-          getDocs(query(collection(dbLite, 'projects'), where('featured', '==', true))),
-          getDocs(query(collection(dbLite, 'videos'), where('featured', '==', true))),
-          getDocs(query(collection(dbLite, 'gallery'), where('featured', '==', true))),
+          getDocs(query(collection(dbLite, 'projects'), where('status', '==', 'published'))),
+          getDocs(query(collection(dbLite, 'videos'), where('status', '==', 'published'))),
+          getDocs(query(collection(dbLite, 'gallery'), where('status', '==', 'published'))),
         ]);
 
         if (cancelled) {
@@ -97,17 +97,17 @@ export const useFeaturedItems = () => {
 
         const featuredProjects = projectsSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Project))
-          .filter((item) => item.status !== 'draft')
+          .filter((item) => item.featured)
           .map((item) => toPortfolioItem(normalizeProject(item)));
 
         const featuredVideos = videosSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Video))
-          .filter((item) => item.status !== 'draft')
+          .filter((item) => item.featured)
           .map((item) => videoToPortfolioItem(item));
 
         const featuredGallery = gallerySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as GalleryImage))
-          .filter((item) => item.status !== 'draft')
+          .filter((item) => item.featured)
           .map((item) => galleryToPortfolioItem(item));
 
         const nextItems = [...featuredProjects, ...featuredVideos, ...featuredGallery];

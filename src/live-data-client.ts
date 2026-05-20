@@ -1,4 +1,4 @@
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from './firebase-firestore';
 import { GalleryImage, LabItem, Project, Video } from './types';
 
@@ -20,7 +20,7 @@ function toReadableError(scope: string, error: unknown) {
 
 export function subscribeToLivePortfolioData(handlers: SubscriptionHandlers) {
   const unsubProjects = onSnapshot(
-    collection(db, 'projects'),
+    query(collection(db, 'projects'), where('status', '==', 'published')),
     (snapshot) => {
       handlers.onProjects(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Project)));
     },
@@ -30,7 +30,7 @@ export function subscribeToLivePortfolioData(handlers: SubscriptionHandlers) {
   );
 
   const unsubVideos = onSnapshot(
-    collection(db, 'videos'),
+    query(collection(db, 'videos'), where('status', '==', 'published')),
     (snapshot) => {
       handlers.onVideos(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video)));
     },
@@ -40,7 +40,7 @@ export function subscribeToLivePortfolioData(handlers: SubscriptionHandlers) {
   );
 
   const unsubLabItems = onSnapshot(
-    collection(db, 'labItems'),
+    query(collection(db, 'labItems'), where('status', '==', 'published')),
     (snapshot) => {
       handlers.onLabItems(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem)));
     },
@@ -50,7 +50,7 @@ export function subscribeToLivePortfolioData(handlers: SubscriptionHandlers) {
   );
 
   const unsubGallery = onSnapshot(
-    collection(db, 'gallery'),
+    query(collection(db, 'gallery'), where('status', '==', 'published')),
     (snapshot) => {
       handlers.onGalleryImages(snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage)));
     },

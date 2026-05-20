@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore/lite';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore/lite';
 import { DataContext } from './DataContext';
 import { dbLite } from '../firebase-firestore-lite';
 import { DEFAULT_HOME_HERO_SETTINGS, HOME_HERO_SETTINGS_ID, normalizeHomeHeroSettings } from '../utils/home-hero';
@@ -33,6 +33,10 @@ const resolveCollections = (collections?: DataCollectionConfig) => ({
   galleryImages: collections?.galleryImages ?? DEFAULT_COLLECTIONS.galleryImages,
   homeHero: collections?.homeHero ?? DEFAULT_COLLECTIONS.homeHero,
 });
+
+const publishedCollectionQuery = (
+  collectionName: 'projects' | 'videos' | 'labItems' | 'gallery',
+) => query(collection(dbLite!, collectionName), where('status', '==', 'published'));
 
 const logPublicDataError = (scope: string, error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -99,7 +103,7 @@ export const PublicDataProvider = ({
 
       if (enabledCollections.projects) {
         tasks.push(
-          getDocs(collection(dbLite, 'projects'))
+          getDocs(publishedCollectionQuery('projects'))
             .then((snapshot) => {
               if (cancelled) return;
               const nextProjects = snapshot.docs.map((entry) =>
@@ -114,7 +118,7 @@ export const PublicDataProvider = ({
 
       if (enabledCollections.videos) {
         tasks.push(
-          getDocs(collection(dbLite, 'videos'))
+          getDocs(publishedCollectionQuery('videos'))
             .then((snapshot) => {
               if (cancelled) return;
               const nextVideos = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video));
@@ -127,7 +131,7 @@ export const PublicDataProvider = ({
 
       if (enabledCollections.labItems) {
         tasks.push(
-          getDocs(collection(dbLite, 'labItems'))
+          getDocs(publishedCollectionQuery('labItems'))
             .then((snapshot) => {
               if (cancelled) return;
               const nextLabItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem));
@@ -140,7 +144,7 @@ export const PublicDataProvider = ({
 
       if (enabledCollections.galleryImages) {
         tasks.push(
-          getDocs(collection(dbLite, 'gallery'))
+          getDocs(publishedCollectionQuery('gallery'))
             .then((snapshot) => {
               if (cancelled) return;
               const nextGalleryImages = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage));
