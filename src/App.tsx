@@ -153,6 +153,18 @@ const AppShell = () => {
     return () => window.clearTimeout(timer);
   }, [isAdmin, location.pathname, location.search]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    document.body.dataset.cursorMode = isAdmin ? 'native' : 'custom';
+
+    return () => {
+      delete document.body.dataset.cursorMode;
+    };
+  }, [isAdmin]);
+
   const appFrame = (
     <div
       className={`selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white ${

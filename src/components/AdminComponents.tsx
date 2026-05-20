@@ -109,6 +109,16 @@ export const UploadBox = ({
             }} 
           />
         </label>
+        {value && !isUploading ? (
+          <button
+            type="button"
+            onClick={() => stateSetter((prev: any) => ({ ...prev, [field]: '' }))}
+            className="h-14 rounded-2xl border border-white/10 bg-white/5 px-5 text-[10px] font-black uppercase tracking-[0.22em] text-white/72 transition-all hover:border-red-400/40 hover:bg-red-500/12 hover:text-red-100"
+            aria-label={`Remove current ${isVideo ? 'video' : 'image'}`}
+          >
+            Clear
+          </button>
+        ) : null}
       </div>
       {isUploading && (
         <div className="space-y-2">

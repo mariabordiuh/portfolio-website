@@ -80,14 +80,14 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    body,
-    a,
-    button,
-    [role="button"],
-    input,
-    textarea,
-    select,
-    label {
+    body[data-cursor-mode="custom"],
+    body[data-cursor-mode="custom"] a,
+    body[data-cursor-mode="custom"] button,
+    body[data-cursor-mode="custom"] [role="button"],
+    body[data-cursor-mode="custom"] input,
+    body[data-cursor-mode="custom"] textarea,
+    body[data-cursor-mode="custom"] select,
+    body[data-cursor-mode="custom"] label {
       cursor: none;
     }
   }
