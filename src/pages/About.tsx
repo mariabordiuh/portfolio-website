@@ -226,35 +226,37 @@ export const About = () => {
                     </p>
                     {note.title === 'Outside work' ? (
                       <div className="mt-auto pt-2">
-                        <div className="rounded-[0.9rem] border border-white/10 bg-black/24 p-2">
-                          <div className="flex items-center gap-2">
-                            <motion.button
-                              type="button"
-                              onClick={() => setIsLokiOpen(true)}
-                              whileHover={{ y: -2, scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              className="group relative h-9 w-9 shrink-0 overflow-hidden rounded-[0.72rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.22)]"
-                            >
-                              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.32),_transparent_62%)] opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
-                              <motion.img
-                                src={LOKI_IMAGE}
-                                alt="Loki the cat sitting in a chair"
-                                loading="lazy"
-                                className="relative z-[1] h-full w-full object-cover"
-                                animate={{ scale: [1, 1.03, 1] }}
-                                transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
-                              />
-                            </motion.button>
-                            <div>
-                              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
-                                Bonus: Loki
-                              </p>
-                              <p className="mt-0.5 text-[0.68rem] leading-[1.22] text-white/62">
-                                Found in China in 2018. Very likely to join the call.
-                              </p>
-                            </div>
+                        <motion.button
+                          type="button"
+                          onClick={() => setIsLokiOpen(true)}
+                          whileHover={{ y: -2, scale: 1.01 }}
+                          whileTap={{ scale: 0.985 }}
+                          className="group relative flex w-full items-center gap-2.5 rounded-[0.95rem] border border-white/10 bg-black/24 p-2.5 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
+                        >
+                          <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,87,112,0.06),transparent_52%)] opacity-80" />
+                          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-white/[0.04]">
+                            <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.2),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
+                            <motion.img
+                              src={LOKI_IMAGE}
+                              alt="Loki the cat sitting in a chair"
+                              loading="lazy"
+                              className="h-full w-full object-cover object-center"
+                              animate={{ scale: [1, 1.03, 1] }}
+                              transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
+                            />
                           </div>
-                        </div>
+                          <div className="relative min-w-0">
+                            <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
+                              Bonus: Loki
+                            </p>
+                            <p className="mt-1 text-[0.72rem] leading-[1.25] text-white/68">
+                              Found in China in 2018. Very likely to join the call.
+                            </p>
+                            <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.2em] text-white/36">
+                              Click to enlarge
+                            </p>
+                          </div>
+                        </motion.button>
                       </div>
                     ) : null}
                   </article>
