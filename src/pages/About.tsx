@@ -56,39 +56,39 @@ const QUICK_FACTS: QuickFact[] = [
 const CV_NOTES = [
   {
     title: 'Now',
-    body: 'Freelancing as an AI Specialist and Art Director since August 2024, building AI-driven visuals, motion concepts, and production-ready workflows.',
+    body: 'Freelance AI Specialist / Art Director since 2024. AI visuals, motion concepts, and production workflows.',
   },
   {
     title: 'Motion foundation',
-    body: 'My base is motion design and 2D animation: cut-out TV work in Toon Boom, explainers, social assets, and campaign motion.',
+    body: 'Motion design + 2D animation: cut-out TV, explainers, social assets, and campaign motion.',
   },
   {
     title: 'Agency chapter',
-    body: 'At weigertpirouzwolf in Hamburg, I was the only motion designer, translating campaign ideas into motion, social assets, and promotional materials.',
+    body: 'Only motion designer at weigertpirouzwolf in Hamburg, shaping campaign ideas into motion and social assets.',
   },
   {
     title: 'Selected work',
-    body: 'Selected projects include Novo Nordisk education films, Morshynska’s dinosaur label world, Silpo motion spots, and web experiments like Mirror Atelier and pink33.party.',
+    body: 'Novo Nordisk, Morshynska, Silpo, Mirror Atelier, and pink33.party.',
   },
   {
     title: 'Education',
-    body: 'Diploma in VFX & 3D Animation from SAE Hamburg, plus a B.A. in Japanese Language and Literature from Taras Shevchenko National University of Kyiv.',
+    body: 'SAE Hamburg diploma in VFX & 3D Animation, after a B.A. in Japanese Language and Literature.',
   },
   {
     title: 'Tools + tech',
-    body: 'After Effects, Photoshop, Houdini, Midjourney, fal.ai tools, Codex, Claude Code, Firebase, and small custom UIs when the workflow needs them.',
+    body: 'After Effects, Photoshop, Houdini, Midjourney, fal.ai, Codex, Claude Code, Firebase, and custom UIs.',
   },
   {
     title: 'Languages',
-    body: 'Ukrainian native, English fluent, German work-strong, with a Japanese studies background that still helps on international and cross-cultural briefs.',
+    body: 'Ukrainian native, English fluent, German work-strong, with a useful Japanese studies background.',
   },
   {
     title: 'NDA reality',
-    body: 'Some recent work is still under NDA, in progress, or simply better shown in conversation. The portfolio is selective by design.',
+    body: 'Some recent work is under NDA or better explained in conversation.',
   },
   {
     title: 'Outside work',
-    body: 'Hamburg since 2022, after living in Ukraine, the US, Poland, China, and Vietnam. Outside work: coffee, plants, balcony tomato plans, fixing found furniture, and Loki.',
+    body: 'Hamburg since 2022, after Ukraine, the US, Poland, China, and Vietnam. Outside work: coffee, plants, fixing things, and Loki.',
   },
 ] as const;
 
@@ -161,38 +161,37 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-20 pt-28 md:pb-24 md:pt-32 xl:pb-28 xl:pt-34">
+      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-20 xl:pt-20">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-8 xl:min-h-[calc(100svh-10rem)] xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] xl:items-stretch">
-            <div className="flex h-full flex-col gap-8 xl:justify-between">
-              <div className="max-w-[40rem]">
+          <div className="grid gap-3.5 xl:min-h-[calc(100svh-5.75rem)] xl:grid-cols-[minmax(13rem,0.5fr)_minmax(0,1.5fr)] xl:items-stretch">
+            <div className="flex h-full flex-col gap-4">
+              <div className="max-w-[42rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                   Why work with me
                 </p>
 
-                <h1 className="mt-4 max-w-[10ch] font-display text-[clamp(2.55rem,4.85vw,4.8rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
+                <h1 className="mt-2 max-w-[10ch] font-display text-[clamp(1.88rem,3.05vw,3.18rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
                   Maria
                   <br />
                   Bordiuh<span className="text-brand-accent">.</span>
                 </h1>
 
-                <p className="mt-4 max-w-[33rem] text-[clamp(0.95rem,0.84rem+0.3vw,1.08rem)] leading-relaxed text-white/70">
-                  I’m a Ukrainian Art Director based in Hamburg, with roots in design, animation,
-                  and visual storytelling. My work sits between art direction, motion, AI image
-                  systems, and creative technology, especially when a project needs both strong
-                  visual judgment and a nerdier workflow brain.
+                <p className="mt-2 max-w-[25rem] text-[clamp(0.82rem,0.78rem+0.1vw,0.9rem)] leading-[1.48] text-white/64">
+                  I’m a Ukrainian Art Director in Hamburg working across art direction, motion, AI
+                  image systems, and creative tech. Best when a project needs both strong visual
+                  judgment and a nerdier workflow brain.
                 </p>
               </div>
 
-              <div className="space-y-5 rounded-[1.55rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-sm md:p-5">
-                <div className="flex flex-wrap gap-3">
+              <div className="space-y-3 border-t border-white/8 pt-3.5">
+                <div className="flex flex-wrap gap-2.5">
                   {CONTACT_LINKS.map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
                       target={link.external ? '_blank' : undefined}
                       rel={link.external ? 'noopener noreferrer' : undefined}
-                      className="btn-glass-shift px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+                      className="btn-glass-shift px-3.5 py-2 font-mono text-[9px] font-black uppercase tracking-[0.22em]"
                     >
                       {link.label}
                       <ArrowUpRight size={15} />
@@ -200,76 +199,41 @@ export const About = () => {
                   ))}
                 </div>
 
-                <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-                  {QUICK_FACTS.map((fact) => {
-                    const Icon = fact.icon;
-                    const content = Icon ? (
-                      <span className="inline-flex items-start gap-2">
-                        <Icon size={14} className="mt-[0.1rem] shrink-0 text-brand-accent" />
-                        <span>{fact.value}</span>
-                      </span>
-                    ) : (
-                      fact.value
-                    );
-
-                    return (
-                      <div key={fact.label} className="border-t border-white/8 pt-3">
-                        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
-                          {fact.label}
-                        </p>
-                        {fact.href ? (
-                          <a
-                            href={fact.href}
-                            className="mt-1 block text-[0.9rem] leading-relaxed text-white/74 transition-colors hover:text-white"
-                          >
-                            {content}
-                          </a>
-                        ) : (
-                          <p className="mt-1 text-[0.9rem] leading-relaxed text-white/74">
-                            {content}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <p className="max-w-[30rem] text-[0.8rem] leading-relaxed text-white/44">
+                  Hamburg. Art direction, motion, AI visuals, and creative tech.
+                </p>
               </div>
             </div>
 
             <div className="min-h-0">
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
-                    CV notes
-                  </p>
-                  <p className="mt-1 text-sm text-white/52">
-                    A shorter, slightly more human version of the CV.
-                  </p>
-                </div>
+              <div className="mb-2">
+                <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
+                  CV notes
+                </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:h-full xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-2 md:grid-cols-2 xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}
-                    className="relative flex h-full min-h-[10rem] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-white/[0.025] p-4 backdrop-blur-sm md:p-[1.125rem]"
+                    className="relative flex h-full min-h-[6.2rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/10 bg-white/[0.025] p-2.5 backdrop-blur-sm md:p-[0.72rem]"
                   >
-                    <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
-                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/46">
+                    <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
+                    <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/46">
                       {note.title}
                     </p>
-                    <p className="mt-2.5 text-[0.88rem] leading-[1.52] text-white/70 xl:text-[0.84rem]">
+                    <p className="mt-1.5 text-[0.71rem] leading-[1.28] text-white/68 xl:text-[0.7rem]">
                       {note.body}
                     </p>
                     {note.title === 'Outside work' ? (
-                      <div className="mt-auto pt-4">
-                        <div className="rounded-[1rem] border border-white/10 bg-black/24 p-3">
-                          <div className="flex items-center gap-3">
+                      <div className="mt-auto pt-1.5">
+                        <div className="rounded-[0.9rem] border border-white/10 bg-black/24 p-1.5">
+                          <div className="flex items-center gap-1.5">
                             <motion.button
                               type="button"
                               onClick={() => setIsLokiOpen(true)}
                               whileHover={{ y: -2, scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_18px_48px_rgba(0,0,0,0.25)]"
+                              className="group relative h-8 w-8 shrink-0 overflow-hidden rounded-[0.68rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.22)]"
                             >
                               <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.32),_transparent_62%)] opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
                               <motion.img
@@ -280,16 +244,13 @@ export const About = () => {
                                 animate={{ scale: [1, 1.03, 1] }}
                                 transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
                               />
-                              <span className="pointer-events-none absolute inset-x-2 bottom-1.5 z-[2] rounded-full border border-white/14 bg-black/52 px-2 py-1 text-[7px] font-mono uppercase tracking-[0.18em] text-white/70 backdrop-blur">
-                                Open
-                              </span>
                             </motion.button>
                             <div>
-                              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent">
+                              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
                                 Bonus: Loki
                               </p>
-                              <p className="mt-1 text-[0.82rem] leading-[1.5] text-white/64">
-                                Found in China in 2018. He may very likely join the call.
+                              <p className="mt-0.5 text-[0.61rem] leading-[1.18] text-white/62">
+                                Found in China in 2018. Very likely to join the call.
                               </p>
                             </div>
                           </div>
@@ -298,11 +259,45 @@ export const About = () => {
                     ) : null}
                   </article>
                 ))}
-	              </div>
-	            </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 grid gap-4 border-t border-white/8 pt-5 md:grid-cols-2 xl:grid-cols-5">
+            {QUICK_FACTS.map((fact) => {
+              const Icon = fact.icon;
+              const content = Icon ? (
+                <span className="inline-flex items-start gap-2">
+                  <Icon size={14} className="mt-[0.1rem] shrink-0 text-brand-accent" />
+                  <span>{fact.value}</span>
+                </span>
+              ) : (
+                fact.value
+              );
+
+              return (
+                <div key={fact.label} className="rounded-[1rem] border border-white/8 bg-white/[0.02] px-4 py-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
+                    {fact.label}
+                  </p>
+                  {fact.href ? (
+                    <a
+                      href={fact.href}
+                      className="mt-1 block text-[0.84rem] leading-relaxed text-white/74 transition-colors hover:text-white"
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <p className="mt-1 text-[0.84rem] leading-relaxed text-white/74">
+                      {content}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-	      </section>
+      </section>
 
       {typeof document !== 'undefined'
         ? createPortal(
