@@ -88,7 +88,7 @@ const CV_NOTES = [
   },
   {
     title: 'Outside work',
-    body: 'Hamburg since 2022, after Ukraine, the US, Poland, China, and Vietnam. Outside work: coffee, plants, fixing things, and Loki.',
+    body: 'Hamburg since 2022. Lived in Ukraine, the US, Poland, China, and Vietnam.',
   },
 ] as const;
 
@@ -161,10 +161,10 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-18 xl:pt-18">
+      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-18 xl:pt-16">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-4 xl:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(16rem,0.58fr)_minmax(0,1.42fr)] xl:items-center">
-            <div className="flex h-full flex-col gap-5 xl:justify-center">
+          <div className="grid gap-4 xl:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(16rem,0.58fr)_minmax(0,1.42fr)] xl:items-start">
+            <div className="flex h-full flex-col gap-5 xl:justify-start xl:pt-10">
               <div className="max-w-[42rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                   Why work with me
@@ -205,13 +205,13 @@ export const About = () => {
               </div>
             </div>
 
-            <div className="min-h-0">
+            <div className="min-h-0 xl:pt-7">
               <div className="mb-2.5">
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
                   CV notes
                 </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-2.5 md:grid-cols-2 xl:h-[25.5rem] xl:auto-rows-fr xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-2.5 md:grid-cols-2 xl:h-[29.5rem] xl:auto-rows-fr xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}
@@ -221,39 +221,45 @@ export const About = () => {
                     <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/46">
                       {note.title}
                     </p>
-                    <p className="mt-2 text-[0.8rem] leading-[1.34] text-white/68 xl:text-[0.78rem]">
-                      {note.body}
-                    </p>
                     {note.title === 'Outside work' ? (
-                      <div className="mt-auto pt-2">
-                        <motion.button
-                          type="button"
-                          onClick={() => setIsLokiOpen(true)}
-                          whileHover={{ y: -2, scale: 1.01 }}
-                          whileTap={{ scale: 0.985 }}
-                          className="group relative flex w-full items-center gap-3 rounded-[0.95rem] border border-white/10 bg-black/24 p-2.5 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
-                        >
-                          <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,87,112,0.06),transparent_52%)] opacity-80" />
-                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-white/12 bg-black/35 p-1">
-                            <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.2),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
-                            <img
-                              src={LOKI_IMAGE}
-                              alt="Loki the cat sitting in a chair"
-                              loading="lazy"
-                              className="relative z-[2] h-full w-full rounded-[0.8rem] object-cover object-[44%_48%]"
-                            />
-                          </div>
-                          <div className="relative min-w-0">
-                            <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
-                              Bonus: Loki
-                            </p>
-                            <p className="mt-1 text-[0.72rem] leading-[1.25] text-white/68">
-                              Found in China in 2018. Very likely to join the call.
-                            </p>
-                          </div>
-                        </motion.button>
-                      </div>
-                    ) : null}
+                      <>
+                        <p className="mt-2 text-[0.76rem] leading-[1.28] text-white/68 xl:text-[0.74rem]">
+                          {note.body}
+                        </p>
+                        <div className="mt-auto pt-2">
+                          <motion.button
+                            type="button"
+                            onClick={() => setIsLokiOpen(true)}
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.985 }}
+                            className="group relative flex w-full items-center gap-2.5 rounded-[0.95rem] border border-white/10 bg-black/24 p-2 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
+                          >
+                            <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,87,112,0.06),transparent_52%)] opacity-80" />
+                            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-black/35 p-1">
+                              <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.18),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
+                              <img
+                                src={LOKI_IMAGE}
+                                alt="Loki the cat sitting in a chair"
+                                loading="lazy"
+                                className="relative z-[2] h-full w-full rounded-[0.8rem] object-cover object-[44%_48%]"
+                              />
+                            </div>
+                            <div className="relative min-w-0">
+                              <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
+                                Bonus: Loki
+                              </p>
+                              <p className="mt-0.5 text-[0.64rem] leading-[1.18] text-white/68">
+                                Found in China in 2018. Usually joins calls.
+                              </p>
+                            </div>
+                          </motion.button>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-[0.8rem] leading-[1.34] text-white/68 xl:text-[0.78rem]">
+                        {note.body}
+                      </p>
+                    )}
                   </article>
                 ))}
               </div>
