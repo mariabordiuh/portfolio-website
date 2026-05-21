@@ -161,37 +161,37 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-20 xl:pt-20">
+      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-18 xl:pt-18">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-3.5 xl:min-h-[calc(100svh-5.75rem)] xl:grid-cols-[minmax(13rem,0.5fr)_minmax(0,1.5fr)] xl:items-stretch">
-            <div className="flex h-full flex-col gap-4">
+          <div className="grid gap-4 xl:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(16rem,0.58fr)_minmax(0,1.42fr)] xl:items-center">
+            <div className="flex h-full flex-col gap-5 xl:justify-center">
               <div className="max-w-[42rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                   Why work with me
                 </p>
 
-                <h1 className="mt-2 max-w-[10ch] font-display text-[clamp(1.88rem,3.05vw,3.18rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
+                <h1 className="mt-2.5 max-w-[10ch] font-display text-[clamp(2.2rem,3.85vw,4rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
                   Maria
                   <br />
                   Bordiuh<span className="text-brand-accent">.</span>
                 </h1>
 
-                <p className="mt-2 max-w-[25rem] text-[clamp(0.82rem,0.78rem+0.1vw,0.9rem)] leading-[1.48] text-white/64">
+                <p className="mt-3 max-w-[28rem] text-[clamp(0.92rem,0.84rem+0.14vw,1rem)] leading-[1.56] text-white/64">
                   I’m a Ukrainian Art Director in Hamburg working across art direction, motion, AI
                   image systems, and creative tech. Best when a project needs both strong visual
                   judgment and a nerdier workflow brain.
                 </p>
               </div>
 
-              <div className="space-y-3 border-t border-white/8 pt-3.5">
-                <div className="flex flex-wrap gap-2.5">
+              <div className="space-y-3.5 border-t border-white/8 pt-4">
+                <div className="flex flex-wrap gap-3">
                   {CONTACT_LINKS.map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
                       target={link.external ? '_blank' : undefined}
                       rel={link.external ? 'noopener noreferrer' : undefined}
-                      className="btn-glass-shift px-3.5 py-2 font-mono text-[9px] font-black uppercase tracking-[0.22em]"
+                      className="btn-glass-shift px-4 py-2.25 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
                     >
                       {link.label}
                       <ArrowUpRight size={15} />
@@ -199,41 +199,41 @@ export const About = () => {
                   ))}
                 </div>
 
-                <p className="max-w-[30rem] text-[0.8rem] leading-relaxed text-white/44">
+                <p className="max-w-[30rem] text-[0.88rem] leading-relaxed text-white/44">
                   Hamburg. Art direction, motion, AI visuals, and creative tech.
                 </p>
               </div>
             </div>
 
             <div className="min-h-0">
-              <div className="mb-2">
+              <div className="mb-2.5">
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
                   CV notes
                 </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-2 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-2.5 md:grid-cols-2 xl:h-[25.5rem] xl:auto-rows-fr xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}
-                    className="relative flex h-full min-h-[6.2rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/10 bg-white/[0.025] p-2.5 backdrop-blur-sm md:p-[0.72rem]"
+                    className="relative flex h-full min-h-[7.2rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/10 bg-white/[0.025] p-3 backdrop-blur-sm md:p-3.5"
                   >
-                    <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
+                    <div className="pointer-events-none absolute inset-x-3.5 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
                     <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/46">
                       {note.title}
                     </p>
-                    <p className="mt-1.5 text-[0.71rem] leading-[1.28] text-white/68 xl:text-[0.7rem]">
+                    <p className="mt-2 text-[0.8rem] leading-[1.34] text-white/68 xl:text-[0.78rem]">
                       {note.body}
                     </p>
                     {note.title === 'Outside work' ? (
-                      <div className="mt-auto pt-1.5">
-                        <div className="rounded-[0.9rem] border border-white/10 bg-black/24 p-1.5">
-                          <div className="flex items-center gap-1.5">
+                      <div className="mt-auto pt-2">
+                        <div className="rounded-[0.9rem] border border-white/10 bg-black/24 p-2">
+                          <div className="flex items-center gap-2">
                             <motion.button
                               type="button"
                               onClick={() => setIsLokiOpen(true)}
                               whileHover={{ y: -2, scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="group relative h-8 w-8 shrink-0 overflow-hidden rounded-[0.68rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.22)]"
+                              className="group relative h-9 w-9 shrink-0 overflow-hidden rounded-[0.72rem] border border-white/12 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.22)]"
                             >
                               <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.32),_transparent_62%)] opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
                               <motion.img
@@ -249,7 +249,7 @@ export const About = () => {
                               <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
                                 Bonus: Loki
                               </p>
-                              <p className="mt-0.5 text-[0.61rem] leading-[1.18] text-white/62">
+                              <p className="mt-0.5 text-[0.68rem] leading-[1.22] text-white/62">
                                 Found in China in 2018. Very likely to join the call.
                               </p>
                             </div>
