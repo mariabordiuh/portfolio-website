@@ -24,6 +24,8 @@ const supportNotes = [
   },
 ];
 
+const mobileSupportLine = supportNotes.map((note) => note.label).join(' / ');
+
 export const CatHero = () => {
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#06060a]">
@@ -41,13 +43,13 @@ export const CatHero = () => {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-12 pt-28 md:px-12 md:pb-16 md:pt-32">
-        <div className="max-w-[74rem]">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-10 pt-24 md:px-12 md:pb-16 md:pt-32">
+        <div className="max-w-[72rem]">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-6 font-mono text-[10px] uppercase tracking-[0.38em] text-white/58"
+            className="mb-5 font-mono text-[10px] uppercase tracking-[0.34em] text-white/58 md:mb-6 md:tracking-[0.38em]"
           >
             Maria Bordiuh // Hamburg
           </motion.p>
@@ -63,7 +65,7 @@ export const CatHero = () => {
                 },
               },
             }}
-            className="mb-6"
+            className="mb-5 md:mb-6"
           >
             {headlineLines.map((line) => (
               <motion.h1
@@ -76,7 +78,7 @@ export const CatHero = () => {
                     transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
                   },
                 }}
-                className="pb-[0.08em] font-display text-[clamp(3.15rem,7vw,7.6rem)] font-bold uppercase leading-[0.84] tracking-[-0.055em] text-white"
+                className="pb-[0.08em] font-display text-[clamp(2.65rem,9vw,7.3rem)] font-bold uppercase leading-[0.86] tracking-[-0.055em] text-white md:leading-[0.84]"
               >
                 {line === 'AI-led image systems.' ? (
                   <>
@@ -93,22 +95,22 @@ export const CatHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[46rem] text-[clamp(1rem,0.82rem+0.55vw,1.28rem)] leading-relaxed text-white/72"
+            className="max-w-[42rem] text-[clamp(0.98rem,0.86rem+0.42vw,1.22rem)] leading-relaxed text-white/72"
           >
-            I build visual worlds for brands, campaigns, and moving image projects, blending
-            art direction, AI workflows, and motion design into systems that still feel authored.
+            Visual worlds for brands, campaigns, and moving image projects, shaped through art
+            direction, AI workflows, and motion design that still feels authored.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.42, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap"
+            className="mt-8 flex flex-col gap-3.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4"
           >
             <PrefetchLink
               to="/work"
               data-click-sound="true"
-              className="btn-gradient-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              className="btn-gradient-shift px-7 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.22em] sm:py-4"
             >
               See selected work
               <ArrowUpRight size={16} />
@@ -116,7 +118,7 @@ export const CatHero = () => {
             <PrefetchLink
               to="/about"
               data-click-sound="true"
-              className="btn-glass-shift px-7 py-4 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
+              className="btn-glass-shift px-7 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.22em] sm:py-4"
             >
               Why work with me
               <ArrowUpRight size={16} />
@@ -127,18 +129,29 @@ export const CatHero = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.52, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 grid max-w-[62rem] gap-4 border-t border-white/10 pt-5 sm:grid-cols-3"
+            className="mt-8 border-t border-white/10 pt-4 sm:mt-12 sm:pt-5"
           >
-            {supportNotes.map((note) => (
-              <div key={note.label} className="space-y-2">
-                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
-                  {note.label}
-                </p>
-                <p className="max-w-sm text-sm leading-relaxed text-white/62">
-                  {note.value}
-                </p>
-              </div>
-            ))}
+            <div className="sm:hidden">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
+                Focus
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-white/62">
+                {mobileSupportLine}
+              </p>
+            </div>
+
+            <div className="hidden max-w-[62rem] gap-4 sm:grid sm:grid-cols-3">
+              {supportNotes.map((note) => (
+                <div key={note.label} className="space-y-2">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
+                    {note.label}
+                  </p>
+                  <p className="max-w-sm text-sm leading-relaxed text-white/62">
+                    {note.value}
+                  </p>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </div>

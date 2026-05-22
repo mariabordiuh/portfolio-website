@@ -107,6 +107,8 @@ export const Lab = () => {
       ),
     [labItems, sortOrder],
   );
+  const entryCountLabel =
+    sortedLabItems.length === 1 ? '1 note in circulation' : `${sortedLabItems.length} notes in circulation`;
 
   useEffect(() => {
     if (!previewId) {
@@ -169,134 +171,154 @@ export const Lab = () => {
 
   return (
     <PageTransition>
-      <div className={`${SITE_SHELL_CLASS} pb-28 pt-36 md:pb-32 md:pt-40`}>
-        <header className="mb-16 md:mb-20">
-          <motion.h1 
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.15
-                }
-              }
-            }}
-            className="text-fluid-xl font-black tracking-tighter uppercase mb-6 leading-none"
-          >
-            <RevealText>The Lab</RevealText>
-          </motion.h1>
-          <RevealOnScroll delay={0.08}>
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <p className="max-w-xl text-lg text-brand-muted">Experiments, tests, learnings, and unfinished vibecodings.</p>
-              <div className="inline-flex w-fit rounded-full border border-white/10 bg-white/5 p-1">
-                {SORT_OPTIONS.map((option) => {
-                  const isActive = sortOrder === option.value;
+      <div className="relative overflow-hidden bg-brand-bg">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,87,112,0.08),transparent_20%),radial-gradient(circle_at_84%_24%,rgba(255,255,255,0.035),transparent_22%),radial-gradient(circle_at_72%_78%,rgba(255,87,112,0.06),transparent_24%)]"
+        />
+        <div className={`${SITE_SHELL_CLASS} relative pb-28 pt-36 md:pb-32 md:pt-40`}>
+          <header className="mb-16 md:mb-20">
+            <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent/80">
+              Notes // tests // unfinished things
+            </p>
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.15,
+                  },
+                },
+              }}
+              className="mb-6 text-fluid-xl font-black uppercase leading-none tracking-tighter"
+            >
+              <RevealText>The Lab</RevealText>
+            </motion.h1>
+            <RevealOnScroll delay={0.08}>
+              <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
+                <div className="max-w-[42rem] space-y-4">
+                  <p className="text-lg leading-relaxed text-white/68 md:text-[1.12rem]">
+                    Experiments, motion tests, visual systems, and half-finished ideas worth
+                    keeping. Less case-study polish, more process and proof of life.
+                  </p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
+                    {entryCountLabel}
+                  </p>
+                </div>
+                <div className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.04] p-1">
+                  {SORT_OPTIONS.map((option) => {
+                    const isActive = sortOrder === option.value;
 
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => {
-                        const nextParams = new URLSearchParams(searchParams);
-                        if (option.value === 'newest') {
-                          nextParams.delete('sort');
-                        } else {
-                          nextParams.set('sort', option.value);
-                        }
-                        setSearchParams(nextParams, { replace: true });
-                      }}
-                      className={`rounded-full px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors ${
-                        isActive
-                          ? 'bg-brand-accent text-black'
-                          : 'text-brand-muted hover:text-white'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          const nextParams = new URLSearchParams(searchParams);
+                          if (option.value === 'newest') {
+                            nextParams.delete('sort');
+                          } else {
+                            nextParams.set('sort', option.value);
+                          }
+                          setSearchParams(nextParams, { replace: true });
+                        }}
+                        className={`rounded-full px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors ${
+                          isActive
+                            ? 'bg-brand-accent text-black'
+                            : 'text-brand-muted hover:text-white'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </RevealOnScroll>
-        </header>
+            </RevealOnScroll>
+          </header>
 
-        <div className="grid gap-8 md:grid-cols-2">
-          {loading ? (
-            Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
-          ) : !sortedLabItems.length ? (
-            <div className="col-span-full py-24 text-center text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
-              Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
-            </div>
-          ) : (
-            sortedLabItems.map((item, index) => {
-              const thumbnail = getLabThumbnail(item);
+          <div className="grid gap-8 md:grid-cols-2">
+            {loading ? (
+              Array.from({ length: 9 }).map((_, i) => <LabSkeleton key={i} />)
+            ) : !sortedLabItems.length ? (
+              <div className="col-span-full py-24 text-center text-[10px] font-mono uppercase tracking-[0.3em] text-brand-muted">
+                Full hard drive, empty page. Maria&apos;s mid-espresso and uploading. Come back
+                soon :)
+              </div>
+            ) : (
+              sortedLabItems.map((item, index) => {
+                const thumbnail = getLabThumbnail(item);
 
-              return (
-                <RevealOnScroll key={item.id} delay={index * 0.05}>
-                  <button
-                    type="button"
-                    onClick={() => openItem(item)}
-                    data-cursor="card"
-                    className="group relative flex h-full w-full cursor-pointer flex-col gap-4 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-white/[0.055] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:gap-6 md:p-7"
-                    style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                    <div className="flex items-start justify-between z-10">
-                      <span className="rounded-full bg-brand-accent/20 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-brand-accent">
-                        {item.category ?? item.type}
-                      </span>
-                      <span className="font-mono text-[10px] text-brand-muted">{item.date}</span>
-                    </div>
-                    <div className="z-10 order-2 md:order-3">
-                      <h3 className="mb-2.5 font-sans text-[clamp(1.35rem,1.08rem+0.8vw,2rem)] font-semibold normal-case leading-[1.02] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
-                        {item.title}
-                      </h3>
-                      <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-white/60 md:mb-5 md:text-[0.98rem]">
-                        {item.excerpt ?? item.content}
-                      </p>
-                      <div className="hidden flex-wrap gap-2 md:flex">
-                        {item.tools.map((tool) => (
-                          <span key={tool} className="tool-pill">
-                            {tool}
+                return (
+                  <RevealOnScroll key={item.id} delay={index * 0.05}>
+                    <button
+                      type="button"
+                      onClick={() => openItem(item)}
+                      data-cursor="card"
+                      className="group relative flex h-full w-full cursor-pointer flex-col gap-5 overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-5 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.024))] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:gap-6 md:p-7"
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
+                    >
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute left-5 right-5 top-5 h-px bg-[linear-gradient(90deg,rgba(255,87,112,0.85),rgba(255,255,255,0.18),transparent)] md:left-7 md:right-7 md:top-7" />
+                      <div className="flex items-start justify-between gap-4 pt-4 md:pt-5">
+                        <div className="space-y-2">
+                          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-brand-accent">
+                            {item.category ?? item.type}
                           </span>
-                        ))}
+                          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/28">
+                            {item.readingTime ?? 'Lab note'}
+                          </p>
+                        </div>
+                        <span className="pt-0.5 font-mono text-[10px] text-brand-muted">{item.date}</span>
                       </div>
-                      <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/8 pt-4">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+
+                      <div className="z-10">
+                        <h3 className="mb-3 max-w-[18ch] font-sans text-[clamp(1.38rem,1.08rem+0.8vw,2rem)] font-semibold normal-case leading-[0.98] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
+                          {item.title}
+                        </h3>
+                        <p className="line-clamp-4 max-w-[42rem] text-sm leading-relaxed text-white/62 md:text-[0.98rem]">
+                          {item.excerpt ?? item.content}
+                        </p>
+                      </div>
+
+                      {thumbnail ? (
+                        <div className="z-10 overflow-hidden rounded-[1.5rem] bg-black/20">
+                          <div className="aspect-[5/3.5] md:aspect-[4/2.9]">
+                            <img
+                              src={thumbnail}
+                              alt={item.title}
+                              width={600}
+                              height={400}
+                              loading="lazy"
+                              decoding="async"
+                              sizes="(min-width: 768px) 46vw, 100vw"
+                              className="h-full w-full object-cover opacity-88 transition-all duration-700 saturate-[0.9] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:saturate-100"
+                              style={{
+                                transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
+                                transformOrigin: 'center center',
+                                objectPosition: `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`,
+                              }}
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div className="mt-auto flex items-center justify-between gap-4 border-t border-white/8 pt-4">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/42">
                           {item.bodyMarkdown ? 'Open article' : 'Open entry'}
                         </span>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/32">
-                          {item.readingTime ?? 'Lab note'}
+                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brand-accent/70">
+                          Read note →
                         </span>
                       </div>
-                    </div>
-                    {thumbnail ? (
-                      <div className="z-10 order-3 overflow-hidden rounded-[1.5rem] bg-black/20 md:order-2">
-                        <div className="aspect-[5/3.8] md:aspect-[4/3]">
-                          <img
-                            src={thumbnail}
-                            alt={item.title}
-                            width={600}
-                            height={400}
-                            loading="lazy"
-                            decoding="async"
-                            sizes="(min-width: 768px) 46vw, 100vw"
-                            className="h-full w-full object-cover opacity-84 transition-all duration-700 saturate-[0.88] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:saturate-100"
-                            style={{
-                              transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
-                              transformOrigin: 'center center',
-                              objectPosition: `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`,
-                            }}
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-                  </button>
-                </RevealOnScroll>
-              );
-            })
-          )}
+                    </button>
+                  </RevealOnScroll>
+                );
+              })
+            )}
+          </div>
         </div>
 
         {/* Lab Item Modal */}

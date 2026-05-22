@@ -37,13 +37,19 @@ const SectionHeader = ({
 const MediaFrame = ({
   children,
   className = '',
+  style = 'framed',
 }: {
   children: ReactNode;
   className?: string;
+  style?: 'framed' | 'bare';
 }) => (
-  <div className={`rounded-[2rem] border border-white/8 bg-white/[0.03] p-3 shadow-[0_16px_42px_rgba(0,0,0,0.16)] md:p-4 ${className}`}>
-    {children}
-  </div>
+  style === 'bare' ? (
+    <div className={`overflow-hidden rounded-[2.2rem] ${className}`}>{children}</div>
+  ) : (
+    <div className={`rounded-[2rem] border border-white/8 bg-white/[0.02] p-2.5 shadow-[0_16px_42px_rgba(0,0,0,0.16)] md:p-3 ${className}`}>
+      {children}
+    </div>
+  )
 );
 
 const DetailImage = ({
@@ -142,6 +148,7 @@ const TextSection = ({
 };
 
 const GallerySection = ({
+  id,
   eyebrow,
   title,
   description,
@@ -152,7 +159,9 @@ const GallerySection = ({
   frameClassName,
   videoPresentation = 'default',
   flushMedia = false,
+  frameStyle = 'framed',
 }: {
+  id?: string;
   eyebrow: string;
   title: string;
   description?: string;
@@ -163,6 +172,7 @@ const GallerySection = ({
   frameClassName?: string;
   videoPresentation?: 'default' | 'ambient';
   flushMedia?: boolean;
+  frameStyle?: 'framed' | 'bare';
 }) => {
   if (!images.length) {
     return null;
@@ -178,13 +188,14 @@ const GallerySection = ({
           : 'grid gap-4 md:grid-cols-2';
 
   return (
-    <section className="space-y-6">
+    <section id={id} className="scroll-mt-28 space-y-6">
       <SectionHeader eyebrow={eyebrow} title={title} description={description} />
       <div className={ARTICLE_MEDIA_CLASS}>
         <div className={gridClass}>
           {images.map((image, index) => (
             <MediaFrame
               key={`${image}-${index}`}
+              style={frameStyle}
               className={[compact ? 'max-w-3xl' : '', frameClassName ?? ''].filter(Boolean).join(' ')}
             >
               <DetailImage
@@ -203,10 +214,12 @@ const GallerySection = ({
 };
 
 const JourneySection = ({
+  id,
   title,
   description,
   groups,
 }: {
+  id?: string;
   title: string;
   description?: string;
   groups: Array<{ label: string; images: string[] }>;
@@ -218,7 +231,7 @@ const JourneySection = ({
   }
 
   return (
-    <section className="space-y-6">
+    <section id={id} className="scroll-mt-28 space-y-6">
       <SectionHeader eyebrow="Development" title={title} description={description} />
       <div className={`${ARTICLE_MEDIA_CLASS} space-y-8`}>
         {populatedGroups.map((group) => (
@@ -245,9 +258,11 @@ const JourneySection = ({
 };
 
 const ColorSystemSection = ({
+  id,
   colors,
   description,
 }: {
+  id?: string;
   colors: Array<{ hex: string; emotion: string }>;
   description?: string;
 }) => {
@@ -256,7 +271,7 @@ const ColorSystemSection = ({
   }
 
   return (
-    <section className="space-y-6">
+    <section id={id} className="scroll-mt-28 space-y-6">
       <SectionHeader eyebrow="Color" title="Color system" description={description} />
       <div className={ARTICLE_MEDIA_CLASS}>
         <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
@@ -382,30 +397,35 @@ const SideRail = ({
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
-    <aside className="border-r border-white/6 pr-6">
-      <div>
-        <nav className="space-y-5">
-          <Link
-            to="/work"
-            className="block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
-          >
-            ← Home
-          </Link>
+    <aside className="pr-6">
+      <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.02] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.12)]">
+        <Link
+          to="/work"
+          className="block text-[10px] uppercase tracking-[0.24em] text-white/38 transition-colors hover:text-white"
+        >
+          ← Archive
+        </Link>
 
-          {links.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        <div className="mt-8 border-t border-white/8 pt-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-brand-accent">
+            Case chapters
+          </p>
+          <nav className="mt-4 space-y-3">
+            {links.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="block text-[11px] uppercase tracking-[0.18em] text-white/46 transition-colors hover:text-white"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
 
         <button
           onClick={scrollToTop}
-          className="mt-12 block text-[11px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
+          className="mt-8 block text-[10px] uppercase tracking-[0.24em] text-white/36 transition-colors hover:text-white"
         >
           ↑ Back to top
         </button>
@@ -564,10 +584,12 @@ export const ProjectDetail = () => {
 
   const sections = [
     normalized.brief
-      ? { id: 'context', eyebrow: 'Overview', title: 'The brief', body: normalized.brief }
+      ? { id: 'brief', label: 'Brief', eyebrow: 'Overview', title: 'The brief', body: normalized.brief }
       : null,
     normalized.context || normalized.globalContext
       ? {
+          id: 'context',
+          label: 'Context',
           eyebrow: 'Context',
           title: 'Context',
           body: normalized.context || normalized.globalContext || '',
@@ -575,38 +597,52 @@ export const ProjectDetail = () => {
       : null,
     normalized.problem || normalized.creativeTension
       ? {
+          id: 'challenge',
+          label: 'Challenge',
           eyebrow: 'Challenge',
           title: 'The problem',
           body: normalized.problem || normalized.creativeTension || '',
         }
       : null,
     normalized.insights
-      ? { eyebrow: 'Insights', title: 'Insights', body: normalized.insights }
+      ? { id: 'insights', label: 'Insights', eyebrow: 'Insights', title: 'Insights', body: normalized.insights }
       : null,
     normalized.solution || normalized.approach
       ? {
+          id: 'solution',
+          label: 'Solution',
           eyebrow: 'Solution',
           title: 'Solution',
           body: normalized.solution || normalized.approach || '',
         }
       : null,
     outcomeCopy
-      ? { eyebrow: 'Outcome', title: 'Outcome', body: outcomeCopy }
+      ? { id: 'outcome-copy', label: 'Outcome', eyebrow: 'Outcome', title: 'Outcome', body: outcomeCopy }
       : null,
-  ].filter(Boolean) as Array<{ id?: string; eyebrow: string; title: string; body: string }>;
+  ].filter(Boolean) as Array<{ id: string; label: string; eyebrow: string; title: string; body: string }>;
 
   const hasContextContent = sections.slice(0, 4).length > 0;
 
   const caseStudyLinks = [
     { label: 'Overview', href: '#overview' },
-    ...(hasContextContent ? [{ label: 'Context', href: '#context' }] : []),
+    ...sections.slice(0, 5).map((section) => ({ label: section.label, href: `#${section.id}` })),
     ...(hasProcessContent ? [{ label: 'Process', href: '#process' }] : []),
-    ...(hasOutcomeContent ? [{ label: 'Outcome', href: '#outcome' }] : []),
+    ...(moodboardImages.length ? [{ label: 'Moodboard', href: '#moodboard' }] : []),
+    ...(sketchImages.length ? [{ label: 'Sketches', href: '#sketches' }] : []),
+    ...(animaticVideoUrls.length ? [{ label: processVideoTitle, href: '#motion' }] : []),
+    ...(explorationImages.length ? [{ label: 'Exploration', href: '#exploration' }] : []),
+    ...(hybridizationImages.length ? [{ label: 'Refinement', href: '#refinement' }] : []),
+    ...(colorSystem.length ? [{ label: 'Color', href: '#color-system' }] : []),
+    ...(hasOutcomeContent ? [{ label: 'Final visuals', href: '#final-visuals' }] : []),
   ];
 
   return (
     <PageTransition>
-      <article className="overflow-x-hidden bg-brand-bg text-white">
+      <article className="relative overflow-x-hidden bg-brand-bg text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_14%,rgba(255,87,112,0.08),transparent_18%),radial-gradient(circle_at_82%_24%,rgba(255,255,255,0.035),transparent_24%)]"
+        />
         <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[148px_minmax(0,1fr)] md:gap-12`}>
           <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">
             <SideRail links={caseStudyLinks} />
@@ -675,6 +711,22 @@ export const ProjectDetail = () => {
                       ))}
                     </div>
                   ) : null}
+
+                  {caseStudyLinks.length > 1 ? (
+                    <div className="-mx-5 overflow-x-auto pb-1 md:hidden">
+                      <div className="flex gap-2 px-5">
+                        {caseStudyLinks.map((item) => (
+                          <a
+                            key={item.href}
+                            href={item.href}
+                            className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/56 transition-colors hover:text-white"
+                          >
+                            {item.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </motion.div>
               </div>
             </section>
@@ -682,9 +734,8 @@ export const ProjectDetail = () => {
             <div className="space-y-16 py-14 sm:space-y-20 md:space-y-24 md:py-20">
               {sections[0] ? <TextSection {...sections[0]} /> : null}
               {sections[1] ? <TextSection {...sections[1]} /> : null}
-
-              <div id="process" className="scroll-mt-28" />
               <JourneySection
+                id="process"
                 title="Character development"
                 description="Key stills used to shape Lena's story arc from early aspiration through study and into the reality of work."
                 groups={[
@@ -695,17 +746,20 @@ export const ProjectDetail = () => {
               />
 
               <GallerySection
+                id="moodboard"
                 eyebrow="Moodboard"
                 title="Initial visual territory"
                 images={moodboardImages}
                 columns={1}
                 mediaClassName="aspect-square w-full object-cover"
-                frameClassName="p-0 md:p-0"
+                frameClassName="md:max-w-[72rem]"
                 videoPresentation="ambient"
                 flushMedia
+                frameStyle="bare"
               />
 
               <GallerySection
+                id="sketches"
                 eyebrow="Sketches"
                 title="Character development"
                 images={sketchImages}
@@ -715,6 +769,7 @@ export const ProjectDetail = () => {
 
               {animaticVideoUrls.length ? (
                 <GallerySection
+                  id="motion"
                   eyebrow={processVideoEyebrow}
                   title={processVideoTitle}
                   description={
@@ -724,14 +779,15 @@ export const ProjectDetail = () => {
                       : 'AI-generated motion studies used to bring the still-image world into a more emotional narrative sequence.')
                   }
                   images={animaticVideoUrls}
-                  columns={2}
+                  columns={animaticVideoUrls.length === 1 ? 1 : 2}
                   mediaClassName="aspect-video w-full"
+                  frameStyle="bare"
                 />
               ) : null}
 
               {explorationImages.length > 0 ? (
                 explorationType === 'slot-machine' ? (
-                  <section className="space-y-6">
+                  <section id="exploration" className="scroll-mt-28 space-y-6">
                     <SectionHeader
                       eyebrow="Exploration"
                       title="Search and refinement"
@@ -744,6 +800,7 @@ export const ProjectDetail = () => {
                   </section>
                 ) : (
                   <GallerySection
+                    id="exploration"
                     eyebrow="Exploration"
                     title="Midjourney exploration"
                     description={
@@ -762,6 +819,7 @@ export const ProjectDetail = () => {
 
               {hybridizationImages.length ? (
                 <GallerySection
+                  id="refinement"
                   eyebrow="Development"
                   title="Illustrator refinement"
                   description={
@@ -772,10 +830,12 @@ export const ProjectDetail = () => {
                   columns={1}
                   compact
                   mediaClassName="h-auto w-full object-contain"
+                  frameStyle="bare"
                 />
               ) : null}
 
               <ColorSystemSection
+                id="color-system"
                 colors={colorSystem}
                 description={
                   colorSystem.length
@@ -789,11 +849,13 @@ export const ProjectDetail = () => {
               <div id="outcome" className="scroll-mt-28" />
               {sections[5] ? <TextSection {...sections[5]} /> : null}
               <GallerySection
+                id="final-visuals"
                 eyebrow="Outcome"
                 title="Final visuals"
                 images={outcomeImages}
-                columns={2}
+                columns={outcomeImages.length <= 1 ? 1 : 2}
                 mediaClassName="aspect-video w-full object-cover"
+                frameStyle={outcomeImages.length <= 2 ? 'bare' : 'framed'}
               />
 
               <section className="border-t border-white/10 pt-8">
