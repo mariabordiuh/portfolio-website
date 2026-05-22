@@ -305,12 +305,9 @@ export const Lab = () => {
                         </div>
                       ) : null}
 
-                      <div className="mt-auto flex items-center justify-between gap-4 border-t border-white/8 pt-4">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/42">
-                          {item.bodyMarkdown ? 'Open article' : 'Open entry'}
-                        </span>
+                      <div className="mt-auto flex items-center justify-end gap-4 border-t border-white/8 pt-4">
                         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-brand-accent/70">
-                          Read note →
+                          {item.bodyMarkdown ? 'Open article →' : 'Open note →'}
                         </span>
                       </div>
                     </button>
