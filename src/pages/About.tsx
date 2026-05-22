@@ -161,10 +161,10 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-14 xl:pt-10">
+      <section className="bg-brand-bg pb-20 pt-28 md:pb-24 md:pt-32 xl:pb-20 xl:pt-28">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-6 xl:min-h-[calc(100svh-8.75rem)] xl:grid-cols-[minmax(19rem,0.68fr)_minmax(0,1.32fr)] xl:items-center">
-            <div className="flex h-full flex-col gap-6 xl:justify-center xl:pr-6">
+          <div className="grid gap-8 xl:grid-cols-[minmax(20rem,0.72fr)_minmax(0,1.28fr)] xl:items-start">
+            <div className="flex h-full flex-col gap-6 xl:pr-6">
               <div className="max-w-[32rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                   Why work with me
@@ -203,15 +203,54 @@ export const About = () => {
                   Hamburg. Art direction, motion, AI visuals, and creative tech.
                 </p>
               </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {QUICK_FACTS.map((fact, index) => {
+                  const Icon = fact.icon;
+                  const content = Icon ? (
+                    <span className="inline-flex items-start gap-2">
+                      <Icon size={14} className="mt-[0.1rem] shrink-0 text-brand-accent" />
+                      <span>{fact.value}</span>
+                    </span>
+                  ) : (
+                    fact.value
+                  );
+
+                  return (
+                    <div
+                      key={fact.label}
+                      className={`rounded-[1rem] border border-white/8 bg-white/[0.02] px-4 py-3 ${
+                        index === QUICK_FACTS.length - 1 ? 'sm:col-span-2' : ''
+                      }`}
+                    >
+                      <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
+                        {fact.label}
+                      </p>
+                      {fact.href ? (
+                        <a
+                          href={fact.href}
+                          className="mt-1 block text-[0.84rem] leading-relaxed text-white/74 transition-colors hover:text-white"
+                        >
+                          {content}
+                        </a>
+                      ) : (
+                        <p className="mt-1 text-[0.84rem] leading-relaxed text-white/74">
+                          {content}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="min-h-0 xl:pt-1">
+            <div className="min-h-0">
               <div className="mb-3">
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
                   CV notes
                 </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:min-h-[29rem] xl:auto-rows-fr xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}
@@ -264,40 +303,6 @@ export const About = () => {
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="mt-12 grid gap-4 border-t border-white/8 pt-5 md:grid-cols-2 xl:grid-cols-5">
-            {QUICK_FACTS.map((fact) => {
-              const Icon = fact.icon;
-              const content = Icon ? (
-                <span className="inline-flex items-start gap-2">
-                  <Icon size={14} className="mt-[0.1rem] shrink-0 text-brand-accent" />
-                  <span>{fact.value}</span>
-                </span>
-              ) : (
-                fact.value
-              );
-
-              return (
-                <div key={fact.label} className="rounded-[1rem] border border-white/8 bg-white/[0.02] px-4 py-3">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
-                    {fact.label}
-                  </p>
-                  {fact.href ? (
-                    <a
-                      href={fact.href}
-                      className="mt-1 block text-[0.84rem] leading-relaxed text-white/74 transition-colors hover:text-white"
-                    >
-                      {content}
-                    </a>
-                  ) : (
-                    <p className="mt-1 text-[0.84rem] leading-relaxed text-white/74">
-                      {content}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
