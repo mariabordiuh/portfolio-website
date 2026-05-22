@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Filter } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
-import { RevealText } from '../components/RevealText';
+import { ScrollScrambleText } from '../components/ScrollScrambleText';
 import { MasonryPortfolioGrid } from '../components/MasonryPortfolioGrid';
 import { PortfolioPreviewModal } from '../components/PortfolioPreviewModal';
 import { ProjectSkeleton } from '../components/Skeleton';
@@ -31,6 +31,8 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
   'Animation & Motion': 'Traditional',
   'Art Direction': null,
 };
+
+const WORK_TITLE_LINES = ['Archive', 'of Works.'];
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-4 sm:px-6 md:px-8 xl:px-12';
 
@@ -224,19 +226,12 @@ export const Work = () => {
               <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                 Archive // selected output
               </p>
-              <motion.h1
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: { transition: { staggerChildren: 0.1 } },
-                }}
+              <ScrollScrambleText
+                as="h1"
+                lines={WORK_TITLE_LINES}
+                accentLastCharacter
                 className="mt-3 max-w-[13ch] font-display text-[clamp(1.9rem,3.8vw,3.7rem)] font-normal uppercase leading-[1.08] tracking-[0.02em]"
-              >
-                <RevealText>Archive</RevealText>
-                <RevealText>
-                  of Works<span className="text-brand-accent">.</span>
-                </RevealText>
-              </motion.h1>
+              />
               <p className="mt-4 max-w-[42rem] text-[0.98rem] leading-relaxed text-white/62 md:text-[1.04rem]">
                 Campaign worlds, motion pieces, AI image systems, and experiments arranged to
                 be scanned fast.

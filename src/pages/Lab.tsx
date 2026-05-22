@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { RevealOnScroll } from '../components/RevealOnScroll';
-import { RevealText } from '../components/RevealText';
+import { ScrollScrambleText } from '../components/ScrollScrambleText';
 import { Tag } from '../components/Tag';
 import { LabSkeleton } from '../components/Skeleton';
 import { LabItem, LabSection } from '../types';
@@ -17,6 +17,7 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
 ] as const;
+const LAB_TITLE_LINES = ['The Lab'];
 
 const parseLabDate = (value?: string) => {
   const timestamp = Date.parse(value ?? '');
@@ -181,20 +182,11 @@ export const Lab = () => {
             <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent/80">
               Notes // tests // unfinished things
             </p>
-            <motion.h1
-              initial="hidden"
-              animate="visible"
-              variants={{
-                visible: {
-                  transition: {
-                    staggerChildren: 0.15,
-                  },
-                },
-              }}
-              className="mb-6 text-fluid-xl font-black uppercase leading-none tracking-tighter"
-            >
-              <RevealText>The Lab</RevealText>
-            </motion.h1>
+            <ScrollScrambleText
+              as="h1"
+              lines={LAB_TITLE_LINES}
+              className="mb-6 text-fluid-xl font-display font-normal uppercase leading-[1.05] tracking-[0.02em] text-white"
+            />
             <RevealOnScroll delay={0.08}>
               <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
                 <div className="max-w-[42rem] space-y-4">

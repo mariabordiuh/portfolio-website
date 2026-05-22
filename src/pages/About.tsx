@@ -3,9 +3,12 @@ import { createPortal } from 'react-dom';
 import { ArrowUpRight, Mail, MapPin, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { PageTransition } from '../components/PageTransition';
+import { ScrollScrambleText } from '../components/ScrollScrambleText';
 
 const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
 const LOKI_IMAGE = '/media/about-loki.jpg';
+const ABOUT_TITLE_LINES = ['Maria', 'Bordiuh.'];
+const ABOUT_NOTES_LABEL_LINES = ['CV notes'];
 
 const CONTACT_LINKS = [
   {
@@ -170,11 +173,12 @@ export const About = () => {
                   Why work with me
                 </p>
 
-                <h1 className="mt-3 max-w-[11ch] font-display text-[clamp(2rem,3.5vw,3.45rem)] font-normal uppercase leading-[1.08] tracking-[0.02em] text-white">
-                  Maria
-                  <br />
-                  Bordiuh<span className="text-brand-accent">.</span>
-                </h1>
+                <ScrollScrambleText
+                  as="h1"
+                  lines={ABOUT_TITLE_LINES}
+                  accentLastCharacter
+                  className="mt-3 max-w-[11ch] font-display text-[clamp(2rem,3.5vw,3.45rem)] font-normal uppercase leading-[1.08] tracking-[0.02em] text-white"
+                />
 
                 <p className="mt-4 max-w-[30rem] text-[clamp(0.98rem,0.86rem+0.18vw,1.08rem)] leading-[1.62] text-white/66">
                   I’m a Ukrainian Art Director in Hamburg working across art direction, motion, AI
@@ -246,9 +250,12 @@ export const About = () => {
 
             <div className="min-h-0">
               <div className="mb-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
-                  CV notes
-                </p>
+                <ScrollScrambleText
+                  as="p"
+                  lines={ABOUT_NOTES_LABEL_LINES}
+                  startDelayMs={120}
+                  className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent"
+                />
               </div>
               <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
