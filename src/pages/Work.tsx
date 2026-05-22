@@ -190,7 +190,6 @@ export const Work = () => {
   const isAnimationAndMotionView =
     pillarParam === 'Animation & Motion' || activePillar === 'Animation & Motion';
   const gridMaxColumns = isAnimationAndMotionView ? 2 : 4;
-  const visibleCountLabel = `${String(visibleItems.length).padStart(2, '0')} visible`;
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);
@@ -245,9 +244,6 @@ export const Work = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/48">
-                {visibleCountLabel}
-              </span>
               <AnimatePresence>
                 {activeTool ? (
                   <motion.div
