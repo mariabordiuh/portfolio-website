@@ -10,9 +10,9 @@ const WorkSection = lazy(() =>
 );
 
 const WorkSectionFallback = () => (
-  <section className="px-6 pt-52 pb-24 md:px-12">
+  <section className="px-6 pb-24 pt-24 md:px-12 md:pt-28">
     <div className="mx-auto max-w-7xl">
-      <div className="mb-20 h-36 max-w-4xl rounded-[2rem] border border-white/5 bg-white/[0.02]" />
+      <div className="mb-14 h-36 max-w-4xl rounded-[2rem] border border-white/5 bg-white/[0.02] md:mb-16" />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <div

@@ -35,11 +35,11 @@ export const WorkSection = () => {
   }, []);
 
   return (
-    <section className="px-6 pt-52 pb-24 md:px-12">
+    <section className="px-6 pb-24 pt-24 md:px-12 md:pt-28">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-20 flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
+        <div className="mb-14 flex flex-col items-start justify-between gap-6 md:mb-16 md:flex-row md:items-end md:gap-8">
           <RevealOnScroll className="max-w-3xl">
-            <h4 className="mb-4 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">Sequence // 01</h4>
+            <h4 className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">Sequence // 01</h4>
             <h2 className="text-4xl font-black uppercase leading-none tracking-tighter italic md:text-5xl lg:text-7xl">Selected Works</h2>
           </RevealOnScroll>
           <RevealOnScroll delay={0.08}>
