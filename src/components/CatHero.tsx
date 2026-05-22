@@ -7,7 +7,8 @@ import { NeatHeroGradient } from './NeatHeroGradient';
 const headlineLines = [
   'Art direction,',
   'motion, and',
-  'AI-led image systems.',
+  'AI-led image',
+  'systems.',
 ];
 
 const supportNotes = [
@@ -223,7 +224,7 @@ export const CatHero = () => {
 
           <h1
             aria-label={headlineLines.join(' ')}
-            className="mb-6 max-w-[17ch] font-display text-[clamp(1.38rem,4.55vw,3.95rem)] font-normal uppercase leading-[1.18] tracking-[-0.035em] text-brand-ink md:mb-7 md:max-w-none"
+            className="mb-6 max-w-[18ch] font-display text-[clamp(1.26rem,4.2vw,3.7rem)] font-normal uppercase leading-[1.16] tracking-[-0.028em] text-brand-ink md:mb-7 md:max-w-none"
           >
             {heroHeadlineTimeline.timeline.map((line) => (
               <span key={line.id} aria-hidden="true" className="block pb-[0.18em] last:pb-0">
