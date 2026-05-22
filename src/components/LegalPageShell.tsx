@@ -34,7 +34,7 @@ export const LegalPageShell = ({
             {eyebrow}
           </p>
 
-          <h1 className="mt-5 max-w-[14ch] font-display text-[clamp(2.5rem,5vw,4.6rem)] font-bold uppercase leading-[0.9] tracking-[-0.045em] text-white">
+          <h1 className="mt-5 max-w-[16ch] font-display text-[clamp(1.75rem,3vw,2.75rem)] font-normal uppercase leading-[1.12] tracking-[0.02em] text-white">
             {title}
             <span className="text-brand-accent">.</span>
           </h1>

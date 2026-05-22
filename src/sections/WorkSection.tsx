@@ -40,7 +40,10 @@ export const WorkSection = () => {
         <div className="mb-14 flex flex-col items-start justify-between gap-6 md:mb-16 md:flex-row md:items-end md:gap-8">
           <RevealOnScroll className="max-w-3xl">
             <h4 className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">Sequence // 01</h4>
-            <h2 className="text-4xl font-black uppercase leading-none tracking-tighter italic md:text-5xl lg:text-7xl">Selected Works</h2>
+            <h2 className="max-w-[10ch] font-display text-[clamp(1.55rem,3.2vw,2.85rem)] font-normal uppercase leading-[1.14] tracking-[0.02em] text-white">
+              <span className="block">Selected</span>
+              <span className="mt-2 block">Works</span>
+            </h2>
           </RevealOnScroll>
           <RevealOnScroll delay={0.08}>
             <div className="flex flex-wrap items-center gap-3">

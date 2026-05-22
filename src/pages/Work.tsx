@@ -231,7 +231,7 @@ export const Work = () => {
                 variants={{
                   visible: { transition: { staggerChildren: 0.1 } },
                 }}
-                className="mt-3 max-w-[11ch] text-[clamp(2.9rem,6vw,6.25rem)] font-black uppercase leading-[0.9] tracking-[-0.055em]"
+                className="mt-3 max-w-[13ch] font-display text-[clamp(1.9rem,3.8vw,3.7rem)] font-normal uppercase leading-[1.08] tracking-[0.02em]"
               >
                 <RevealText>Archive</RevealText>
                 <RevealText>

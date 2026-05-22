@@ -61,7 +61,7 @@ export const AnalyticsConsentBanner = () => {
       <p className="relative font-mono text-[9px] uppercase tracking-[0.3em] text-[#030103]/72">
         Cookies for the coffee?
       </p>
-      <h2 className="relative mt-2 text-[0.98rem] font-semibold leading-tight text-[#030103]">
+      <h2 className="relative mt-2 font-sans text-[0.98rem] font-semibold normal-case leading-tight tracking-[-0.01em] text-[#030103]">
         I use simple analytics to learn what people actually open on the site. That’s all.
       </h2>
       <p className="relative mt-3 text-[12px] leading-relaxed text-[#030103]/72">

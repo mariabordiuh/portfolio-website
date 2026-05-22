@@ -56,7 +56,7 @@ export const UnderConstruction = () => {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-auto max-w-5xl font-display text-[clamp(2.6rem,9vw,8rem)] font-bold uppercase leading-[0.86] tracking-[-0.08em]"
+              className="mx-auto max-w-[14ch] font-display text-[clamp(1.9rem,4.4vw,3.9rem)] font-normal uppercase leading-[1.1] tracking-[0.02em]"
             >
               New work is brewing.
             </motion.h1>

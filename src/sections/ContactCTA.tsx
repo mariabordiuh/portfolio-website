@@ -30,7 +30,7 @@ export const ContactCTA = () => {
               <p className="font-mono text-[10px] uppercase tracking-[0.38em] text-white/48">
                 Contact // selective collaborations
               </p>
-              <h2 className="mt-4 max-w-[11ch] font-display text-[clamp(2.8rem,6vw,6.9rem)] font-bold uppercase leading-[0.9] tracking-[-0.055em] text-white">
+              <h2 className="mt-4 max-w-[13ch] font-display text-[clamp(1.9rem,3.6vw,3.45rem)] font-normal uppercase leading-[1.08] tracking-[0.02em] text-white">
                 Open for sharp, visual projects<span className="text-brand-accent">.</span>
               </h2>
               <p className="mt-5 max-w-[42rem] text-[1rem] leading-relaxed text-white/66 md:text-[1.12rem]">
@@ -61,7 +61,7 @@ export const ContactCTA = () => {
                     <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/48">
                       Start here
                     </p>
-                    <p className="mt-4 max-w-[12ch] font-display text-[clamp(2rem,4vw,3rem)] font-bold uppercase leading-[0.92] tracking-[-0.05em] text-white">
+                    <p className="mt-4 max-w-[15ch] font-display text-[clamp(1.35rem,2.5vw,2rem)] font-normal uppercase leading-[1.12] tracking-[0.02em] text-white">
                       Tell me what you’re making.
                     </p>
                   </div>

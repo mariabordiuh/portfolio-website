@@ -170,7 +170,7 @@ export const About = () => {
                   Why work with me
                 </p>
 
-                <h1 className="mt-3 max-w-[10ch] font-display text-[clamp(2.7rem,4.8vw,4.85rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
+                <h1 className="mt-3 max-w-[11ch] font-display text-[clamp(2rem,3.5vw,3.45rem)] font-normal uppercase leading-[1.08] tracking-[0.02em] text-white">
                   Maria
                   <br />
                   Bordiuh<span className="text-brand-accent">.</span>
