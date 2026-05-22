@@ -161,9 +161,9 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-16 xl:pt-12">
+      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-14 xl:pt-10">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-6 xl:min-h-[calc(100svh-7.5rem)] xl:grid-cols-[minmax(19rem,0.68fr)_minmax(0,1.32fr)] xl:items-center">
+          <div className="grid gap-6 xl:min-h-[calc(100svh-8.75rem)] xl:grid-cols-[minmax(19rem,0.68fr)_minmax(0,1.32fr)] xl:items-center">
             <div className="flex h-full flex-col gap-6 xl:justify-center xl:pr-6">
               <div className="max-w-[32rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
@@ -211,7 +211,7 @@ export const About = () => {
                   CV notes
                 </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:min-h-[32rem] xl:auto-rows-fr xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:min-h-[29rem] xl:auto-rows-fr xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}

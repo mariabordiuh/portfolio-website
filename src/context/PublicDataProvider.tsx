@@ -3,7 +3,7 @@ import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firesto
 import { DataContext } from './DataContext';
 import { dbLite } from '../firebase-firestore-lite';
 import { DEFAULT_HOME_HERO_SETTINGS, HOME_HERO_SETTINGS_ID, normalizeHomeHeroSettings } from '../utils/home-hero';
-import { readSessionCache, writeSessionCache } from '../utils/session-cache';
+import { clearSessionCache, readSessionCache, writeSessionCache } from '../utils/session-cache';
 import { normalizeProject } from '../utils/portfolio';
 import { GalleryImage, HomeHeroSettings, LabItem, Project, Video } from '../types';
 
@@ -32,6 +32,14 @@ const readMemoryCache = <T,>(key: DataCollectionKey) => memoryCache[key] as T | 
 
 const writeMemoryCache = <T,>(key: DataCollectionKey, value: T) => {
   memoryCache[key] = value;
+};
+
+export const clearPublicDataCaches = () => {
+  for (const key of Object.keys(memoryCache) as DataCollectionKey[]) {
+    delete memoryCache[key];
+  }
+
+  clearSessionCache(Object.values(CACHE_KEYS));
 };
 
 const resolveCollections = (collections?: DataCollectionConfig) => ({

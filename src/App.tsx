@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -13,6 +13,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
 import { initGoogleAnalytics, isGoogleAnalyticsEnabled, trackPageView } from './lib/google-analytics';
 import { UnderConstruction } from './pages/UnderConstruction';
+import { clearPublicDataCaches } from './context/PublicDataProvider';
 import {
   loadAboutRoute,
   loadAdminDataShell,
@@ -118,6 +119,7 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const previousIsAdminRef = useRef(isAdmin);
   const isWorkDetailRoute = location.pathname.startsWith('/work/');
   const isKnownPublicPath =
     location.pathname === '/' ||
@@ -138,6 +140,14 @@ const AppShell = () => {
       isWorkDetailRoute ||
       isNotFoundRoute);
   const enableClickSound = enableCustomCursor;
+
+  useLayoutEffect(() => {
+    if (previousIsAdminRef.current && !isAdmin) {
+      clearPublicDataCaches();
+    }
+
+    previousIsAdminRef.current = isAdmin;
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isGoogleAnalyticsEnabled() || isAdmin) {
