@@ -21,7 +21,7 @@ export const ContactCTA = () => {
     <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-28 md:px-12 md:py-36">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,87,112,0.12),transparent_26%),radial-gradient(circle_at_82%_68%,rgba(255,87,112,0.08),transparent_30%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,158,187,0.12),transparent_26%),radial-gradient(circle_at_82%_68%,rgba(255,158,187,0.08),transparent_30%)]"
       />
       <div className="mx-auto max-w-7xl">
         <RevealOnScroll>
@@ -53,7 +53,7 @@ export const ContactCTA = () => {
             <aside className="relative overflow-hidden rounded-[2.1rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:p-8">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,87,112,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_55%)]"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,158,187,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_55%)]"
               />
               <div className="relative">
                 <div className="flex items-start justify-between gap-6">

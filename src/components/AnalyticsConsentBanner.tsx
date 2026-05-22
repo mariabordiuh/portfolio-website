@@ -55,16 +55,16 @@ export const AnalyticsConsentBanner = () => {
   };
 
   const bannerCard = (
-    <div className="relative overflow-hidden rounded-[1.35rem] border border-brand-accent/45 bg-[linear-gradient(145deg,rgba(255,87,112,0.98)_0%,rgba(255,87,112,0.94)_58%,rgba(10,10,10,0.92)_140%)] p-4 shadow-[0_26px_90px_rgba(255,87,112,0.24)] backdrop-blur-2xl">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_44%),radial-gradient(circle_at_bottom_left,rgba(10,10,10,0.28),transparent_42%)]" />
+    <div className="relative overflow-hidden rounded-[1.35rem] border border-brand-accent/45 bg-[linear-gradient(145deg,rgba(255,158,187,0.98)_0%,rgba(255,158,187,0.94)_58%,rgba(3,1,3,0.92)_140%)] p-4 shadow-[0_26px_90px_rgba(255,158,187,0.22)] backdrop-blur-2xl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_44%),radial-gradient(circle_at_bottom_left,rgba(3,1,3,0.28),transparent_42%)]" />
       <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-      <p className="relative font-mono text-[9px] uppercase tracking-[0.3em] text-black/72">
+      <p className="relative font-mono text-[9px] uppercase tracking-[0.3em] text-[#030103]/72">
         Cookies for the coffee?
       </p>
-      <h2 className="relative mt-2 text-[0.98rem] font-semibold leading-tight text-black">
+      <h2 className="relative mt-2 text-[0.98rem] font-semibold leading-tight text-[#030103]">
         I use simple analytics to learn what people actually open on the site. That’s all.
       </h2>
-      <p className="relative mt-3 text-[12px] leading-relaxed text-black/72">
+      <p className="relative mt-3 text-[12px] leading-relaxed text-[#030103]/72">
         Details live in{' '}
         <PrefetchLink to="/datenschutz" className="font-medium underline underline-offset-4">
           Datenschutz
@@ -75,14 +75,14 @@ export const AnalyticsConsentBanner = () => {
         <button
           type="button"
           onClick={() => handleChoice('accepted')}
-          className="rounded-full border border-black/16 bg-black px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-white transition-colors hover:bg-black/90"
+          className="rounded-full border border-[#d83a18] bg-[#d83a18] px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-[#030103] transition-colors hover:bg-[#e24820]"
         >
           Okidoki
         </button>
         <button
           type="button"
           onClick={() => handleChoice('rejected')}
-          className="rounded-full border border-black/14 bg-white/12 px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-black/72 transition-colors hover:border-black/24 hover:bg-white/18 hover:text-black"
+          className="rounded-full border border-[#030103]/14 bg-white/12 px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-[0.22em] text-[#030103]/72 transition-colors hover:border-[#030103]/24 hover:bg-white/18 hover:text-[#030103]"
         >
           Nope
         </button>

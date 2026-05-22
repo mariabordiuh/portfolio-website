@@ -641,7 +641,7 @@ export const ProjectDetail = () => {
       <article className="relative overflow-x-hidden bg-brand-bg text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_14%,rgba(255,87,112,0.08),transparent_18%),radial-gradient(circle_at_82%_24%,rgba(255,255,255,0.035),transparent_24%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_14%,rgba(255,158,187,0.08),transparent_18%),radial-gradient(circle_at_82%_24%,rgba(255,255,255,0.035),transparent_24%)]"
         />
         <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[148px_minmax(0,1fr)] md:gap-12`}>
           <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">

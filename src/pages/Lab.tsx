@@ -174,7 +174,7 @@ export const Lab = () => {
       <div className="relative overflow-hidden bg-brand-bg">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,87,112,0.08),transparent_20%),radial-gradient(circle_at_84%_24%,rgba(255,255,255,0.035),transparent_22%),radial-gradient(circle_at_72%_78%,rgba(255,87,112,0.06),transparent_24%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,158,187,0.08),transparent_20%),radial-gradient(circle_at_84%_24%,rgba(255,255,255,0.035),transparent_22%),radial-gradient(circle_at_72%_78%,rgba(255,158,187,0.06),transparent_24%)]"
         />
         <div className={`${SITE_SHELL_CLASS} relative pb-28 pt-36 md:pb-32 md:pt-40`}>
           <header className="mb-16 md:mb-20">
@@ -259,8 +259,8 @@ export const Lab = () => {
                       className="group relative flex h-full w-full cursor-pointer flex-col gap-5 overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-5 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.024))] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:gap-6 md:p-7"
                       style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
                     >
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                      <div className="pointer-events-none absolute left-5 right-5 top-5 h-px bg-[linear-gradient(90deg,rgba(255,87,112,0.85),rgba(255,255,255,0.18),transparent)] md:left-7 md:right-7 md:top-7" />
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,158,187,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute left-5 right-5 top-5 h-px bg-[linear-gradient(90deg,rgba(255,158,187,0.85),rgba(255,255,255,0.18),transparent)] md:left-7 md:right-7 md:top-7" />
                       <div className="flex items-start justify-between gap-4 pt-4 md:pt-5">
                         <div className="space-y-2">
                           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-brand-accent">

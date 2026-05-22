@@ -62,19 +62,19 @@ const getCursorPresentation = (
   const palette =
     theme === 'brand'
       ? {
-          border: 'rgba(255, 87, 112, 0.58)',
-          fill: 'rgba(255, 87, 112, 0.12)',
-          glow: '0 0 26px rgba(255, 87, 112, 0.2)',
-          solid: 'rgba(255, 87, 112, 0.96)',
-          text: '#0a0a0a',
-          dot: 'rgba(255, 87, 112, 0.98)',
+          border: 'rgba(255, 158, 187, 0.58)',
+          fill: 'rgba(255, 158, 187, 0.12)',
+          glow: '0 0 26px rgba(255, 158, 187, 0.2)',
+          solid: 'rgba(255, 158, 187, 0.96)',
+          text: '#030103',
+          dot: 'rgba(255, 158, 187, 0.98)',
         }
       : {
           border: 'rgba(255, 255, 255, 0.58)',
           fill: 'rgba(255, 255, 255, 0.08)',
           glow: '0 0 24px rgba(255, 255, 255, 0.12)',
           solid: 'rgba(255, 255, 255, 0.94)',
-          text: '#0a0a0a',
+          text: '#030103',
           dot: 'rgba(255, 255, 255, 0.94)',
         };
 
@@ -128,7 +128,7 @@ const getCursorPresentation = (
         borderRadius: 999,
         background: palette.solid,
         borderColor: 'transparent',
-        boxShadow: theme === 'brand' ? '0 0 36px rgba(255, 87, 112, 0.32)' : '0 0 28px rgba(255, 255, 255, 0.18)',
+        boxShadow: theme === 'brand' ? '0 0 36px rgba(255, 158, 187, 0.32)' : '0 0 28px rgba(255, 255, 255, 0.18)',
         label: 'play',
         labelColor: palette.text,
         dotSize: 0,
@@ -315,7 +315,7 @@ export const CircleCursor = () => {
             top: ripple.y - 16,
             borderColor:
               cursorTheme === 'brand'
-                ? 'rgba(255, 87, 112, 0.46)'
+                ? 'rgba(255, 158, 187, 0.46)'
                 : 'rgba(255, 255, 255, 0.38)',
           }}
         />

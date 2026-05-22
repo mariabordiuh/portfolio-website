@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#0a0a0a"/>
+  <rect width="1200" height="630" fill="#030103"/>
 
   <!-- Subtle accent glow, top-left -->
   <radialGradient id="glow" cx="0%" cy="0%" r="60%">
-    <stop offset="0%" stop-color="#ff5770" stop-opacity="0.08"/>
-    <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    <stop offset="0%" stop-color="#ff9ebb" stop-opacity="0.08"/>
+    <stop offset="100%" stop-color="#030103" stop-opacity="0"/>
   </radialGradient>
   <rect width="1200" height="630" fill="url(#glow)"/>
 
@@ -12,17 +12,17 @@
   <text
     x="600"
     y="290"
-    font-family="'Space Mono', ui-monospace, monospace"
-    font-size="96"
-    font-weight="800"
-    letter-spacing="-2"
-    fill="#ffffff"
+    font-family="'Press Start 2P', 'Plus Jakarta Sans', ui-sans-serif, sans-serif"
+    font-size="74"
+    font-weight="400"
+    letter-spacing="-1"
+    fill="#ede2d4"
     text-anchor="middle"
     dominant-baseline="auto"
   >Maria Bordiuh</text>
 
   <!-- Accent dot -->
-  <circle cx="910" cy="270" r="8" fill="#ff5770"/>
+  <circle cx="930" cy="272" r="8" fill="#ff9ebb"/>
 
   <!-- Subtitle -->
   <text
@@ -32,7 +32,7 @@
     font-size="32"
     font-weight="400"
     letter-spacing="1"
-    fill="#ff5770"
+    fill="#d83a18"
     text-anchor="middle"
     dominant-baseline="auto"
   >AI Creative Director &amp; Art Director — Hamburg</text>

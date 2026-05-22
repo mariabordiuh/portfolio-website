@@ -78,7 +78,7 @@ export const ServicesSection = () => {
               delay={groupIndex * 0.06}
               className="group relative overflow-hidden bg-brand-bg/94 p-8 backdrop-blur-sm transition-transform duration-500 hover:-translate-y-1 md:p-10 flex flex-col"
             >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,87,112,0.14),transparent_30%),radial-gradient(circle_at_80%_75%,rgba(52,72,104,0.18),transparent_34%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,158,187,0.14),transparent_30%),radial-gradient(circle_at_80%_75%,rgba(255,214,224,0.12),transparent_34%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="mb-8">
                 <span className="relative block mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-brand-accent">
                   {group.tag}

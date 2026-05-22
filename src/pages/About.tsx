@@ -273,9 +273,9 @@ export const About = () => {
                             whileTap={{ scale: 0.985 }}
                             className="group relative flex w-full items-center gap-3 rounded-[1rem] border border-white/10 bg-black/24 p-2 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
                           >
-                            <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,87,112,0.06),transparent_52%)] opacity-80" />
+                            <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,158,187,0.08),transparent_52%)] opacity-80" />
                             <div className="relative h-16 w-[4.5rem] shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-black/35 p-1">
-                              <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.18),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
+                              <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,158,187,0.18),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
                               <img
                                 src={LOKI_IMAGE}
                                 alt="Loki the cat sitting in a chair"

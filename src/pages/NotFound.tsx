@@ -568,7 +568,7 @@ export const NotFound = () => {
 
   return (
     <div className="relative h-full min-h-0 overflow-hidden bg-brand-bg text-brand-ink">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,87,112,0.18),transparent_28%),radial-gradient(circle_at_80%_22%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_72%_82%,rgba(145,94,59,0.18),transparent_24%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,158,187,0.18),transparent_28%),radial-gradient(circle_at_80%_22%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_72%_82%,rgba(255,214,224,0.14),transparent_24%)]" />
       <div
         className="absolute inset-0 opacity-[0.08]"
         style={{
@@ -584,7 +584,7 @@ export const NotFound = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 text-[18vw] font-display leading-none tracking-[-0.04em]"
-        style={{ color: 'rgba(255, 87, 112, 0.11)' }}
+        style={{ color: 'rgba(255, 158, 187, 0.11)' }}
       >
         404
       </motion.div>
@@ -661,7 +661,7 @@ export const NotFound = () => {
           >
             <div className="relative ml-auto w-full max-w-[500px] overflow-hidden rounded-[1.7rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))] p-4 shadow-[0_32px_90px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:p-5">
               <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/26 to-transparent" />
-              <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,87,112,0.28),transparent_72%)] blur-3xl" />
+              <div className="absolute left-6 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(255,158,187,0.28),transparent_72%)] blur-3xl" />
 
               <div className="relative z-10">
                 <div className="flex flex-wrap items-center justify-between gap-4 text-left">
@@ -682,7 +682,7 @@ export const NotFound = () => {
 
                 <div className="mt-4 flex flex-col items-center">
                   <div className="relative w-full max-w-[20.5rem] overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0c0c0c] p-2.5">
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,87,112,0.08),transparent_30%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%),radial-gradient(circle_at_50%_0%,rgba(255,158,187,0.08),transparent_30%)]" />
                     <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))` }}>
                       {displayBoard.flatMap((row, rowIndex) =>
                         row.map((cell, columnIndex) => {

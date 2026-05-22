@@ -149,7 +149,7 @@ const MasonryCard = memo(({
             }`}
             aria-hidden="true"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(255,158,187,0.18),transparent_34%),radial-gradient(circle_at_78%_74%,rgba(185,122,37,0.16),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(255,158,187,0.18),transparent_34%),radial-gradient(circle_at_78%_74%,rgba(255,214,224,0.14),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]" />
             <div className="absolute inset-y-0 left-[-70%] w-[60%] skew-x-[-16deg] bg-gradient-to-r from-transparent via-white/18 to-transparent animate-[shimmer_1.35s_infinite]" />
           </div>
 
@@ -160,7 +160,7 @@ const MasonryCard = memo(({
             aria-hidden="true"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-black/10 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-[radial-gradient(circle_at_bottom,rgba(255,87,112,0.16),transparent_58%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-[radial-gradient(circle_at_bottom,rgba(255,158,187,0.16),transparent_58%)]" />
           </div>
 
           <div style={{ aspectRatio: `${imageRatio.width} / ${imageRatio.height}` }}>

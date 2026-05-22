@@ -1,6 +1,6 @@
 <svg width="64" height="64" viewBox="180 20 210 210" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="180" y="20" width="210" height="210" rx="44" fill="#0A0A0A"/>
-  <g stroke="#FF5770" stroke-width="14">
+  <rect x="180" y="20" width="210" height="210" rx="44" fill="#030103"/>
+  <g stroke="#FF9EBB" stroke-width="14">
     <line y1="-7" x2="98" y2="-7" transform="matrix(1 0 -0.000563673 1 225 216)"/>
     <line y1="-7" x2="128" y2="-7" transform="matrix(1 0 -0.000872029 1 211 202)"/>
     <line y1="-7" x2="42" y2="-7" transform="matrix(0 1 -1 0.000563673 225 132)"/>
