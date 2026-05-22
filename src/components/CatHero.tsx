@@ -224,7 +224,7 @@ export const CatHero = () => {
 
           <h1
             aria-label={headlineLines.join(' ')}
-            className="mb-6 max-w-[18ch] font-display text-[clamp(1.26rem,4.2vw,3.7rem)] font-normal uppercase leading-[1.16] tracking-[-0.028em] text-brand-ink md:mb-7 md:max-w-none"
+            className="mb-6 max-w-[18ch] font-display text-[clamp(1.2rem,4vw,3.52rem)] font-normal uppercase leading-[1.16] tracking-[-0.028em] text-brand-ink md:mb-7 md:max-w-none"
           >
             {heroHeadlineTimeline.timeline.map((line) => (
               <span key={line.id} aria-hidden="true" className="block pb-[0.18em] last:pb-0">
