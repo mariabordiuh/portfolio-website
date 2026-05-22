@@ -88,12 +88,12 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<SuspenseRoute><Home /></SuspenseRoute>} />
         <Route element={<SuspenseRoute><ProjectsDataShell /></SuspenseRoute>}>
           <Route path="/work/:id" element={<SuspenseRoute><ProjectDetail /></SuspenseRoute>} />
         </Route>
 
         <Route element={<SuspenseRoute><PortfolioDataShell /></SuspenseRoute>}>
+          <Route path="/" element={<SuspenseRoute><Home /></SuspenseRoute>} />
           <Route path="/work" element={<SuspenseRoute><Work /></SuspenseRoute>} />
         </Route>
 
@@ -118,6 +118,7 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const isWorkDetailRoute = location.pathname.startsWith('/work/');
   const isKnownPublicPath =
     location.pathname === '/' ||
     location.pathname === '/work' ||
@@ -125,9 +126,18 @@ const AppShell = () => {
     location.pathname === '/about' ||
     location.pathname === '/impressum' ||
     location.pathname === '/datenschutz' ||
-    location.pathname === '/omr' ||
-    location.pathname.startsWith('/work/');
+      location.pathname === '/omr' ||
+      isWorkDetailRoute;
   const isNotFoundRoute = !isAdmin && !isKnownPublicPath;
+  const enableSmoothScroll =
+    !isAdmin && (location.pathname === '/' || isWorkDetailRoute || isNotFoundRoute);
+  const enableCustomCursor =
+    !isAdmin &&
+    (location.pathname === '/' ||
+      location.pathname === '/work' ||
+      isWorkDetailRoute ||
+      isNotFoundRoute);
+  const enableClickSound = enableCustomCursor;
 
   useEffect(() => {
     if (!isGoogleAnalyticsEnabled() || isAdmin) {
@@ -158,12 +168,12 @@ const AppShell = () => {
       return;
     }
 
-    document.body.dataset.cursorMode = isAdmin ? 'native' : 'custom';
+    document.body.dataset.cursorMode = enableCustomCursor ? 'custom' : 'native';
 
     return () => {
       delete document.body.dataset.cursorMode;
     };
-  }, [isAdmin]);
+  }, [enableCustomCursor]);
 
   const appFrame = (
     <div
@@ -200,14 +210,22 @@ const AppShell = () => {
     );
   }
 
+  const interactiveFrame = (
+    <>
+      {enableCustomCursor ? <CircleCursor /> : null}
+      {enableClickSound ? <ButtonClickSound /> : null}
+      {appFrame}
+    </>
+  );
+
   return (
     <>
       <Seo />
-      <SmoothScrollProvider>
-        <CircleCursor />
-        <ButtonClickSound />
-        {appFrame}
-      </SmoothScrollProvider>
+      {enableSmoothScroll ? (
+        <SmoothScrollProvider>{interactiveFrame}</SmoothScrollProvider>
+      ) : (
+        interactiveFrame
+      )}
     </>
   );
 };

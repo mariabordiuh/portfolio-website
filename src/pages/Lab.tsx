@@ -237,7 +237,7 @@ export const Lab = () => {
                     type="button"
                     onClick={() => openItem(item)}
                     data-cursor="card"
-                    className="group relative flex h-full w-full cursor-pointer flex-col gap-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-white/[0.055] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:p-7"
+                    className="group relative flex h-full w-full cursor-pointer flex-col gap-4 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 text-left shadow-[0_18px_46px_rgba(0,0,0,0.16)] transition-all duration-500 hover:-translate-y-1 hover:border-white/16 hover:bg-white/[0.055] hover:shadow-[0_26px_58px_rgba(0,0,0,0.24)] md:gap-6 md:p-7"
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
                   >
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,87,112,0.12),_transparent_58%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -247,34 +247,14 @@ export const Lab = () => {
                       </span>
                       <span className="font-mono text-[10px] text-brand-muted">{item.date}</span>
                     </div>
-                    {thumbnail ? (
-                      <div className="z-10 aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-black/20">
-                        <img
-                          src={thumbnail}
-                          alt={item.title}
-                          width={600}
-                          height={400}
-                          loading="lazy"
-                          decoding="async"
-                          sizes="(min-width: 768px) 46vw, 100vw"
-                          className="h-full w-full object-cover opacity-84 transition-all duration-700 saturate-[0.88] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:saturate-100"
-                          style={{
-                            transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
-                            transformOrigin: 'center center',
-                            objectPosition: `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`,
-                          }}
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                    ) : null}
-                    <div className="z-10">
-                      <h3 className="mb-3 font-sans text-[clamp(1.45rem,1.16rem+0.8vw,2rem)] font-semibold normal-case leading-[1.02] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
+                    <div className="z-10 order-2 md:order-3">
+                      <h3 className="mb-2.5 font-sans text-[clamp(1.35rem,1.08rem+0.8vw,2rem)] font-semibold normal-case leading-[1.02] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
                         {item.title}
                       </h3>
-                      <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-white/58 md:text-[0.98rem]">
+                      <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-white/60 md:mb-5 md:text-[0.98rem]">
                         {item.excerpt ?? item.content}
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="hidden flex-wrap gap-2 md:flex">
                         {item.tools.map((tool) => (
                           <span key={tool} className="tool-pill">
                             {tool}
@@ -290,6 +270,28 @@ export const Lab = () => {
                         </span>
                       </div>
                     </div>
+                    {thumbnail ? (
+                      <div className="z-10 order-3 overflow-hidden rounded-[1.5rem] bg-black/20 md:order-2">
+                        <div className="aspect-[5/3.8] md:aspect-[4/3]">
+                          <img
+                            src={thumbnail}
+                            alt={item.title}
+                            width={600}
+                            height={400}
+                            loading="lazy"
+                            decoding="async"
+                            sizes="(min-width: 768px) 46vw, 100vw"
+                            className="h-full w-full object-cover opacity-84 transition-all duration-700 saturate-[0.88] group-hover:scale-[1.03] group-hover:opacity-100 group-hover:saturate-100"
+                            style={{
+                              transform: `scale(${Math.max(1, (item.thumbnailZoom ?? 100) / 100)})`,
+                              transformOrigin: 'center center',
+                              objectPosition: `${item.thumbnailPositionX ?? 50}% ${item.thumbnailPositionY ?? 50}%`,
+                            }}
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
                   </button>
                 </RevealOnScroll>
               );

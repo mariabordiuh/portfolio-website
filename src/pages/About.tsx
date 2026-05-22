@@ -88,7 +88,7 @@ const CV_NOTES = [
   },
   {
     title: 'Outside work',
-    body: 'Hamburg since 2022. Lived in Ukraine, the US, Poland, China, and Vietnam.',
+    body: 'Hamburg since 2022. Lived across Ukraine, the US, Poland, China, and Vietnam.',
   },
 ] as const;
 
@@ -161,29 +161,29 @@ export const About = () => {
 
   return (
     <PageTransition>
-      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-18 xl:pt-16">
+      <section className="bg-brand-bg pb-18 pt-22 md:pb-22 md:pt-24 xl:pb-16 xl:pt-12">
         <div className={SITE_SHELL_CLASS}>
-          <div className="grid gap-4 xl:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(16rem,0.58fr)_minmax(0,1.42fr)] xl:items-start">
-            <div className="flex h-full flex-col gap-5 xl:justify-start xl:pt-10">
-              <div className="max-w-[42rem]">
+          <div className="grid gap-6 xl:min-h-[calc(100svh-7.5rem)] xl:grid-cols-[minmax(19rem,0.68fr)_minmax(0,1.32fr)] xl:items-center">
+            <div className="flex h-full flex-col gap-6 xl:justify-center xl:pr-6">
+              <div className="max-w-[32rem]">
                 <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
                   Why work with me
                 </p>
 
-                <h1 className="mt-2.5 max-w-[10ch] font-display text-[clamp(2.2rem,3.85vw,4rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
+                <h1 className="mt-3 max-w-[10ch] font-display text-[clamp(2.7rem,4.8vw,4.85rem)] font-bold uppercase leading-[0.88] tracking-[-0.05em] text-white">
                   Maria
                   <br />
                   Bordiuh<span className="text-brand-accent">.</span>
                 </h1>
 
-                <p className="mt-3 max-w-[28rem] text-[clamp(0.92rem,0.84rem+0.14vw,1rem)] leading-[1.56] text-white/64">
+                <p className="mt-4 max-w-[30rem] text-[clamp(0.98rem,0.86rem+0.18vw,1.08rem)] leading-[1.62] text-white/66">
                   I’m a Ukrainian Art Director in Hamburg working across art direction, motion, AI
                   image systems, and creative tech. Best when a project needs both strong visual
                   judgment and a nerdier workflow brain.
                 </p>
               </div>
 
-              <div className="space-y-3.5 border-t border-white/8 pt-4">
+              <div className="space-y-4 border-t border-white/8 pt-5">
                 <div className="flex flex-wrap gap-3">
                   {CONTACT_LINKS.map((link) => (
                     <a
@@ -199,23 +199,23 @@ export const About = () => {
                   ))}
                 </div>
 
-                <p className="max-w-[30rem] text-[0.88rem] leading-relaxed text-white/44">
+                <p className="max-w-[30rem] text-[0.92rem] leading-relaxed text-white/46">
                   Hamburg. Art direction, motion, AI visuals, and creative tech.
                 </p>
               </div>
             </div>
 
-            <div className="min-h-0 xl:pt-7">
-              <div className="mb-2.5">
+            <div className="min-h-0 xl:pt-1">
+              <div className="mb-3">
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent">
                   CV notes
                 </p>
               </div>
-              <div className="grid min-h-0 items-stretch gap-2.5 md:grid-cols-2 xl:h-[29.5rem] xl:auto-rows-fr xl:grid-cols-3">
+              <div className="grid min-h-0 items-stretch gap-3 md:grid-cols-2 xl:min-h-[32rem] xl:auto-rows-fr xl:grid-cols-3">
                 {CV_NOTES.map((note) => (
                   <article
                     key={note.title}
-                    className="relative flex h-full min-h-[7.2rem] flex-col overflow-hidden rounded-[1.05rem] border border-white/10 bg-white/[0.025] p-3 backdrop-blur-sm md:p-3.5"
+                    className="relative flex h-full min-h-[7.8rem] flex-col overflow-hidden rounded-[1.1rem] border border-white/10 bg-white/[0.025] p-3.5 backdrop-blur-sm md:p-4"
                   >
                     <div className="pointer-events-none absolute inset-x-3.5 top-0 h-px bg-gradient-to-r from-transparent via-brand-accent/45 to-transparent" />
                     <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/46">
@@ -223,40 +223,40 @@ export const About = () => {
                     </p>
                     {note.title === 'Outside work' ? (
                       <>
-                        <p className="mt-2 text-[0.76rem] leading-[1.28] text-white/68 xl:text-[0.74rem]">
+                        <p className="mt-2 text-[0.8rem] leading-[1.34] text-white/68 xl:text-[0.79rem]">
                           {note.body}
                         </p>
-                        <div className="mt-auto pt-2">
+                        <div className="mt-auto pt-2.5">
                           <motion.button
                             type="button"
                             onClick={() => setIsLokiOpen(true)}
                             whileHover={{ y: -2, scale: 1.01 }}
                             whileTap={{ scale: 0.985 }}
-                            className="group relative flex w-full items-center gap-2.5 rounded-[0.95rem] border border-white/10 bg-black/24 p-2 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
+                            className="group relative flex w-full items-center gap-3 rounded-[1rem] border border-white/10 bg-black/24 p-2 text-left shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_28px_rgba(0,0,0,0.18)]"
                           >
                             <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,87,112,0.06),transparent_52%)] opacity-80" />
-                            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-black/35 p-1">
+                            <div className="relative h-16 w-[4.5rem] shrink-0 overflow-hidden rounded-[0.95rem] border border-white/12 bg-black/35 p-1">
                               <span className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,_rgba(255,87,112,0.18),_transparent_60%)] transition-opacity duration-500 group-hover:opacity-100" />
                               <img
                                 src={LOKI_IMAGE}
                                 alt="Loki the cat sitting in a chair"
                                 loading="lazy"
-                                className="relative z-[2] h-full w-full rounded-[0.8rem] object-cover object-[44%_48%]"
+                                className="relative z-[2] h-full w-full rounded-[0.8rem] object-cover object-[46%_40%]"
                               />
                             </div>
                             <div className="relative min-w-0">
                               <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-brand-accent">
                                 Bonus: Loki
                               </p>
-                              <p className="mt-0.5 text-[0.64rem] leading-[1.18] text-white/68">
-                                Found in China in 2018. Usually joins calls.
+                              <p className="mt-0.5 text-[0.66rem] leading-[1.24] text-white/68">
+                                Found in China in 2018. Very likely to cameo on calls.
                               </p>
                             </div>
                           </motion.button>
                         </div>
                       </>
                     ) : (
-                      <p className="mt-2 text-[0.8rem] leading-[1.34] text-white/68 xl:text-[0.78rem]">
+                      <p className="mt-2 text-[0.82rem] leading-[1.38] text-white/68 xl:text-[0.81rem]">
                         {note.body}
                       </p>
                     )}

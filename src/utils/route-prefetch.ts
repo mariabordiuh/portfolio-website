@@ -47,6 +47,7 @@ const prefetchOnce = (key: string, loader: () => Promise<unknown>) => {
 
 export const prefetchRoute = (to: string) => {
   if (to === '/') {
+    prefetchOnce('portfolioData', loadPortfolioDataShell);
     prefetchOnce('home', loadHomeRoute);
     return;
   }

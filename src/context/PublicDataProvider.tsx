@@ -26,6 +26,14 @@ const CACHE_KEYS: Record<DataCollectionKey, string> = {
   homeHero: 'home-hero',
 };
 
+const memoryCache: Partial<Record<DataCollectionKey, unknown>> = {};
+
+const readMemoryCache = <T,>(key: DataCollectionKey) => memoryCache[key] as T | undefined;
+
+const writeMemoryCache = <T,>(key: DataCollectionKey, value: T) => {
+  memoryCache[key] = value;
+};
+
 const resolveCollections = (collections?: DataCollectionConfig) => ({
   projects: collections?.projects ?? DEFAULT_COLLECTIONS.projects,
   videos: collections?.videos ?? DEFAULT_COLLECTIONS.videos,
@@ -102,73 +110,109 @@ export const PublicDataProvider = ({
       const tasks: Promise<void>[] = [];
 
       if (enabledCollections.projects) {
-        tasks.push(
-          getDocs(publishedCollectionQuery('projects'))
-            .then((snapshot) => {
-              if (cancelled) return;
-              const nextProjects = snapshot.docs.map((entry) =>
-                normalizeProject({ id: entry.id, ...entry.data() } as Project),
-              );
-              setProjects(filterLiveItems(nextProjects));
-              writeSessionCache(CACHE_KEYS.projects, nextProjects);
-            })
-            .catch((error) => logPublicDataError('projects', error)),
-        );
+        const memoizedProjects = readMemoryCache<Project[]>('projects');
+        if (memoizedProjects) {
+          setProjects(filterLiveItems(memoizedProjects));
+          writeSessionCache(CACHE_KEYS.projects, memoizedProjects);
+        } else {
+          tasks.push(
+            getDocs(publishedCollectionQuery('projects'))
+              .then((snapshot) => {
+                if (cancelled) return;
+                const nextProjects = snapshot.docs.map((entry) =>
+                  normalizeProject({ id: entry.id, ...entry.data() } as Project),
+                );
+                setProjects(filterLiveItems(nextProjects));
+                writeSessionCache(CACHE_KEYS.projects, nextProjects);
+                writeMemoryCache('projects', nextProjects);
+              })
+              .catch((error) => logPublicDataError('projects', error)),
+          );
+        }
       }
 
       if (enabledCollections.videos) {
-        tasks.push(
-          getDocs(publishedCollectionQuery('videos'))
-            .then((snapshot) => {
-              if (cancelled) return;
-              const nextVideos = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video));
-              setVideos(filterLiveItems(nextVideos));
-              writeSessionCache(CACHE_KEYS.videos, nextVideos);
-            })
-            .catch((error) => logPublicDataError('videos', error)),
-        );
+        const memoizedVideos = readMemoryCache<Video[]>('videos');
+        if (memoizedVideos) {
+          setVideos(filterLiveItems(memoizedVideos));
+          writeSessionCache(CACHE_KEYS.videos, memoizedVideos);
+        } else {
+          tasks.push(
+            getDocs(publishedCollectionQuery('videos'))
+              .then((snapshot) => {
+                if (cancelled) return;
+                const nextVideos = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as Video));
+                setVideos(filterLiveItems(nextVideos));
+                writeSessionCache(CACHE_KEYS.videos, nextVideos);
+                writeMemoryCache('videos', nextVideos);
+              })
+              .catch((error) => logPublicDataError('videos', error)),
+          );
+        }
       }
 
       if (enabledCollections.labItems) {
-        tasks.push(
-          getDocs(publishedCollectionQuery('labItems'))
-            .then((snapshot) => {
-              if (cancelled) return;
-              const nextLabItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem));
-              setLabItems(filterLiveItems(nextLabItems));
-              writeSessionCache(CACHE_KEYS.labItems, nextLabItems);
-            })
-            .catch((error) => logPublicDataError('lab items', error)),
-        );
+        const memoizedLabItems = readMemoryCache<LabItem[]>('labItems');
+        if (memoizedLabItems) {
+          setLabItems(filterLiveItems(memoizedLabItems));
+          writeSessionCache(CACHE_KEYS.labItems, memoizedLabItems);
+        } else {
+          tasks.push(
+            getDocs(publishedCollectionQuery('labItems'))
+              .then((snapshot) => {
+                if (cancelled) return;
+                const nextLabItems = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as LabItem));
+                setLabItems(filterLiveItems(nextLabItems));
+                writeSessionCache(CACHE_KEYS.labItems, nextLabItems);
+                writeMemoryCache('labItems', nextLabItems);
+              })
+              .catch((error) => logPublicDataError('lab items', error)),
+          );
+        }
       }
 
       if (enabledCollections.galleryImages) {
-        tasks.push(
-          getDocs(publishedCollectionQuery('gallery'))
-            .then((snapshot) => {
-              if (cancelled) return;
-              const nextGalleryImages = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage));
-              setGalleryImages(filterLiveItems(nextGalleryImages));
-              writeSessionCache(CACHE_KEYS.galleryImages, nextGalleryImages);
-            })
-            .catch((error) => logPublicDataError('gallery images', error)),
-        );
+        const memoizedGalleryImages = readMemoryCache<GalleryImage[]>('galleryImages');
+        if (memoizedGalleryImages) {
+          setGalleryImages(filterLiveItems(memoizedGalleryImages));
+          writeSessionCache(CACHE_KEYS.galleryImages, memoizedGalleryImages);
+        } else {
+          tasks.push(
+            getDocs(publishedCollectionQuery('gallery'))
+              .then((snapshot) => {
+                if (cancelled) return;
+                const nextGalleryImages = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() } as GalleryImage));
+                setGalleryImages(filterLiveItems(nextGalleryImages));
+                writeSessionCache(CACHE_KEYS.galleryImages, nextGalleryImages);
+                writeMemoryCache('galleryImages', nextGalleryImages);
+              })
+              .catch((error) => logPublicDataError('gallery images', error)),
+          );
+        }
       }
 
       if (enabledCollections.homeHero) {
-        tasks.push(
-          getDoc(doc(dbLite, 'settings', HOME_HERO_SETTINGS_ID))
-            .then((snapshot) => {
-              if (cancelled) return;
-              const nextHomeHero = snapshot.exists()
-                ? normalizeHomeHeroSettings({ id: snapshot.id, ...snapshot.data() } as Partial<HomeHeroSettings>)
-                : DEFAULT_HOME_HERO_SETTINGS;
-              setHomeHero(nextHomeHero);
-              setHomeHeroReady(true);
-              writeSessionCache(CACHE_KEYS.homeHero, nextHomeHero);
-            })
-            .catch((error) => logPublicDataError('home hero settings', error)),
-        );
+        const memoizedHomeHero = readMemoryCache<HomeHeroSettings>('homeHero');
+        if (memoizedHomeHero) {
+          setHomeHero(memoizedHomeHero);
+          setHomeHeroReady(true);
+          writeSessionCache(CACHE_KEYS.homeHero, memoizedHomeHero);
+        } else {
+          tasks.push(
+            getDoc(doc(dbLite, 'settings', HOME_HERO_SETTINGS_ID))
+              .then((snapshot) => {
+                if (cancelled) return;
+                const nextHomeHero = snapshot.exists()
+                  ? normalizeHomeHeroSettings({ id: snapshot.id, ...snapshot.data() } as Partial<HomeHeroSettings>)
+                  : DEFAULT_HOME_HERO_SETTINGS;
+                setHomeHero(nextHomeHero);
+                setHomeHeroReady(true);
+                writeSessionCache(CACHE_KEYS.homeHero, nextHomeHero);
+                writeMemoryCache('homeHero', nextHomeHero);
+              })
+              .catch((error) => logPublicDataError('home hero settings', error)),
+          );
+        }
       }
 
       await Promise.allSettled(tasks);

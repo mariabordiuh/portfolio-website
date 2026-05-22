@@ -1,16 +1,21 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Shuffle } from 'lucide-react';
-import { useFeaturedItems } from '../hooks/useFeaturedItems';
+import { useData } from '../context/DataContext';
 import { MasonryPortfolioGrid } from '../components/MasonryPortfolioGrid';
 import { RevealOnScroll } from '../components/RevealOnScroll';
 import { ProjectSkeleton } from '../components/Skeleton';
 import { PrefetchLink } from '../components/PrefetchLink';
+import { buildSelectedPoolFromCollections } from '../utils/featured-items';
 
 export const WorkSection = () => {
-  const { items: allFeatured, loading } = useFeaturedItems();
+  const { projects, videos, galleryImages, loading } = useData();
   const navigate = useNavigate();
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const allFeatured = useMemo(
+    () => buildSelectedPoolFromCollections(projects, videos, galleryImages),
+    [galleryImages, projects, videos],
+  );
 
   const featuredItems = useMemo(() => {
     const shuffled = [...allFeatured];

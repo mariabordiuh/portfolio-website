@@ -190,6 +190,7 @@ export const Work = () => {
   const isAnimationAndMotionView =
     pillarParam === 'Animation & Motion' || activePillar === 'Animation & Motion';
   const gridMaxColumns = isAnimationAndMotionView ? 2 : 4;
+  const visibleCountLabel = `${String(visibleItems.length).padStart(2, '0')} visible`;
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);
@@ -217,23 +218,65 @@ export const Work = () => {
 
   return (
     <PageTransition>
-      <div className={`${SITE_SHELL_CLASS} pb-24 pt-32 sm:pb-28 sm:pt-36 md:pb-32 md:pt-40`}>
-        <header className="mb-12 sm:mb-14">
-          <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: { transition: { staggerChildren: 0.1 } },
-            }}
-            className="mb-8 text-fluid-xl font-black uppercase leading-none tracking-tighter"
-          >
-            <RevealText>Archive</RevealText>
-            <RevealText>
-              of Works<span className="text-brand-accent">.</span>
-            </RevealText>
-          </motion.h1>
+      <div className={`${SITE_SHELL_CLASS} pb-24 pt-28 sm:pb-28 sm:pt-32 md:pb-32 md:pt-36`}>
+        <header className="mb-10 sm:mb-12">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+            <div className="max-w-[54rem]">
+              <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-white/52">
+                Archive // selected output
+              </p>
+              <motion.h1
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: { transition: { staggerChildren: 0.1 } },
+                }}
+                className="mt-3 max-w-[11ch] text-[clamp(2.9rem,6vw,6.25rem)] font-black uppercase leading-[0.9] tracking-[-0.055em]"
+              >
+                <RevealText>Archive</RevealText>
+                <RevealText>
+                  of Works<span className="text-brand-accent">.</span>
+                </RevealText>
+              </motion.h1>
+              <p className="mt-4 max-w-[42rem] text-[0.98rem] leading-relaxed text-white/62 md:text-[1.04rem]">
+                Campaign worlds, motion pieces, AI image systems, and experiments arranged to
+                be scanned fast.
+              </p>
+            </div>
 
-          <div className="mt-10 flex flex-col gap-5 border-t border-white/5 pt-6 md:mt-12 md:flex-row md:items-center md:justify-between md:gap-6 md:pt-8">
+            <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/48">
+                {visibleCountLabel}
+              </span>
+              <AnimatePresence>
+                {activeTool ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    className="flex items-center gap-3 rounded-full border border-brand-accent/30 bg-brand-accent/10 py-2 pl-4 pr-2"
+                  >
+                    <Filter size={12} className="text-brand-accent" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
+                      {activeTool}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleClearTool}
+                      data-click-sound="true"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent transition-colors hover:bg-brand-accent hover:text-brand-bg"
+                    >
+                      <svg width="8" height="8" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-5 border-t border-white/6 pt-5 md:mt-9 md:gap-4">
             <div className="flex w-full flex-wrap items-center gap-2 md:flex-nowrap md:gap-3 md:overflow-x-auto md:pb-0 md:[&::-webkit-scrollbar]:hidden md:[-ms-overflow-style:none] md:[scrollbar-width:none]">
               <button
                 type="button"
@@ -245,7 +288,7 @@ export const Work = () => {
                     : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
                 }`}
               >
-                All Works
+                All
               </button>
 
               {WORK_PILLARS.map((pillar) => {
@@ -268,32 +311,6 @@ export const Work = () => {
                 );
               })}
             </div>
-
-            <AnimatePresence>
-              {activeTool ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  className="flex items-center gap-3 rounded-full border border-brand-accent/30 bg-brand-accent/10 pl-4 pr-2 py-2"
-                >
-                  <Filter size={12} className="text-brand-accent" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
-                    {activeTool}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClearTool}
-                    data-click-sound="true"
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent transition-colors hover:bg-brand-accent hover:text-brand-bg"
-                  >
-                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
           </div>
 
           <AnimatePresence>
@@ -304,7 +321,7 @@ export const Work = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                  <div className="mt-4 flex w-full items-center gap-2 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:pb-4">
+                  <div className="mt-4 flex w-full items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:pb-3">
                   <div className="h-4 w-px bg-white/20 ml-2 mr-1 flex-shrink-0" />
                   {SUB_CATEGORIES[activePillar].map((sub) => {
                     const isActive = activeSubcategory === sub;
@@ -330,10 +347,6 @@ export const Work = () => {
           </AnimatePresence>
         </header>
 
-        <div className="mb-10 sm:mb-12">
-          <UpdateMarquee />
-        </div>
-
         {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -356,6 +369,10 @@ export const Work = () => {
             />
           </div>
         )}
+
+        <div className="mt-14 sm:mt-16">
+          <UpdateMarquee />
+        </div>
       </div>
 
       <AnimatePresence>
