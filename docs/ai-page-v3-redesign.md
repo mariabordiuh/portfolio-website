@@ -20,93 +20,148 @@ them.
 
 **Design goal in one line: zero confusion.** One idea per screen, one repeated
 CTA, everyday language (Sie-Form), nothing that smells like high fashion or
-"crazy design". References Maria approved: bymonolog.com (light, restrained,
-work carries color), letsplayfight.com (short human sentences, friendly
+"crazy design". **Final approved direction: Apple product-page structure +
+monochrome ink palette + young/SaaS feel** (fonts Instrument Sans + Instrument
+Serif italic). Reference DNA: Apple (bento, footnotes, "Ab €" pricing, frosted
+nav, short-sentence cadence), letsplayfight.com (human sentences, friendly
 contact), marketer.com/ember (claim → numbers → visual proof → one repeated
-CTA). Sales logic: Hormozi — demonstrate value before asking for money; the
-free test shoot is the offer that makes cold traffic convert.
+CTA). Rejected along the way (do not revisit): warm/beige palettes, lilac,
+serif-editorial print look, loud red poster/Nutshell look, any dark-default or
+colored-accent theme. Sales logic: Hormozi — demonstrate before asking; the
+free test shoot converts cold traffic.
 
-## 2. Page architecture — one-pager with anchor nav
+## 2. Page architecture — Apple-style one-pager with anchor nav
 
-Single page at `/ai`. Sticky top nav with anchor links that smooth-scroll:
+**Approved visual direction (2026-07-06):** Apple product-page structure +
+mono-ink palette. Calm, high-clarity, bento grid. The final approved mockup is
+the `ai_page_v3_mono_ink_full` visualization from the design conversation —
+this section is its written form; build to match it.
 
-`Beispiele · Ablauf · Preise · FAQ · Kontakt` + EN/DE pill toggle + a compact
-CTA button ("Gratis-Test") always visible in the nav.
+Single page at `/ai`. **Frosted sticky top nav** (Apple pattern:
+`background: rgba(255,255,255,.85); backdrop-filter: blur(10px)`, 0.5px bottom
+border) — product name `Maria Bordiuh AI` left; anchors
+`Beispiele · Ablauf · Preise · FAQ` + `DE·EN` toggle + compact black `Gratis-Test`
+button (8px radius) right. Anchors smooth-scroll.
 
-Section order (7 sections, down from v2's 12):
+Section order:
 
-1. **Hero** — kicker `KI-Fotostudio für Produkte`; H1 **"Produktfotos, die
-   verkaufen. Ohne Fotoshooting."** (EN: "Product photos that sell. No photo
-   shoot needed."); sub: *"Sie schicken ein Foto. Wir liefern fertige
-   Kampagnenbilder in 48 Stunden."*; primary CTA **"Gratis-Testshooting
-   starten"** (anchors to contact), secondary text-link "oder 15-Minuten-Call
-   buchen". Below: ONE large before/after slider (reuse
-   `BeforeAfterSlider.tsx`), not three.
-2. **Stats bar** — quiet single row (see §5 for approved numbers). No logos, no
-   NDA talk anywhere above the fold.
-3. **Beispiele (gallery)** — mixed grid, `SHOWCASE_ITEMS` from data.ts stays
-   deliberately unglamorous-to-premium (safety vest, hair oil, cheesecake,
-   drill, 60+ knitwear, jewelry, sofa, sneakers). Motion loops render inline in
-   the same grid (2 of the 12 cells are `<video>` loops — merge v2's separate
-   motion section into this grid). Headline: *"Alles kann premium aussehen. Ja,
-   auch Ihr Produkt."* Second before/after slider can sit at the end of this
-   section. Roster becomes a small face-strip row at the bottom of this
-   section: 6 faces + caption *"Unsere Models — immer dasselbe Gesicht, in
-   jeder Kampagne. Wir schlagen das passende vor."* No selection UI, no cards,
-   no stats. (Keep `ROSTER` data for the strip + booking dropdown.)
-4. **Ablauf** — 3 steps, keep existing copy pattern: Foto schicken → Richtung
-   freigeben → Kampagne erhalten. Add one line under step 3: the named
-   guarantee *"Passt-oder-nochmal-Garantie: Sie geben die Richtung frei, bevor
-   final geliefert wird."* (v2's separate guarantee section is deleted; this
-   line and a pricing-card bullet replace it.)
-5. **Preise** — 3 cards: Gratis-Test / Starter €340 ~~€490~~ / Kampagne €890
-   ~~€1200~~ (keep founding logic + `SCARCITY` from data.ts; plain
-   strikethrough, never the word "später"). Signature is NOT a 4th card: a
-   quiet full-width band below — *"Laufender Bedarf? Eigenes exklusives Model +
-   monatliche Bild-Drops — Signature ab €790/Monat →"* linking to contact.
-   Below the cards: the simplified calculator (keep `CostCalculator.tsx`,
-   restyle light; it replaces v2's separate calculator section AND the old
-   comparison table). Footnote stays (invoice + usage rights, no VAT talk).
-6. **FAQ** — keep all 8 items from data.ts. Add one: *"Warum keine
-   Kundennamen?" → "NDAs. Deshalb machen wir es anders: Schicken Sie uns ein
-   Produktfoto und beurteilen Sie das Ergebnis selbst — kostenlos."* NDA is
-   answered exactly once, here, in one dry sentence. Delete v2's CASES section
-   entirely.
-7. **Kontakt** — headline *"Schreiben Sie uns. Wir antworten schnell."* Three
-   equal, obvious options side by side: **WhatsApp** (wa.me link, see §6) ·
-   **Test-Shooting-Formular** (keep the mini form from `BookingSection.tsx`:
-   name, email, product link — nothing more) · **15-Min-Call** (Cal.com or
-   Calendly embed — `CAL_LINK` in data.ts; if empty, show email fallback as
-   today). Personal sign-off block: real photo of Maria + 2 lines — *"Hi, ich
-   bin Maria — Art Directorin aus Hamburg. Ich sehe jede Anfrage persönlich."*
-   (founder-face trust, Monolog-style; this is where the personal brand lives).
+1. **Hero** (centered) — serif-italic kicker `KI-Fotostudio für Produkte`
+   (Instrument Serif italic); H1 **"Produktfotos, die verkaufen. Ohne
+   Fotoshooting."**; sub in Apple cadence *"Foto schicken. 48 Stunden warten.
+   Kampagne erhalten. So einfach ist das jetzt."*; primary CTA **"Gratis-Testshooting
+   starten"** (black, 8px), secondary underlined text-link "15-Min-Call buchen ›".
+   Below the hero copy: one full-width rounded image plate (the hero campaign
+   shot) with a frosted caption chip bottom-left.
+2. **Bento grid — "Warum es funktioniert."** A 6-col bento (Apple/Linear
+   pattern) that MERGES v2's stats + before/after + models + motion + guarantee
+   into one grid. Tiles:
+   - `span 4`: the **before/after slider** (reuse `BeforeAfterSlider.tsx`) with a
+     frosted "Vorher → Nachher. Ziehen Sie selbst." chip.
+   - `span 2`: **black tile** big number `48h` + "Von Ihrem Foto zur fertigen
+     Kampagne.¹"
+   - `span 2`: gray tile `900+` + "Gelieferte Bilder, u. a. für Novo Nordisk und
+     Nestlé Ukraine.²"
+   - `span 2`: **models face-pile** (6 avatars, +3 overflow chip) + "6 Models, die
+     immer gleich aussehen. In jeder Kampagne." (Keep `ROSTER` for the pile +
+     booking dropdown; no selection UI.)
+   - `span 2`: **motion tile** play icon + "Auch in Bewegung: Motion-Loops für
+     Social und Shop."
+   - `span 6`: **guarantee bar** shield icon + "**Passt-oder-nochmal-Garantie.**
+     Sie geben ein Preview frei, bevor final produziert wird — plus volle
+     kommerzielle Nutzungsrechte, schriftlich."
+   Numbers count up when the grid scrolls into view (see §8 motion).
+3. **Beispiele (gallery)** — headline *"Alles kann premium aussehen."* + sub
+   *"Fashion ist einfach. Interessant wird es bei allem anderen."* Mixed 4-up grid
+   from `SHOWCASE_ITEMS`, deliberately unglamorous-to-premium (safety vest, hair
+   oil, drill, 60+ knit, jewelry, cheesecake…); 1–2 cells are inline `<video>`
+   motion loops. Quiet caption line under the grid. (No before/after here — it
+   lives in the bento. No roster row here — it lives in the bento.)
+4. **Ablauf — "Drei Schritte. Keine Überraschungen."** 3 icon cards (circle-black
+   icon badge, Tabler icons `photo-up / eye-check / package`): Foto schicken →
+   Richtung freigeben → Kampagne erhalten. Guarantee already covered in the bento,
+   so steps stay short.
+5. **Preise — "Welches Paket passt zu Ihnen?"** 3 cards; **middle (Starter) is
+   the black featured card** with a white "Beliebt" pill (the mono-ink way to
+   feature — inversion, not a colored border). Prices as **"Ab €340³ / Ab €890³"**
+   (Apple "Ab" pattern) with `<s>€490</s> — Founding-Preis` beneath. Keep founding
+   logic + `SCARCITY` from data.ts; plain strikethrough, never "später". Test card
+   = €0. Buttons 8px: featured = white-on-black, others = black-on-white / bordered.
+   Signature is NOT a 4th card — one underlined link below: *"Laufender Bedarf?
+   Signature — Ihr exklusives Model, ab €790/Monat ›"*. Calculator (`CostCalculator.tsx`,
+   restyled mono) may sit directly under the cards or be cut for v3 launch — Maria's
+   call; if kept, it replaces v2's calculator + comparison sections.
+6. **FAQ** — keep all 8 items from data.ts. Add one: *"Warum keine Kundennamen?"
+   → "NDAs. Deshalb machen wir es anders: Schicken Sie uns ein Produktfoto und
+   beurteilen Sie das Ergebnis selbst — kostenlos."* NDA answered exactly once,
+   here. Delete v2's CASES section entirely.
+7. **Kontakt — dark closing panel** (`#111112`, cream text, 22px radius — the one
+   dark block on the page): headline *"Schicken Sie uns ein Foto."* + sub *"Wir
+   zeigen Ihnen, was daraus wird. Kostenlos."* Three actions as pill/8px buttons:
+   **Gratis-Testshooting** (white, solid) · **WhatsApp** (wa.me, outline) ·
+   **15-Min-Call** (Cal.com/Calendly, outline). Below: Maria sign-off — real photo
+   avatar + *"Hi, ich bin Maria — Art Directorin aus Hamburg. Ich sehe jede
+   Anfrage persönlich."* The **test-shoot mini form** (`BookingSection.tsx`: name,
+   email, product link) and the Cal embed live here too (form can sit above the
+   dark panel or inside it; keep mailto + `CAL_LINK` fallbacks from data.ts).
+8. **Footnotes** — Apple-style fine print row at the very bottom, ~10px muted:
+   ¹ delivery-time scope, ² the stats-counting disclosure (this is where the honest
+   "seit 2023, inkl. White-Label / Agenturauftrag" wording lives — see §5),
+   ³ founding-price + invoice + usage-rights terms. The ¹²³ markers attach to the
+   matching bento tiles and price labels.
 
 Mobile: sticky bottom CTA bar ("Gratis-Testshooting starten") appears after
-scrolling past the hero.
+scrolling past the hero; bento collapses to 1–2 cols; gallery to 2 cols.
 
-## 3. Design system (light theme)
+## 3. Design system (mono ink — APPROVED)
+
+Palette is **monochrome: white, ink, grays only.** No accent hue — the product
+photos are the only color on the page. This was chosen over lilac/coral/blue/
+green/luxury options explicitly (Maria: "mono ink", "minimalistic luxury but
+saas vibes, not old, white only, no green no purple"). Do NOT reintroduce a
+brand color.
 
 Replace the `.ai-page` token block in `src/styles/ai-page.css`:
 
 ```css
---ai-bg: #faf7f2;            /* warm paper, not clinical white */
---ai-fg: #1c1a17;            /* near-black ink */
---ai-accent: #e05c2a;        /* ONE warm accent (CTA, highlights, savings) */
---ai-border-soft: rgba(28,26,23,.10);
---ai-border-strong: rgba(28,26,23,.22);
---ai-fg-muted: rgba(28,26,23,.68);
---ai-fg-subtle: rgba(28,26,23,.45);
---ai-bg-lift: #ffffff;       /* cards */
---ai-shadow: 0 10px 30px rgba(28,26,23,.07);
+--ai-bg: #ffffff;            /* pure white page */
+--ai-fg: #111112;            /* near-black ink (text, primary buttons, featured card, dark panel) */
+--ai-fill: #f2f2f3;          /* light gray bento/step tiles */
+--ai-fill-2: #f7f7f8;        /* slightly cooler gray for pricing/step cards */
+--ai-border-soft: rgba(17,17,18,.09);
+--ai-border-strong: rgba(17,17,18,.15);
+--ai-fg-muted: rgba(17,17,18,.60);
+--ai-fg-subtle: rgba(17,17,18,.45);
+--ai-fg-faint: rgba(17,17,18,.42);   /* footnotes */
+--ai-panel: #111112;         /* dark closing contact panel */
+--ai-on-panel: rgba(255,255,255,.60);
+--ai-shadow: 0 8px 30px rgba(17,17,18,.06);
+/* image-placeholder grays (SmartImage fallback), light→dark: #ececed #dcdcdd #909092 #6f6f71 #8d8d8f */
 ```
 
-Typography: **sentence case everywhere** — remove `text-transform: uppercase`
-from headings (keep it only for tiny kickers/labels). Headings stay Archivo
-Expanded but at calmer sizes (hero ~clamp(2.2rem, 4.5vw, 4rem)); body DM Sans
-1rem/1.65. Buttons: solid accent bg for primary, generous height (≥3rem),
-sentence case labels. Images do the shouting; UI stays quiet. Keep all
-focus-visible styles and the reduced-motion block. Verify contrast: accent on
-paper for large text/buttons only; body text always ink.
+Fonts (self-host both via the existing `scripts/selfhost-fonts.mjs` pipeline —
+do NOT hotlink Google Fonts; CSP forbids it):
+- **Instrument Sans** — all UI, body, headings. Weights 400/500/600.
+- **Instrument Serif (italic only)** — used sparingly for the "voice" moments:
+  the hero kicker `KI-Fotostudio für Produkte` and any editorial accent. Never
+  for body or buttons.
+
+Typography rules: **sentence case everywhere** (no uppercase headings; tiny
+mono/label bits may stay uppercase). Hero H1 `font-weight:600;
+font-size:clamp(2.2rem,5vw,2.9rem); letter-spacing:-.03em; line-height:1.02`.
+Section headings ~27px/600/-.025em, centered. Body 1rem/1.55, muted gray.
+Big bento numbers 36px/600/-.03em.
+
+Shape language (Apple/SaaS): **buttons `border-radius:8px`** (NOT pills — pills
+read old; the one exception is small status chips like "Beliebt"). Cards/tiles
+`border-radius:18px`; hero/gallery plates `14–20px`; dark panel `22px`. Frosted
+nav + frosted caption chips use `backdrop-filter:blur(10px)`. Primary button =
+ink bg / white text; secondary = underlined ink text-link; on the dark panel,
+invert (white button, outline buttons). Featured pricing = full ink card with
+white "Beliebt" chip (inversion, no colored border).
+
+Images do all the talking; UI stays monochrome and quiet. Keep every
+focus-visible style and the reduced-motion block. Contrast is trivially safe
+(ink on white, white on ink) — just verify muted grays ≥4.5:1 for body.
 
 ## 4. Copy voice rules
 
@@ -151,12 +206,30 @@ production began. "Mit KI seit 2023" is the only approved use of the year.
 
 ## 7. What dies from v2 (explicit deletions)
 
-Hero roster strip picker · separate motion section · CASES/NDA section ·
-separate guarantee section · comparison table section · 4th pricing card ·
-credibility-strip NDA note ("sounds like an excuse" — Maria) · all-caps
-headings · dark theme. The Novo Nordisk/Nestlé credibility line moves into the
-personal sign-off block in Kontakt ("Kampagnenerfahrung u. a. für Novo Nordisk
-und Nestlé Ukraine") — small, factual, near her face, not a wall of claims.
+Hero roster strip picker · separate motion section (→ into bento) · separate
+stats bar (→ into bento) · CASES/NDA section · separate guarantee section (→
+bento bar) · comparison table section · 4th pricing card · credibility-strip
+NDA note ("sounds like an excuse" — Maria) · all-caps headings · warm/beige
+palette · any accent hue. The Novo Nordisk/Nestlé line lives in the bento
+`900+` tile footnote ² and the Kontakt sign-off — small, factual, not a wall.
+
+## 7a. Motion — young but calm (reveal, never rearrange)
+
+Maria wants it to feel modern/awwwards-adjacent, NOT loud. Motion must never
+move content around or delay comprehension. Use Motion (already a dep) +
+`useReducedMotion` (kill everything when set). Approved:
+- Staggered fade-up reveal per section on scroll-into-view (the existing
+  `reveal` pattern) — the whole page's default entrance.
+- Hero: headline fades/rises on load; the serif kicker can draw in slightly
+  after.
+- Bento `48h` / `900+` numbers **count up** once when the grid enters view.
+- Before/after slider is genuinely draggable (pointer + keyboard, already built).
+- Buttons: subtle lift/scale on hover (no magnetic-cursor gimmicks — too loud
+  for mono).
+- Gallery tiles: gentle scale-in on hover; a motion cell autoplays its muted
+  loop (respect reduced-motion → show poster).
+Nothing parallax-heavy, no marquees, no rotating stickers (those belonged to
+the rejected poster direction).
 
 ## 8. Technical notes
 
