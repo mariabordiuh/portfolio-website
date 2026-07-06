@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { CAL_LINK, CONTACT_EMAIL, ROSTER } from '../data';
+import { CAL_LINK, CONTACT_EMAIL, ROSTER, SIGNOFF, WHATSAPP_NUMBER } from '../data';
 import { c, type Copy, type Lang } from '../i18n';
 
 type BookingSectionProps = {
@@ -9,50 +9,46 @@ type BookingSectionProps = {
 };
 
 const COPY = {
-  kicker: c('Book', 'Termin'),
-  title: c('Talk to us — or skip the call entirely', 'Sprechen Sie mit uns — oder überspringen Sie den Call'),
-  body: c(
-    'Book a 15-minute call, or go straight to a free test shoot — send one product photo and judge the result before we ever talk.',
-    'Buchen Sie einen 15-Minuten-Call — oder starten Sie direkt mit dem kostenlosen Test-Shooting: ein Produktfoto senden, Ergebnis beurteilen, bevor wir überhaupt sprechen.',
+  title: c('Send us a photo.', 'Schicken Sie uns ein Foto.'),
+  sub: c('We’ll show you what it becomes. Free.', 'Wir zeigen Ihnen, was daraus wird. Kostenlos.'),
+  whatsapp: c('WhatsApp', 'WhatsApp'),
+  waPrefill: c(
+    'Hi Maria! I’d like a free test shoot.',
+    'Hallo Maria! Ich interessiere mich für ein Gratis-Testshooting.',
   ),
-  calTitle: c('Book a 15-min call', '15-Minuten-Call buchen'),
-  calFallback: c(
-    'Calendar booking is being set up — email us and you’ll get a reply with available times.',
-    'Die Kalenderbuchung wird gerade eingerichtet — schreiben Sie uns, Sie erhalten eine Antwort mit Terminvorschlägen.',
+  callTitle: c('Book a 15-min call', '15-Minuten-Call buchen'),
+  callFallback: c(
+    'Calendar booking is being set up — email us and you’ll get times back.',
+    'Die Kalenderbuchung wird eingerichtet — schreiben Sie uns, Sie erhalten Terminvorschläge.',
   ),
-  emailCta: c('Email us instead', 'Lieber per E-Mail'),
-  testTitle: c('Free test shoot', 'Kostenloses Test-Shooting'),
-  testBody: c(
-    '1 product → 2 finished images in 48h. Free. You keep the images.',
-    '1 Produkt → 2 fertige Bilder in 48h. Kostenlos. Die Bilder gehören Ihnen.',
-  ),
+  emailCta: c('Email us', 'Per E-Mail'),
+  formTitle: c('Free test shoot', 'Gratis-Testshooting'),
+  formSub: c('1 product → 2 finished images in 48h.', '1 Produkt → 2 fertige Bilder in 48h.'),
   name: c('Name', 'Name'),
   email: c('Work email', 'Geschäftliche E-Mail'),
-  brand: c('Brand / shop URL', 'Marken- / Shop-URL'),
-  product: c('Link to a product photo (or paste a product page URL)', 'Link zu einem Produktfoto (oder Produktseiten-URL)'),
-  identity: c('Preferred model direction (optional)', 'Bevorzugte Model-Richtung (optional)'),
-  send: c('Request the free test shoot', 'Kostenloses Test-Shooting anfragen'),
+  product: c('Link to a product photo (or product page)', 'Link zu einem Produktfoto (oder Produktseite)'),
+  identity: c('Preferred model (optional)', 'Bevorzugtes Model (optional)'),
+  send: c('Request the free test shoot', 'Gratis-Testshooting anfragen'),
   privacy: c(
-    'Your data is used only to produce and deliver the test shoot. No newsletter, no spam.',
-    'Ihre Daten werden nur zur Erstellung und Lieferung des Test-Shootings verwendet. Kein Newsletter, kein Spam.',
+    'Used only to produce and deliver your test shoot. No newsletter, no spam.',
+    'Nur zur Erstellung und Lieferung Ihres Test-Shootings. Kein Newsletter, kein Spam.',
   ),
 };
 
 export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionProps) => {
-  const [form, setForm] = useState({ name: '', email: '', brand: '', product: '', identity: preferredIdentity });
+  const [form, setForm] = useState({ name: '', email: '', product: '', identity: preferredIdentity });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const subject =
       lang === 'de'
-        ? `Kostenloses Test-Shooting — ${form.name || form.brand || 'Anfrage'}`
-        : `Free test shoot — ${form.name || form.brand || 'request'}`;
+        ? `Gratis-Testshooting — ${form.name || 'Anfrage'}`
+        : `Free test shoot — ${form.name || 'request'}`;
     const body = [
       `Name: ${form.name || '-'}`,
       `Email: ${form.email || '-'}`,
-      `Brand: ${form.brand || '-'}`,
       `Product photo / page: ${form.product || '-'}`,
-      `Preferred direction: ${form.identity || '-'}`,
+      `Preferred model: ${form.identity || '-'}`,
       `Language: ${lang}`,
     ].join('\n');
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -61,75 +57,82 @@ export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionPr
   const update = (field: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
 
-  return (
-    <section className="ai-book" id="ai-book" aria-labelledby="ai-book-title">
-      <div className="ai-book__header">
-        <p className="ai-kicker">{tx(COPY.kicker)}</p>
-        <h2 id="ai-book-title" className="ai-section-title">
-          {tx(COPY.title)}
-        </h2>
-        <p className="ai-book__body">{tx(COPY.body)}</p>
-      </div>
+  const waHref = WHATSAPP_NUMBER
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(tx(COPY.waPrefill))}`
+    : '';
+  const callHref = CAL_LINK
+    ? `https://app.cal.com/${CAL_LINK}`
+    : `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(lang === 'de' ? 'Call-Anfrage — Maria Bordiuh AI' : 'Call request — Maria Bordiuh AI')}`;
 
-      <div className="ai-book__grid">
-        <div className="ai-book__panel" id="ai-call">
-          <h3 className="ai-book__panel-title">{tx(COPY.calTitle)}</h3>
-          {CAL_LINK ? (
-            <iframe
-              className="ai-book__cal"
-              src={`https://app.cal.com/${CAL_LINK}?embed=true&theme=dark&hide_landing_page_details=1`}
-              title={tx(COPY.calTitle)}
-              loading="lazy"
-            />
-          ) : (
-            <div className="ai-book__cal-fallback">
-              <p>{tx(COPY.calFallback)}</p>
-              <a className="ai-button ai-button--ghost" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(lang === 'de' ? 'Call-Anfrage — Maria Bordiuh AI' : 'Call request — Maria Bordiuh AI')}`}>
-                {tx(COPY.emailCta)}
-              </a>
-            </div>
-          )}
+  return (
+    <section className="ai-contact" id="ai-kontakt" aria-labelledby="ai-contact-title">
+      <div className="ai-contact__panel">
+        <div className="ai-contact__head">
+          <h2 id="ai-contact-title" className="ai-contact__title">
+            {tx(COPY.title)}
+          </h2>
+          <p className="ai-contact__sub">{tx(COPY.sub)}</p>
         </div>
 
-        <div className="ai-book__panel ai-book__panel--test" id="ai-test-shoot">
-          <h3 className="ai-book__panel-title">{tx(COPY.testTitle)}</h3>
-          <p className="ai-book__panel-body">{tx(COPY.testBody)}</p>
-          <form className="ai-form" onSubmit={handleSubmit}>
-            <div className="ai-form__row">
-              <label className="ai-form__field">
-                <span>{tx(COPY.name)}</span>
-                <input type="text" required value={form.name} onChange={(event) => update('name')(event.target.value)} />
-              </label>
-              <label className="ai-form__field">
-                <span>{tx(COPY.email)}</span>
-                <input type="email" required value={form.email} onChange={(event) => update('email')(event.target.value)} />
-              </label>
-            </div>
-            <label className="ai-form__field">
-              <span>{tx(COPY.brand)}</span>
-              <input type="url" placeholder="https://" value={form.brand} onChange={(event) => update('brand')(event.target.value)} />
+        <div className="ai-contact__actions">
+          <a className="ai-btn ai-btn--invert" href="#ai-test-shoot">
+            {tx(COPY.formTitle)}
+          </a>
+          {waHref ? (
+            <a className="ai-btn ai-btn--outline-light" href={waHref} target="_blank" rel="noopener noreferrer">
+              {tx(COPY.whatsapp)}
+            </a>
+          ) : null}
+          <a className="ai-btn ai-btn--outline-light" href={callHref} id="ai-call">
+            {tx(COPY.callTitle)}
+          </a>
+        </div>
+
+        <form className="ai-contact__form" id="ai-test-shoot" onSubmit={handleSubmit}>
+          <div className="ai-contact__form-head">
+            <h3 className="ai-contact__form-title">{tx(COPY.formTitle)}</h3>
+            <p className="ai-contact__form-sub">{tx(COPY.formSub)}</p>
+          </div>
+          <div className="ai-field-row">
+            <label className="ai-field">
+              <span>{tx(COPY.name)}</span>
+              <input type="text" required value={form.name} onChange={(event) => update('name')(event.target.value)} />
             </label>
-            <label className="ai-form__field">
-              <span>{tx(COPY.product)}</span>
-              <input type="text" required value={form.product} onChange={(event) => update('product')(event.target.value)} />
+            <label className="ai-field">
+              <span>{tx(COPY.email)}</span>
+              <input type="email" required value={form.email} onChange={(event) => update('email')(event.target.value)} />
             </label>
-            <label className="ai-form__field">
-              <span>{tx(COPY.identity)}</span>
-              <select value={form.identity} onChange={(event) => update('identity')(event.target.value)}>
-                <option value="">—</option>
-                {ROSTER.map((identity) => (
-                  <option key={identity.id} value={identity.name}>
-                    {identity.name}
-                  </option>
-                ))}
-                <option value="Custom">Custom</option>
-              </select>
-            </label>
-            <button type="submit" className="ai-button ai-button--solid">
-              {tx(COPY.send)}
-            </button>
-            <p className="ai-form__privacy">{tx(COPY.privacy)}</p>
-          </form>
+          </div>
+          <label className="ai-field">
+            <span>{tx(COPY.product)}</span>
+            <input type="text" required placeholder="https://" value={form.product} onChange={(event) => update('product')(event.target.value)} />
+          </label>
+          <label className="ai-field">
+            <span>{tx(COPY.identity)}</span>
+            <select value={form.identity} onChange={(event) => update('identity')(event.target.value)}>
+              <option value="">—</option>
+              {ROSTER.map((identity) => (
+                <option key={identity.id} value={identity.name}>
+                  {identity.name}
+                </option>
+              ))}
+              <option value="Custom">Custom</option>
+            </select>
+          </label>
+          <button type="submit" className="ai-btn ai-btn--invert ai-btn--block">
+            {tx(COPY.send)}
+          </button>
+          <p className="ai-contact__privacy">{tx(COPY.privacy)}</p>
+          {!CAL_LINK ? <p className="ai-contact__privacy">{tx(COPY.callFallback)}</p> : null}
+        </form>
+
+        <div className="ai-contact__signoff">
+          <span className="ai-contact__avatar" aria-hidden="true">
+            {SIGNOFF.initials}
+          </span>
+          <p className="ai-contact__signoff-text">
+            <strong>{tx(SIGNOFF.intro)}</strong> {tx(SIGNOFF.line)}
+          </p>
         </div>
       </div>
     </section>

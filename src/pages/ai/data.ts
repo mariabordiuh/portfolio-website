@@ -12,6 +12,9 @@ import { c, type Copy } from './i18n';
 // exists — the page then shows the email/form path only.
 export const CAL_LINK = '';
 export const CONTACT_EMAIL = 'projects@mariabordiuh.com';
+// WhatsApp Business number in E.164, digits only, no + (e.g. '4915112345678').
+// Leave '' until the WhatsApp Business account exists — the button hides.
+export const WHATSAPP_NUMBER = '';
 
 // ------------------------------------------------------------
 // Scarcity — MUST stay truthful (EU consumer law + basic decency).
@@ -73,6 +76,7 @@ export const TIERS: Tier[] = [
     ],
     time: c('48–72 hours', '48–72 Stunden'),
     cta: c('Book a starter set', 'Starter-Set buchen'),
+    featured: true,
   },
   {
     id: 'campaign',
@@ -90,7 +94,6 @@ export const TIERS: Tier[] = [
     ],
     time: c('3–5 days', '3–5 Tage'),
     cta: c('Book a campaign set', 'Kampagnen-Set buchen'),
-    featured: true,
   },
   {
     id: 'signature',
@@ -123,6 +126,57 @@ export const ADDONS: Array<{ label: Copy; price: Copy }> = [
 export const PRICING_FOOTNOTE = c(
   'Founding rates apply to the first 10 direct-booking brands and stay locked for those clients permanently. Every project comes with a proper German invoice and written usage rights.',
   'Founding-Preise gelten für die ersten 10 Direktkunden und bleiben für diese dauerhaft bestehen. Jedes Projekt kommt mit regulärer deutscher Rechnung und schriftlichen Nutzungsrechten.',
+);
+
+// ------------------------------------------------------------
+// Bento stats — the two big numbers. ¹² footnote markers resolve in FOOTNOTES.
+// TODO(Maria): confirm 900+ with a 10-min folder count before launch.
+// ------------------------------------------------------------
+export const STATS = {
+  speed: { value: '48h', label: c('From your photo to a finished campaign.', 'Von Ihrem Foto zur fertigen Kampagne.'), note: 1 },
+  volume: {
+    value: '900+',
+    label: c('Images delivered, incl. campaigns for Novo Nordisk and Nestlé Ukraine.', 'Gelieferte Bilder, u. a. für Novo Nordisk und Nestlé Ukraine.'),
+    note: 2,
+  },
+};
+
+// Apple-style fine print. Markers ¹²³ attach to bento tiles + price labels.
+export const FOOTNOTES: Copy[] = [
+  c(
+    '¹ 48-hour delivery applies to test shoots and starter sets after direction approval. Campaign sets: 3–5 business days.',
+    '¹ 48-Stunden-Lieferung gilt für Test-Shootings und Starter-Sets nach Freigabe der Richtung. Kampagnen-Sets: 3–5 Werktage.',
+  ),
+  c(
+    '² Count across all productions since 2023, including white-label work for agencies; some campaign experience under agency contract.',
+    '² Zählung über alle Produktionen seit 2023, inkl. White-Label-Arbeit für Agenturen; Kampagnenerfahrung teilweise im Agenturauftrag.',
+  ),
+  c(
+    '³ Founding rates apply to the first 10 direct-booking brands and stay locked for them permanently. Every project with a proper German invoice and written usage rights.',
+    '³ Founding-Preise gelten für die ersten 10 Direktkunden und bleiben für diese dauerhaft bestehen. Jedes Projekt mit regulärer deutscher Rechnung und schriftlichen Nutzungsrechten.',
+  ),
+];
+
+// The one-line pointer to the Signature tier that sits under the price cards.
+export const SIGNATURE_LINK = c(
+  'Ongoing need? Signature — your own exclusive model, from €790/month ›',
+  'Laufender Bedarf? Signature — Ihr exklusives Model, ab €790/Monat ›',
+);
+
+// Personal sign-off in the dark contact panel (founder-face trust).
+export const SIGNOFF = {
+  intro: c('Hi, I’m Maria', 'Hi, ich bin Maria'),
+  line: c(
+    '— art director from Hamburg. I read every request personally.',
+    '— Art Directorin aus Hamburg. Ich sehe jede Anfrage persönlich.',
+  ),
+  initials: 'MB',
+};
+
+// Caption under the bento models face-pile.
+export const MODELS_CAPTION = c(
+  '6 models that always look the same. In every campaign.',
+  '6 Models, die immer gleich aussehen. In jeder Kampagne.',
 );
 
 // ------------------------------------------------------------
@@ -326,6 +380,13 @@ export const CASES: Array<{ sector: Copy; fact: Copy }> = [
 // FAQ (also the SEO surface for the legal/trust questions)
 // ------------------------------------------------------------
 export const FAQ: Array<{ q: Copy; a: Copy }> = [
+  {
+    q: c('Why no client names?', 'Warum keine Kundennamen?'),
+    a: c(
+      'NDAs. So we do it differently: send us a product photo and judge the result yourself — free.',
+      'NDAs. Deshalb machen wir es anders: Schicken Sie uns ein Produktfoto und beurteilen Sie das Ergebnis selbst — kostenlos.',
+    ),
+  },
   {
     q: c('Who owns the images? Can we use them commercially?', 'Wem gehören die Bilder? Dürfen wir sie kommerziell nutzen?'),
     a: c(

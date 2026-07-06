@@ -60,7 +60,7 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
         onKeyDown={onKeyDown}
       >
         <div className="ai-ba__layer">
-          <SmartImage src={afterSrc} alt={`${label} — ${afterTag}`} className="ai-ba__img" placeholderClassName="ai-placeholder--ba" label={afterTag} />
+          <SmartImage src={afterSrc} alt={`${label} — ${afterTag}`} className="ai-ba__img" placeholderClassName="ai-placeholder--ba" />
           <span className="ai-ba__tag ai-ba__tag--after">{afterTag}</span>
         </div>
         <div
