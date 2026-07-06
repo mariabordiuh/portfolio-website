@@ -122,15 +122,18 @@ poison for trust if ever questioned. Rule: publish only floors Maria can defend
 with a 10-minute count. Approved format (fill after Maria counts — placeholders
 must not ship):
 
-`___+ Bilder geliefert seit 2023 · ___ Kampagnen & Projekte · Lieferung in 48h`
+`___+ Bilder geliefert · ___ Kampagnen & Projekte · Lieferung in 48h`
 
 Counting guidance for Maria: images = every final delivered image incl. agency
-white-label work + published lab/IG sets since 2023 (regular 15-image gigs add
-up fast — count delivery folders, round DOWN to a floor like 900+ only if the
-count supports it). Campaigns = distinct briefs incl. agency briefs and
+white-label work + published lab/IG sets (regular 15-image gigs add up fast —
+count delivery folders, round DOWN to a floor like 900+ only if the count
+supports it). Campaigns = distinct briefs incl. agency briefs and
 self-initiated brand projects (Hanse-Hase, MIRA, pink33 count). Zero-risk
-stats that need no counting and may pad the bar: `seit 2023 · 6 konsistente
-Model-Identitäten · 100% Nutzungsrechte inklusive`.
+stats that need no counting and may pad the bar: `Mit KI seit 2023 · 6
+konsistente Model-Identitäten · 100% Nutzungsrechte inklusive`.
+⚠️ Do NOT date the images/consistency claims to 2023 — 2023 is when Maria
+started working with AI at all (Midjourney), not when consistent-identity
+production began. "Mit KI seit 2023" is the only approved use of the year.
 
 ## 6. Contact plumbing
 
