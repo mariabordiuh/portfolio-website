@@ -125,28 +125,31 @@ const AnimatedRoutes = () => {
 
 const AppShell = () => {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
-  const isAiRoute = location.pathname === '/ai';
+  // Hosting serves static per-route HTML from directories (scripts/generate-route-meta.mjs),
+  // which can land users on trailing-slash URLs — normalize before exact matching.
+  const pathname = location.pathname.replace(/\/+$/, '') || '/';
+  const isAdmin = pathname.startsWith('/admin');
+  const isAiRoute = pathname === '/ai';
   const previousIsAdminRef = useRef(isAdmin);
-  const isWorkDetailRoute = location.pathname.startsWith('/work/');
+  const isWorkDetailRoute = pathname.startsWith('/work/');
   const isKnownPublicPath =
-    location.pathname === '/' ||
-    location.pathname === '/work' ||
-    location.pathname === '/ai' ||
-    location.pathname === '/lab' ||
-    location.pathname === '/about' ||
-    location.pathname === '/impressum' ||
-    location.pathname === '/datenschutz' ||
-      location.pathname === '/omr' ||
+    pathname === '/' ||
+    pathname === '/work' ||
+    pathname === '/ai' ||
+    pathname === '/lab' ||
+    pathname === '/about' ||
+    pathname === '/impressum' ||
+    pathname === '/datenschutz' ||
+      pathname === '/omr' ||
       isWorkDetailRoute;
   const isNotFoundRoute = !isAdmin && !isKnownPublicPath;
   const enableSmoothScroll =
-    !isAdmin && !isAiRoute && (location.pathname === '/' || isWorkDetailRoute || isNotFoundRoute);
+    !isAdmin && !isAiRoute && (pathname === '/' || isWorkDetailRoute || isNotFoundRoute);
   const enableCustomCursor =
     !isAdmin &&
     !isAiRoute &&
-    (location.pathname === '/' ||
-      location.pathname === '/work' ||
+    (pathname === '/' ||
+      pathname === '/work' ||
       isWorkDetailRoute ||
       isNotFoundRoute);
   const enableClickSound = enableCustomCursor;

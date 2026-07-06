@@ -41,11 +41,12 @@ const ROUTES = [
       'About Maria Bordiuh, a Hamburg-based creative director, art director, motion designer, and AI-forward visual creative.',
     image: '/og/about.jpg',
   },
+  // /ai is German-first (DACH market) — baked meta matches the default experience.
   {
     route: '/ai',
-    title: 'AI Campaign Visuals for Fashion & E-commerce | Maria Bordiuh AI',
+    title: 'KI-Fotoshootings mit konsistenten Models — Stills & Motion | Maria Bordiuh AI',
     description:
-      'AI visual production for fashion and e-commerce brands. Campaign imagery, consistent model identities, product visuals and art-directed image systems by Maria Bordiuh AI.',
+      'Kampagnenreife KI-Fotoshootings mit konsistenten Model-Identitäten — art-direktiert von einem Menschen, geliefert in Tagen. Stills und Motion für E-Commerce-, Produkt- und Fashion-Marken.',
     image: '/og/ai.jpg',
   },
   {
