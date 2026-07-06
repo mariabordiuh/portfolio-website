@@ -38,6 +38,7 @@ export interface ColorSwatch {
 
 export interface Project {
   id: string;
+  slug?: string;
   title: string;
   pillar: ProjectPillar;
   status?: EntryStatus;

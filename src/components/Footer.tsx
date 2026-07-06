@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
 import { PrefetchLink } from './PrefetchLink';
 import { reopenAnalyticsConsent } from '../lib/google-analytics';
+import { GENERAL_MAILTO } from '../lib/contact';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 
 const SHOW_ASCII_FOOTER = false;
 
@@ -461,7 +463,7 @@ export const Footer = () => {
       />
 
       <div
-        className={`relative z-10 flex flex-wrap items-center justify-between gap-6 px-6 py-8 md:px-12 ${
+        className={`${PUBLIC_SHELL_CLASS} relative z-10 flex flex-wrap items-center justify-between gap-6 py-8 ${
           pathname === '/' || pathname === '/about' ? '' : 'pt-16'
         }`}
       >
@@ -476,7 +478,7 @@ export const Footer = () => {
             </PrefetchLink>
           ))}
           <a
-            href="mailto:mariabordiuh@gmail.com"
+            href={GENERAL_MAILTO}
             className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted transition-colors hover:text-white"
           >
             say hi
@@ -494,7 +496,7 @@ export const Footer = () => {
             <Linkedin size={18} />
           </a>
           <a
-            href="mailto:mariabordiuh@gmail.com"
+            href={GENERAL_MAILTO}
             className="transition-colors hover:text-brand-accent"
             aria-label="Send an email"
           >
@@ -505,7 +507,7 @@ export const Footer = () => {
 
       {SHOW_ASCII_FOOTER ? <FooterAsciiCoffee /> : null}
 
-      <div className="relative z-10 border-t border-white/5 px-6 pt-6 pb-10 md:px-12 md:pb-12 flex flex-col gap-2">
+      <div className={`${PUBLIC_SHELL_CLASS} relative z-10 flex flex-col gap-2 border-t border-white/5 pt-6 pb-10 md:pb-12`}>
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-brand-muted">
           © 2026 Maria Bordiuh
         </span>

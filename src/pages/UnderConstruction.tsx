@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
+import { GENERAL_EMAIL, GENERAL_MAILTO } from '../lib/contact';
 
 const upsertMeta = (selector: string, attribute: 'name' | 'property', key: string, content: string) => {
   let meta = document.head.querySelector<HTMLMetaElement>(selector);
@@ -74,10 +75,10 @@ export const UnderConstruction = () => {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.34, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              href="mailto:mariabordiuh@gmail.com"
+              href={GENERAL_MAILTO}
               className="mt-9 inline-flex rounded-full border border-brand-accent/40 bg-brand-accent px-6 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-brand-bg transition-transform duration-300 hover:-translate-y-0.5"
             >
-              mariabordiuh@gmail.com
+              {GENERAL_EMAIL}
             </motion.a>
           </div>
         </div>

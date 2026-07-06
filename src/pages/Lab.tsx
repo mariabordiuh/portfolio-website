@@ -2,22 +2,39 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Seo } from '../components/Seo';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { RevealOnScroll } from '../components/RevealOnScroll';
 import { ScrollScrambleText } from '../components/ScrollScrambleText';
 import { Tag } from '../components/Tag';
 import { LabSkeleton } from '../components/Skeleton';
+import { trapFocusWithin } from '../lib/focus-trap';
+import { PUBLIC_PAGE_BOTTOM_GLOW_CLASS, PUBLIC_SHELL_CLASS } from '../lib/layout';
 import { LabItem, LabSection } from '../types';
 
-const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-6 md:px-8 xl:px-12';
 const ARTICLE_IMAGE_TOKEN = '[INSERT IMAGE HERE — see image block below]';
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
 ] as const;
 const LAB_TITLE_LINES = ['The Lab'];
+
+const SORT_BUTTON_VARIANTS = [
+  {
+    active:
+      'border border-[rgba(var(--cta-rgb),0.72)] bg-[linear-gradient(118deg,rgba(255,201,220,0.96)_0%,rgba(247,153,124,0.94)_12%,rgba(231,71,26,0.97)_25%,rgba(246,138,109,0.94)_42%,rgba(255,188,211,0.92)_70%,rgba(255,210,222,0.92)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'bg-[linear-gradient(118deg,rgba(255,201,220,0.05)_0%,rgba(247,153,124,0.035)_12%,rgba(231,71,26,0.05)_25%,rgba(246,138,109,0.035)_42%,rgba(255,188,211,0.03)_70%,rgba(255,210,222,0.03)_100%)] text-white/68 hover:text-white',
+  },
+  {
+    active:
+      'border border-[rgba(var(--cta-rgb),0.72)] bg-[linear-gradient(142deg,rgba(255,216,229,0.95)_0%,rgba(255,206,224,0.93)_38%,rgba(250,190,171,0.91)_58%,rgba(237,110,64,0.96)_76%,rgba(231,71,26,0.98)_89%,rgba(247,159,141,0.92)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'bg-[linear-gradient(142deg,rgba(255,216,229,0.045)_0%,rgba(255,206,224,0.03)_38%,rgba(250,190,171,0.03)_58%,rgba(237,110,64,0.045)_76%,rgba(231,71,26,0.05)_89%,rgba(247,159,141,0.03)_100%)] text-white/68 hover:text-white',
+  },
+];
 
 const parseLabDate = (value?: string) => {
   const timestamp = Date.parse(value ?? '');
@@ -29,6 +46,18 @@ const getLabThumbnail = (item: LabItem) =>
 
 const getLabHeroImage = (item: LabItem) =>
   item.heroImage || item.thumbnail || item.image || item.bodyImage?.url || '';
+
+const getLabImageAlt = (item: LabItem, label?: string, index?: number) => {
+  if (label) {
+    return `${item.title} — ${label}`;
+  }
+
+  if (typeof index === 'number') {
+    return `${item.title} — image ${index + 1}`;
+  }
+
+  return item.title;
+};
 
 const renderInlineMarkdown = (text: string) => {
   const parts = text.split(/(\*[^*]+\*)/g);
@@ -66,7 +95,7 @@ const renderArticleBody = (item: LabItem) => {
             <div key={`article-image-${index}`} className="pt-3">
               <img
                 src={item.bodyImage.url}
-                alt={item.bodyImage.alt ?? ''}
+                alt={item.bodyImage.alt ?? `${item.title} — article image`}
                 loading="lazy"
                 decoding="async"
                 className="w-full h-auto"
@@ -92,9 +121,11 @@ const renderArticleBody = (item: LabItem) => {
 export const Lab = () => {
   const { labItems, loading } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState<LabItem | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalScrollRef = useRef<HTMLDivElement | null>(null);
+  const modalDialogRef = useRef<HTMLDivElement | null>(null);
   const modalTitleId = useId();
   const modalDescriptionId = useId();
   const previewId = searchParams.get('preview');
@@ -138,19 +169,22 @@ export const Lab = () => {
       modalScrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     });
 
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         const nextParams = new URLSearchParams(searchParams);
         nextParams.delete('preview');
         setSearchParams(nextParams, { replace: true });
         setActiveItem(null);
+        return;
       }
+
+      trapFocusWithin(event, modalDialogRef.current);
     };
 
-    window.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
@@ -173,11 +207,17 @@ export const Lab = () => {
   return (
     <PageTransition>
       <div className="relative overflow-hidden bg-brand-bg">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,158,187,0.08),transparent_20%),radial-gradient(circle_at_84%_24%,rgba(255,255,255,0.035),transparent_22%),radial-gradient(circle_at_72%_78%,rgba(255,158,187,0.06),transparent_24%)]"
+        <Seo
+          title="Lab — Maria Bordiuh"
+          description="Experiments, motion tests, visual systems, and unfinished creative-tech notes from Maria Bordiuh."
+          canonicalPath="/lab"
+          image="/lab/pinterest-most-used-tool.png"
+          imageWidth={2880}
+          imageHeight={1800}
+          imageAlt="Maria Bordiuh lab preview"
         />
-        <div className={`${SITE_SHELL_CLASS} relative pb-28 pt-36 md:pb-32 md:pt-40`}>
+        <div aria-hidden="true" className={PUBLIC_PAGE_BOTTOM_GLOW_CLASS} />
+        <div className={`${PUBLIC_SHELL_CLASS} relative pb-28 pt-36 md:pb-32 md:pt-40`}>
           <header className="mb-16 md:mb-20">
             <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-brand-accent/80">
               Notes // tests // unfinished things
@@ -190,17 +230,18 @@ export const Lab = () => {
             <RevealOnScroll delay={0.08}>
               <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
                 <div className="max-w-[42rem] space-y-4">
-                  <p className="text-lg leading-relaxed text-white/68 md:text-[1.12rem]">
+                  <p className="text-[1.04rem] leading-[1.74] text-white/74 md:text-[1.12rem]">
                     Experiments, motion tests, visual systems, and half-finished ideas worth
                     keeping. Less case-study polish, more process and proof of life.
                   </p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/48">
                     {entryCountLabel}
                   </p>
                 </div>
-                <div className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.04] p-1">
+                <div className="inline-flex w-fit rounded-full border border-[rgba(var(--cta-rgb),0.18)] bg-[linear-gradient(126deg,rgba(255,196,217,0.09)_0%,rgba(255,186,210,0.07)_20%,rgba(248,145,121,0.07)_54%,rgba(231,71,26,0.11)_100%)] p-1 shadow-[0_12px_28px_rgba(var(--cta-rgb),0.08)]">
                   {SORT_OPTIONS.map((option) => {
                     const isActive = sortOrder === option.value;
+                    const variant = SORT_BUTTON_VARIANTS[option.value === 'newest' ? 0 : 1];
 
                     return (
                       <button
@@ -215,11 +256,7 @@ export const Lab = () => {
                           }
                           setSearchParams(nextParams, { replace: true });
                         }}
-                        className={`rounded-full px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors ${
-                          isActive
-                            ? 'bg-brand-accent text-black'
-                            : 'text-brand-muted hover:text-white'
-                        }`}
+                        className={`rounded-full px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-all ${isActive ? variant.active : variant.inactive}`}
                       >
                         {option.label}
                       </button>
@@ -258,7 +295,7 @@ export const Lab = () => {
                           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-brand-accent">
                             {item.category ?? item.type}
                           </span>
-                          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/28">
+                          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/42">
                             {item.readingTime ?? 'Lab note'}
                           </p>
                         </div>
@@ -269,7 +306,7 @@ export const Lab = () => {
                         <h3 className="mb-3 max-w-[18ch] font-sans text-[clamp(1.38rem,1.08rem+0.8vw,2rem)] font-semibold normal-case leading-[0.98] tracking-[-0.04em] text-white transition-colors group-hover:text-brand-accent">
                           {item.title}
                         </h3>
-                        <p className="line-clamp-4 max-w-[42rem] text-sm leading-relaxed text-white/62 md:text-[0.98rem]">
+                        <p className="line-clamp-4 max-w-[42rem] text-[0.98rem] leading-[1.68] text-white/72 md:text-[1rem]">
                           {item.excerpt ?? item.content}
                         </p>
                       </div>
@@ -321,14 +358,17 @@ export const Lab = () => {
               <button 
                 type="button"
                 ref={closeButtonRef}
-                className="absolute top-8 right-8 z-10 text-white hover:text-brand-accent transition-colors"
+                className="absolute top-8 right-8 z-10 text-white transition-colors hover:text-brand-accent focus-visible:text-brand-accent"
                 onClick={closeActiveItem}
                 aria-label="Close lab post"
               >
                 <X size={32} />
               </button>
               <motion.div
-                ref={modalScrollRef}
+                ref={(node) => {
+                  modalScrollRef.current = node;
+                  modalDialogRef.current = node;
+                }}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className="relative max-h-[90svh] w-full max-w-[68rem] overflow-y-auto overscroll-contain rounded-[2.5rem] border border-white/10 bg-[#0b0b0e]/96 p-6 shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-10"
@@ -343,9 +383,12 @@ export const Lab = () => {
                     <img
                       src={getLabHeroImage(activeItem)}
                       alt={activeItem.title}
+                      width={1600}
+                      height={900}
                       className="aspect-[16/9] w-full object-cover"
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
+                      sizes="(min-width: 1024px) 68rem, 100vw"
                       referrerPolicy="no-referrer"
                     />
                   </div>
@@ -364,7 +407,7 @@ export const Lab = () => {
                 >
                   {activeItem.title}
                 </h2>
-                <p id={modalDescriptionId} className="mb-8 max-w-3xl text-base leading-relaxed text-white/62 md:text-lg">
+                <p id={modalDescriptionId} className="mb-8 max-w-3xl text-[1.05rem] leading-[1.76] text-white/72 md:text-[1.12rem]">
                   {activeItem.excerpt ?? activeItem.content}
                 </p>
 
@@ -374,25 +417,25 @@ export const Lab = () => {
                     {activeItem.readingTime && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Reading time</p>
-                        <p className="font-semibold text-sm">{activeItem.readingTime}</p>
+                        <p className="text-base font-semibold">{activeItem.readingTime}</p>
                       </div>
                     )}
                     {activeItem.author && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Author</p>
-                        <p className="font-semibold text-sm">{activeItem.author}</p>
+                        <p className="text-base font-semibold">{activeItem.author}</p>
                       </div>
                     )}
                     {activeItem.timeline && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Timeline</p>
-                        <p className="font-semibold text-sm">{activeItem.timeline}</p>
+                        <p className="text-base font-semibold">{activeItem.timeline}</p>
                       </div>
                     )}
                     {activeItem.role && (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-1">Role</p>
-                        <p className="font-semibold text-sm">{activeItem.role}</p>
+                        <p className="text-base font-semibold">{activeItem.role}</p>
                       </div>
                     )}
                     {activeItem.tools.length > 0 && (
@@ -400,7 +443,7 @@ export const Lab = () => {
                         <p className="text-[10px] uppercase tracking-widest font-mono text-brand-accent mb-2">Tools</p>
                         <div className="flex flex-wrap gap-2">
                           {activeItem.tools.map(tool => (
-                            <Tag key={tool} name={tool} onClick={() => { window.location.href = `/work?tool=${tool}`; }} />
+                            <Tag key={tool} name={tool} onClick={() => { navigate(`/work?tool=${encodeURIComponent(tool)}`); }} />
                           ))}
                         </div>
                       </div>
@@ -436,7 +479,7 @@ export const Lab = () => {
                             )}
                             {sectionImages(section.key).map((img, i) => (
                               <div key={img.url + i} className="mt-6 rounded-2xl overflow-hidden bg-white/5">
-                                <img src={img.url} alt="" className="w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                                <img src={img.url} alt={getLabImageAlt(activeItem, section.label, i)} className="w-full object-cover" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
                               </div>
                             ))}
                           </div>
@@ -447,7 +490,7 @@ export const Lab = () => {
                             <div className="columns-2 gap-3 space-y-3">
                               {galleryImages.map((img, i) => (
                                 <div key={img.url + i} className="break-inside-avoid rounded-xl overflow-hidden bg-white/5">
-                                  <img src={img.url} alt="" className="w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+                                  <img src={img.url} alt={getLabImageAlt(activeItem, 'Gallery', i)} className="w-full object-cover" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
                                 </div>
                               ))}
                             </div>
@@ -462,7 +505,7 @@ export const Lab = () => {
                     <div>
                       <div className="flex flex-wrap gap-2 mb-8">
                         {activeItem.tools.map(tool => (
-                          <Tag key={tool} name={tool} onClick={() => { window.location.href = `/work?tool=${tool}`; }} />
+                          <Tag key={tool} name={tool} onClick={() => { navigate(`/work?tool=${encodeURIComponent(tool)}`); }} />
                         ))}
                       </div>
                     </div>
@@ -470,7 +513,7 @@ export const Lab = () => {
                     getLabThumbnail(activeItem) !== getLabHeroImage(activeItem) ? (
                       <div className="rounded-2xl overflow-hidden bg-white/5 aspect-square relative">
                         <div className="grain-overlay" />
-                        <img src={getLabThumbnail(activeItem)} alt={activeItem.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" referrerPolicy="no-referrer" />
+                        <img src={getLabThumbnail(activeItem)} alt={activeItem.title} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
                       </div>
                     ) : null}
                   </div>

@@ -6,6 +6,7 @@ import { MasonryPortfolioGrid } from '../components/MasonryPortfolioGrid';
 import { RevealOnScroll } from '../components/RevealOnScroll';
 import { ProjectSkeleton } from '../components/Skeleton';
 import { PrefetchLink } from '../components/PrefetchLink';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 import { buildSelectedPoolFromCollections } from '../utils/featured-items';
 
 export const WorkSection = () => {
@@ -35,8 +36,8 @@ export const WorkSection = () => {
   }, []);
 
   return (
-    <section className="px-6 pb-24 pt-24 md:px-12 md:pt-28">
-      <div className="mx-auto max-w-7xl">
+    <section className="pb-24 pt-24 md:pt-28">
+      <div className={PUBLIC_SHELL_CLASS}>
         <div className="mb-14 flex flex-col items-start justify-between gap-6 md:mb-16 md:flex-row md:items-end md:gap-8">
           <RevealOnScroll className="max-w-3xl">
             <h4 className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">Sequence // 01</h4>
@@ -52,6 +53,7 @@ export const WorkSection = () => {
                 onClick={handleShuffle}
                 disabled={loading || allFeatured.length <= 4}
                 data-click-sound="true"
+                data-cta-variant="sherbet"
                 className="group btn-glass-shift px-6 py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Shuffle selected works"
               >
@@ -60,6 +62,7 @@ export const WorkSection = () => {
               <PrefetchLink
                 to="/work"
                 data-click-sound="true"
+                data-cta-variant="sunset"
                 className="group btn-gradient-shift px-8 py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 Index Catalog <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -77,7 +80,7 @@ export const WorkSection = () => {
             <MasonryPortfolioGrid items={featuredItems} onPreview={handlePreview} />
           ) : (
             <div className="glass rounded-3xl border border-white/5 bg-white/5 py-24 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-brand-muted">
-              Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
+              Full hard drive, empty page. Maria&apos;s mid-espresso and uploading. Come back soon :)
             </div>
           )}
         </RevealOnScroll>

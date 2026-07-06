@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
+import { trapFocusWithin } from '../lib/focus-trap';
+import { PUBLIC_GUTTER_CLASS, PUBLIC_SHELL_CLASS } from '../lib/layout';
 import { cn } from '../lib/utils';
 import { PrefetchLink } from './PrefetchLink';
 
@@ -96,29 +98,7 @@ export const Nav = () => {
     };
 
     const handleTabTrap = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') {
-        return;
-      }
-
-      const focusable = mobileMenuRef.current?.querySelectorAll<HTMLElement>(
-        'a, button, [tabindex]:not([tabindex="-1"])',
-      );
-
-      if (!focusable?.length) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement;
-
-      if (event.shiftKey && activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      trapFocusWithin(event, mobileMenuRef.current);
     };
 
     document.addEventListener('keydown', handleEscape);
@@ -157,58 +137,61 @@ export const Nav = () => {
 
   return (
     <>
-    <nav className={cn(
-      "fixed top-0 left-0 w-full z-50 px-6 md:px-12 xl:px-20 flex justify-between items-center transition-all duration-500",
-      "bg-black/40 backdrop-blur-xl border-b border-white/5",
-      scrolled ? "py-4" : "py-6"
-    )}>
-
-      <PrefetchLink
-        to="/" 
-        onClick={handleLogoClick}
-        data-click-sound="true"
-        className="block hover:opacity-70 transition-opacity"
-        aria-label="Maria Bordiuh home"
+    <nav className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-black/40 backdrop-blur-xl">
+      <div
+        className={cn(
+          PUBLIC_SHELL_CLASS,
+          "flex justify-between items-center transition-all duration-500",
+          scrolled ? "py-4" : "py-6"
+        )}
       >
-        <MariaLogo />
-      </PrefetchLink>
+        <PrefetchLink
+          to="/" 
+          onClick={handleLogoClick}
+          data-click-sound="true"
+          className="block hover:opacity-70 transition-opacity"
+          aria-label="Maria Bordiuh home"
+        >
+          <MariaLogo />
+        </PrefetchLink>
 
-      {/* Desktop Nav */}
-      <div className="hidden md:flex gap-8 items-center">
-        {navLinks.map((link) => (
-          <PrefetchLink
-            key={link.path}
-            to={link.path}
-            data-click-sound="true"
-            aria-current={
-              location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
-                ? 'page'
-                : undefined
-            }
-            className={cn(
-              "nav-underline-link text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-brand-accent",
-              location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
-                ? "text-brand-accent"
-                : "text-white drop-shadow-md"
-            )}
-          >
-            {link.name}
-          </PrefetchLink>
-        ))}
+        {/* Desktop Nav */}
+        <div className="hidden md:flex gap-8 items-center">
+          {navLinks.map((link) => (
+            <PrefetchLink
+              key={link.path}
+              to={link.path}
+              data-click-sound="true"
+              aria-current={
+                location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
+                  ? 'page'
+                  : undefined
+              }
+              className={cn(
+                "nav-underline-link text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-brand-accent",
+                location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path))
+                  ? "text-brand-accent"
+                  : "text-white drop-shadow-md"
+              )}
+            >
+              {link.name}
+            </PrefetchLink>
+          ))}
+        </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          ref={toggleButtonRef}
+          className="md:hidden text-white" 
+          onClick={() => setIsOpen(!isOpen)}
+          data-click-sound="true"
+          aria-expanded={isOpen}
+          aria-controls="mobile-navigation"
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X /> : <Menu />}
+        </button>
       </div>
-
-      {/* Mobile Toggle */}
-      <button 
-        ref={toggleButtonRef}
-        className="md:hidden text-white" 
-        onClick={() => setIsOpen(!isOpen)}
-        data-click-sound="true"
-        aria-expanded={isOpen}
-        aria-controls="mobile-navigation"
-        aria-label="Toggle menu"
-      >
-        {isOpen ? <X /> : <Menu />}
-      </button>
     </nav>
 
     {/* Mobile Menu — rendered outside <nav> because backdrop-blur creates a containing block for fixed descendants */}
@@ -223,11 +206,14 @@ export const Nav = () => {
           role="dialog"
           aria-modal="true"
           aria-label="Main navigation"
-          className="fixed inset-0 bg-brand-bg flex flex-col items-center justify-center gap-8 z-[60] px-6 pt-24 pb-16 overflow-y-auto md:hidden"
+          className={cn(
+            "fixed inset-0 z-[60] flex flex-col items-center justify-center gap-8 overflow-y-auto bg-brand-bg pt-24 pb-16 md:hidden",
+            PUBLIC_GUTTER_CLASS,
+          )}
         >
           <button
             ref={closeButtonRef}
-            className="absolute top-8 right-6 text-white"
+            className="absolute top-8 right-6 text-white md:right-8 xl:right-12"
             onClick={() => setIsOpen(false)}
             data-click-sound="true"
             aria-label="Close menu"

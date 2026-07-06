@@ -296,7 +296,7 @@ export function VideosAdmin() {
             thumbnail: trimValue(prev.thumbnail) || data.thumbnail || prev.thumbnail,
           };
         });
-      } catch (error) {
+      } catch (_error) {
         if (controller.signal.aborted) {
           return;
         }
@@ -874,9 +874,11 @@ export function VideosAdmin() {
                   <video
                     src={previewUrl}
                     controls
+                    muted
                     playsInline
                     preload="metadata"
                     poster={previewThumb || undefined}
+                    aria-label={`${draft.title || 'Video'} editor preview`}
                     className="h-full w-full object-contain"
                   />
                 </div>

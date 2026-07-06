@@ -8,6 +8,9 @@ type OptimizedImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'onLoad' | 
   onImageLoad?: (size: { width: number; height: number }) => void;
 };
 
+// Presentation helper only: this component standardizes loading behavior and optional
+// WebP fallback, but it does not generate responsive variants or perform real image
+// optimization/transcoding by itself.
 export const OptimizedImage = memo(({
   alt,
   className,

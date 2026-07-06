@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Project } from '../types';
+import { getProjectRouteSegment } from '../utils/portfolio';
 import { PrefetchLink } from './PrefetchLink';
 
 interface StackedProjectCardProps {
@@ -23,7 +24,7 @@ export const StackedProjectCard = ({ project, index }: StackedProjectCardProps) 
           <p className="text-xl text-brand-muted max-w-md leading-relaxed">{project.description}</p>
         </div>
         <PrefetchLink
-          to={`/work/${project.id}`}
+          to={`/work/${getProjectRouteSegment(project)}`}
           className="group flex items-center gap-4 text-sm uppercase tracking-widest w-fit"
         >
           View Case Study 

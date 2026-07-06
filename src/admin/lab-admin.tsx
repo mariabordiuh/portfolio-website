@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
-import { GripVertical, ImagePlus, LoaderCircle, Trash2, X } from 'lucide-react';
+import { GripVertical, ImagePlus, LoaderCircle, X } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
 import { db } from '../firebase-firestore';
 import { storage } from '../firebase-storage';
@@ -72,7 +72,7 @@ function DraggableImageList({
       const uploaded: LabImage[] = [];
       for (const file of Array.from(files)) {
         const r = storageRef(storage, `lab/images/${Date.now()}-${file.name}`);
-        await uploadBytes(r, file);
+        await uploadBytes(r, file, { cacheControl: 'public, max-age=31536000, immutable' });
         const url = await getDownloadURL(r);
         uploaded.push({ url });
       }

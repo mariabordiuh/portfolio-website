@@ -1,4 +1,5 @@
 import { RevealOnScroll } from '../components/RevealOnScroll';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 
 const SERVICE_GROUPS = [
   {
@@ -60,10 +61,10 @@ const SERVICE_GROUPS = [
 
 export const ServicesSection = () => {
   return (
-    <section className="px-6 md:px-12 py-40">
-      <div className="mx-auto max-w-7xl">
+    <section className="py-40">
+      <div className={PUBLIC_SHELL_CLASS}>
         <RevealOnScroll className="mb-20">
-          <h4 className="text-[10px] uppercase tracking-[0.4em] text-brand-muted mb-4 font-mono">
+          <h4 className="mb-4 font-mono text-[10px] uppercase tracking-[0.4em] text-brand-muted">
             Sequence // 02
           </h4>
           <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none">
@@ -80,10 +81,10 @@ export const ServicesSection = () => {
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,158,187,0.14),transparent_30%),radial-gradient(circle_at_80%_75%,rgba(255,214,224,0.12),transparent_34%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="mb-8">
-                <span className="relative block mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-brand-accent">
+                <span className="relative mb-3 block font-mono text-[10px] uppercase tracking-[0.3em] text-brand-accent">
                   {group.tag}
                 </span>
-                <h3 className="relative text-sm font-black uppercase leading-tight tracking-wider">
+                <h3 className="relative text-[0.98rem] font-black uppercase leading-[1.35] tracking-[0.14em]">
                   {group.title}
                 </h3>
               </div>
@@ -92,7 +93,7 @@ export const ServicesSection = () => {
                 {group.services.map((service) => (
                   <li
                     key={service}
-                    className="whitespace-nowrap text-[11px] font-medium uppercase leading-relaxed tracking-[0.15em] text-white/55 transition-colors duration-300 group-hover:text-white/72"
+                    className="text-[0.92rem] font-medium uppercase leading-[1.65] tracking-[0.08em] text-white/66 transition-colors duration-300 group-hover:text-white/82"
                   >
                     {service}
                   </li>

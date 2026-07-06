@@ -312,7 +312,11 @@ export function StorageOptimizer(props: StorageOptimizerProps) {
       const optimizedBlob = await optimizeImage(originalBlob);
 
       // 3. Upload to same storage path (overwrite)
-      await uploadBytes(storageRef, optimizedBlob, { contentType: 'image/webp' });
+      await uploadBytes(storageRef, optimizedBlob, {
+        contentType: 'image/webp',
+        // path is overwritten in place, so no `immutable`
+        cacheControl: 'public, max-age=31536000',
+      });
 
       // 4. Get new download URL
       const newUrl = await getDownloadURL(storageRef);
@@ -509,7 +513,7 @@ export function StorageOptimizer(props: StorageOptimizerProps) {
       {/* Image list */}
       {entries.length > 0 ? (
         <div className="space-y-3">
-          {sortedEntries.map((entry, idx) => {
+          {sortedEntries.map((entry) => {
             // Find the real index in entries[] for the optimize callback
             const realIndex = entries.findIndex((e) => e.url === entry.url && e.storagePath === entry.storagePath);
             return (
@@ -749,7 +753,7 @@ async function patchFirestoreRefs(refs: ImageReference[], oldUrl: string, newUrl
       if (field.startsWith('__array:')) {
         // For array fields, we need the current data. Since we don't have it
         // handy here, we'll use a special approach: fetch the doc, patch, write.
-        const arrayField = field.replace('__array:', '');
+        field.replace('__array:', '');
         // We'll handle this via a separate getDoc + setDoc below
         continue;
       }

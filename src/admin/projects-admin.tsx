@@ -3,6 +3,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, updateDoc, writeBatch }
 import { db } from '../firebase-firestore';
 import { DataContext } from '../context/DataContext';
 import { Project, ProjectPillar } from '../types';
+import { deriveProjectSlug, normalizeSlugSegment } from '../utils/portfolio';
 import {
   ChecklistItem,
   ENTRY_STATUS_OPTIONS,
@@ -531,8 +532,45 @@ export function ProjectsAdmin() {
     writePersistedEditorDraft(draftStorageKey, draft);
     setLocalDraftSavedAt(Date.now());
   }, [draft, draftStorageKey, isDirty]);
+  const normalizedCurrentSlug = useMemo(
+    () => normalizeSlugSegment(draft.slug),
+    [draft.slug],
+  );
+  const duplicateSlugProject = useMemo(() => {
+    if (!normalizedCurrentSlug) {
+      return null;
+    }
+
+    return items.find(
+      (item) =>
+        item.id !== selectedId &&
+        normalizeSlugSegment(item.slug || deriveProjectSlug(item)) === normalizedCurrentSlug,
+    ) ?? null;
+  }, [items, normalizedCurrentSlug, selectedId]);
+  const slugValidationError = useMemo(() => {
+    if (!trimValue(draft.slug)) {
+      return null;
+    }
+
+    if (draft.slug !== normalizedCurrentSlug || !normalizedCurrentSlug) {
+      return 'Slug can only contain lowercase letters, numbers, and hyphens.';
+    }
+
+    if (duplicateSlugProject) {
+      return `Slug already used by ${duplicateSlugProject.title || 'another project'}.`;
+    }
+
+    return null;
+  }, [draft.slug, duplicateSlugProject, normalizedCurrentSlug]);
+  const effectiveSlugPreview = useMemo(
+    () =>
+      normalizeSlugSegment(draft.slug) ||
+      deriveProjectSlug({ id: selectedId ?? 'project', slug: '', title: draft.title }),
+    [draft.slug, draft.title, selectedId],
+  );
   const payload = useMemo(() => {
     const title = trimValue(draft.title);
+    const slug = normalizedCurrentSlug || undefined;
     const categories = dedupe(splitList(draft.category));
     const description = trimValue(draft.description) || trimValue(draft.approach);
     const heroImage = trimValue(draft.heroImage) || trimValue(draft.thumbnail);
@@ -564,6 +602,7 @@ export function ProjectsAdmin() {
     const workPriorityRank = draft.workPriorityRank ? Number(draft.workPriorityRank) : null;
     const basePayload = {
       title,
+      slug,
       pillar: draft.pillar,
       status: draft.status,
       subCategory: trimValue(draft.subCategory) || undefined,
@@ -633,7 +672,7 @@ export function ProjectsAdmin() {
       result: outcome || undefined,
       credits: splitList(draft.credits),
     };
-  }, [draft, isArtDirection]);
+  }, [draft, isArtDirection, normalizedCurrentSlug]);
   const publishMissingFields = draft.status === 'published' ? missingFields : [];
   const handleUploadStateChange = useCallback((field: string, uploading: boolean) => {
     setActiveUploads((current) => {
@@ -729,6 +768,11 @@ export function ProjectsAdmin() {
       return;
     }
 
+    if (slugValidationError) {
+      setError(slugValidationError);
+      return;
+    }
+
     setBusy(true);
     try {
       clear();
@@ -761,6 +805,7 @@ export function ProjectsAdmin() {
     selectedId,
     setError,
     setSuccess,
+    slugValidationError,
   ]);
 
   const handleDelete = useCallback(async () => {
@@ -800,6 +845,7 @@ export function ProjectsAdmin() {
     setSelectedId(null);
     setDraft({
       ...toProjectDraft(selectedItem),
+      slug: '',
       title: `${selectedItem.title || 'Untitled project'} copy`,
       status: 'draft',
       featured: false,
@@ -1031,7 +1077,20 @@ export function ProjectsAdmin() {
                     value={draft.title}
                     required
                     placeholder="Campaign or project name"
-                    onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))}
+                    onChange={(value) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        title: value,
+                        slug: prev.slug ? prev.slug : normalizeSlugSegment(value),
+                      }))}
+                  />
+                  <TextField
+                    label="Slug"
+                    value={draft.slug}
+                    placeholder="novoseven"
+                    onChange={(value) => setDraft((prev) => ({ ...prev, slug: normalizeSlugSegment(value) }))}
+                    error={slugValidationError ?? undefined}
+                    hint={`Stable public URL: /work/${effectiveSlugPreview || 'project-slug'}. Title changes will not overwrite a saved slug.`}
                   />
                   <SelectField
                     label="Status"
@@ -1448,7 +1507,20 @@ export function ProjectsAdmin() {
                     value={draft.title}
                     required
                     placeholder="Project name"
-                    onChange={(value) => setDraft((prev) => ({ ...prev, title: value }))}
+                    onChange={(value) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        title: value,
+                        slug: prev.slug ? prev.slug : normalizeSlugSegment(value),
+                      }))}
+                  />
+                  <TextField
+                    label="Slug"
+                    value={draft.slug}
+                    placeholder="project-name"
+                    onChange={(value) => setDraft((prev) => ({ ...prev, slug: normalizeSlugSegment(value) }))}
+                    error={slugValidationError ?? undefined}
+                    hint={`Stable public URL: /work/${effectiveSlugPreview || 'project-slug'}. Title changes will not overwrite a saved slug.`}
                   />
                   <TextField
                     label="Category"

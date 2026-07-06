@@ -446,7 +446,7 @@ export function GalleryAdmin() {
         for (const file of uploads) {
           const path = `gallery/images/${Date.now()}-${file.name}`;
           const ref = storageRef(storage, path);
-          await uploadBytes(ref, file);
+          await uploadBytes(ref, file, { cacheControl: 'public, max-age=31536000, immutable' });
           const url = await getDownloadURL(ref);
 
           await addDoc(collection(db, 'gallery'), {

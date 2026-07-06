@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { EntryStatus, GalleryImage, LabItem, Project, ProjectPillar, Video } from '../types';
-import { normalizePillar, uniqueStrings } from '../utils/portfolio';
+import { deriveProjectSlug, normalizePillar, uniqueStrings } from '../utils/portfolio';
 
 export const ADMIN_EMAIL = 'helloveo333@gmail.com';
 export const PROJECT_PILLARS: ProjectPillar[] = [
@@ -17,6 +17,7 @@ export type AdminTab = 'projects' | 'videos' | 'labItems' | 'gallery';
 
 export type ProjectDraft = {
   title: string;
+  slug: string;
   pillar: ProjectPillar;
   status: EntryStatus;
   subCategory: string;
@@ -134,6 +135,7 @@ export type ChecklistItem = {
 
 export const defaultProjectDraft = (): ProjectDraft => ({
   title: '',
+  slug: '',
   pillar: 'Art Direction',
   status: 'draft',
   subCategory: '',
@@ -510,6 +512,7 @@ export function toProjectDraft(project?: Project): ProjectDraft {
 
   return {
     title: project.title ?? '',
+    slug: project.slug ?? deriveProjectSlug(project),
     pillar: project.pillar ?? 'Art Direction',
     status: project.status ?? 'published',
     subCategory: project.subCategory ?? '',

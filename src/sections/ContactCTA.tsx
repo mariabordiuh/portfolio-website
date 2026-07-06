@@ -1,5 +1,7 @@
 import { ArrowUpRight, Mail } from 'lucide-react';
 import { RevealOnScroll } from '../components/RevealOnScroll';
+import { PROJECT_EMAIL, PROJECT_MAILTO } from '../lib/contact';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 
 const collaborationNotes = [
   {
@@ -18,12 +20,12 @@ const collaborationNotes = [
 
 export const ContactCTA = () => {
   return (
-    <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-28 md:px-12 md:py-36">
+    <section className="relative overflow-hidden py-24 sm:py-28 md:py-36">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,158,187,0.12),transparent_26%),radial-gradient(circle_at_82%_68%,rgba(255,158,187,0.08),transparent_30%)]"
       />
-      <div className="mx-auto max-w-7xl">
+      <div className={PUBLIC_SHELL_CLASS}>
         <RevealOnScroll>
           <div className="grid gap-10 xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.92fr)] xl:items-end">
             <div>
@@ -33,7 +35,7 @@ export const ContactCTA = () => {
               <h2 className="mt-4 max-w-[13ch] font-display text-[clamp(1.9rem,3.6vw,3.45rem)] font-normal uppercase leading-[1.08] tracking-[0.02em] text-white">
                 Open for sharp, visual projects<span className="text-brand-accent">.</span>
               </h2>
-              <p className="mt-5 max-w-[42rem] text-[1rem] leading-relaxed text-white/66 md:text-[1.12rem]">
+              <p className="mt-5 max-w-[42rem] text-[1.04rem] leading-[1.72] text-white/72 md:text-[1.12rem]">
                 If the brief needs art direction, motion, AI visuals, or a slightly nerdier
                 production brain, I’m usually interested.
               </p>
@@ -44,7 +46,7 @@ export const ContactCTA = () => {
                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/44">
                       {note.label}
                     </p>
-                    <p className="text-sm leading-relaxed text-white/62">{note.value}</p>
+                    <p className="text-[0.98rem] leading-[1.7] text-white/72">{note.value}</p>
                   </div>
                 ))}
               </div>
@@ -73,19 +75,20 @@ export const ContactCTA = () => {
                     Email
                   </p>
                   <a
-                    href="mailto:mariabordiuh@gmail.com"
+                    href={PROJECT_MAILTO}
                     data-click-sound="true"
-                    className="inline-flex items-center gap-3 text-sm text-white/78 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-3 text-[0.98rem] text-white/84 transition-colors hover:text-white"
                   >
                     <Mail size={16} className="text-brand-accent" />
-                    mariabordiuh@gmail.com
+                    {PROJECT_EMAIL}
                   </a>
                 </div>
 
                 <div className="mt-8 flex flex-col gap-3 font-mono text-[10px] font-black uppercase tracking-[0.22em] sm:flex-row">
                   <a
-                    href="mailto:mariabordiuh@gmail.com"
+                    href={PROJECT_MAILTO}
                     data-click-sound="true"
+                    data-cta-variant="ember"
                     className="btn-gradient-shift px-6 py-4"
                   >
                     Email me
@@ -96,6 +99,7 @@ export const ContactCTA = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     data-click-sound="true"
+                    data-cta-variant="petal"
                     className="btn-glass-shift px-6 py-4"
                   >
                     LinkedIn

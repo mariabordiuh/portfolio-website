@@ -1,7 +1,9 @@
 import { type MouseEvent, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { OptimizedImage } from './OptimizedImage';
 import {
+  getProjectRouteSegment,
   type PortfolioItem,
   isArtDirectionItem,
   isVideoFileUrl,
@@ -30,15 +32,13 @@ const CardMedia = ({ item }: { item: PortfolioItem }) => {
   }
 
   return (
-    <img
+    <OptimizedImage
       src={item.thumbnail || item.heroImage}
       alt={item.title}
       width={800}
       height={1000}
       loading="lazy"
-      decoding="async"
       className="w-full h-full object-cover opacity-80 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100 grayscale group-hover:grayscale-0"
-      referrerPolicy="no-referrer"
     />
   );
 };
@@ -54,7 +54,7 @@ const CardContent = ({ item }: { item: PortfolioItem }) => (
         </span>
         <h3 className="text-2xl font-bold tracking-tight">{item.title}</h3>
         {item.description ? (
-          <p className="mt-3 line-clamp-3 text-sm text-white/65">{item.description}</p>
+          <p className="mt-3 line-clamp-3 text-[0.96rem] leading-[1.6] text-white/72">{item.description}</p>
         ) : null}
       </div>
       {!isArtDirectionItem(item) ? (
@@ -90,7 +90,11 @@ export const BentoCard = ({ item, onPreview }: BentoCardProps) => {
   if (isArtDirectionItem(item) && item.routeId) {
     return (
       <Link
-        to={`/work/${item.routeId}`}
+        to={`/work/${getProjectRouteSegment({
+          id: item.sourceId,
+          slug: item.routeSlug,
+          title: item.title,
+        })}`}
         ref={(node) => {
           cardRef.current = node;
         }}

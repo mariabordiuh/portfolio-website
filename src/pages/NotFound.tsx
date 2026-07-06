@@ -606,19 +606,21 @@ export const NotFound = () => {
             >
               This page wandered off for a coffee break.
             </h1>
-            <p className="mt-3 max-w-[22rem] text-sm leading-6 text-white/62 sm:text-base">
+            <p className="mt-3 max-w-[22rem] text-[0.98rem] leading-[1.7] text-white/72 sm:text-base">
               Stack the takeaway cups while you wait.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link
                 to="/work"
+                data-cta-variant="ember"
                 className="btn-gradient-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 <span>See selected work</span>
               </Link>
               <Link
                 to="/"
+                data-cta-variant="petal"
                 className="btn-glass-shift px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
               >
                 <span>Go home</span>
@@ -635,7 +637,7 @@ export const NotFound = () => {
               >
                 {snapshot.running ? 'Keep the shelf tidy.' : 'Stack cups. Clear rows. Do not embarrass the cafe.'}
               </h2>
-              <p className="mt-2.5 max-w-[26rem] text-sm leading-5.5 text-white/58">
+              <p className="mt-2.5 max-w-[26rem] text-[0.98rem] leading-[1.68] text-white/68">
                 Full rows disappear. The stack gets faster as you go. It is basically coffee Tetris, which is already a much better 404 situation.
               </p>
             </div>
@@ -674,6 +676,7 @@ export const NotFound = () => {
                     type="button"
                     onClick={() => void toggleMusic()}
                     data-click-sound="true"
+                    data-cta-variant="sherbet"
                     className="btn-glass-shift px-4 py-2.5 font-mono text-[10px] font-black uppercase tracking-[0.22em]"
                   >
                     <span>{musicEnabled ? 'Music on' : 'Music off'}</span>
@@ -730,7 +733,7 @@ export const NotFound = () => {
                         >
                           {snapshot.gameOver ? 'Try another stack.' : 'Build the neatest coffee tower you can.'}
                         </h2>
-                        <p className="mt-2.5 max-w-[20rem] text-sm leading-5.5 text-white/58">
+                        <p className="mt-2.5 max-w-[20rem] text-[0.98rem] leading-[1.68] text-white/68">
                           {snapshot.gameOver
                             ? 'Turns out cups are bad at staying up forever.'
                             : 'Classic left, right, rotate, drop. Much cuter when it is coffee.'}
@@ -739,6 +742,7 @@ export const NotFound = () => {
                           type="button"
                           onClick={() => void startGame()}
                           data-click-sound="true"
+                          data-cta-variant="sunset"
                           className="btn-gradient-shift mt-5 px-6 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.2em]"
                         >
                           <span>{snapshot.gameOver ? 'Stack again' : 'Start stacking'}</span>
@@ -754,6 +758,7 @@ export const NotFound = () => {
                         type="button"
                         onClick={button.action}
                         data-click-sound="true"
+                        data-cta-variant={button.label === 'A' ? 'ember' : button.label === 'B' ? 'petal' : 'sherbet'}
                         className="btn-glass-shift aspect-square px-0 py-0 font-mono text-lg font-black"
                       >
                         <span>{button.label}</span>

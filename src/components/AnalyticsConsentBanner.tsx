@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PrefetchLink } from './PrefetchLink';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 import {
   ANALYTICS_CONSENT_OPEN_EVENT,
+  denyAnalyticsConsent,
+  grantAnalyticsConsent,
   getStoredAnalyticsConsent,
-  initGoogleAnalytics,
   isGoogleAnalyticsEnabled,
   trackPageView,
-  updateAnalyticsConsent,
   type AnalyticsConsentChoice,
 } from '../lib/google-analytics';
 
@@ -40,18 +41,23 @@ export const AnalyticsConsentBanner = () => {
     return null;
   }
 
-  const handleChoice = (choice: AnalyticsConsentChoice) => {
+  const handleChoice = async (choice: AnalyticsConsentChoice) => {
     setConsentChoice(choice);
-    updateAnalyticsConsent(choice);
 
     if (choice === 'accepted') {
-      initGoogleAnalytics();
+      const loaded = await grantAnalyticsConsent();
+      if (!loaded) {
+        return;
+      }
       trackPageView({
         pageLocation: window.location.href,
         pagePath: `${location.pathname}${location.search}`,
         pageTitle: document.title,
       });
+      return;
     }
+
+    denyAnalyticsConsent();
   };
 
   const bannerCard = (
@@ -93,7 +99,7 @@ export const AnalyticsConsentBanner = () => {
   if (!isHomePage) {
     return (
       <div className="relative z-[40] mt-8 md:mt-10">
-        <div className="mx-auto flex max-w-7xl justify-end px-4 sm:px-6 md:px-8 xl:px-12">
+        <div className={`${PUBLIC_SHELL_CLASS} flex justify-end`}>
           <div className="w-full max-w-[24rem]">{bannerCard}</div>
         </div>
       </div>

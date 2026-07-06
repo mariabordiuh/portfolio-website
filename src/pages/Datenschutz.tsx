@@ -1,4 +1,6 @@
 import { LegalPageShell } from '../components/LegalPageShell';
+import { Seo } from '../components/Seo';
+import { GENERAL_EMAIL } from '../lib/contact';
 
 type PrivacySection = {
   title: string;
@@ -11,7 +13,7 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
     title: '1. Verantwortliche Stelle',
     body: [
       'Verantwortlich für die Datenverarbeitung auf dieser Website ist:',
-      'Mariia Bordiuh, Bei der Hammer Kirche 5, 20535 Hamburg, Deutschland. E-Mail: mariabordiuh@gmail.com. Telefon: +49 162 2057749.',
+      `Mariia Bordiuh, Bei der Hammer Kirche 5, 20535 Hamburg, Deutschland. E-Mail: ${GENERAL_EMAIL}. Telefon: +49 162 2057749.`,
     ],
   },
   {
@@ -129,41 +131,52 @@ const PRIVACY_SECTIONS: PrivacySection[] = [
 ];
 
 export const Datenschutz = () => (
-  <LegalPageShell
-    eyebrow="Legal"
-    title="Datenschutz"
-    intro="Diese Version beschreibt nur die Dienste, die auf mariabordiuh.com tatsächlich genutzt werden: Firebase / Google Cloud, Google Analytics nach Einwilligung, E-Mail-Kontakt sowie externe Video- und Link-Ziele."
-  >
-    <div className="space-y-6">
-      {PRIVACY_SECTIONS.map((section) => (
-        <article
-          key={section.title}
-          className="rounded-[1.7rem] border border-white/10 bg-white/[0.02] p-6 md:p-8"
-        >
-          <h2 className="font-mono text-[11px] uppercase tracking-[0.28em] text-brand-accent">
-            {section.title}
-          </h2>
+  <>
+    <Seo
+      title="Datenschutz — Maria Bordiuh"
+      description="Datenschutzerklaerung for mariabordiuh.com, including Firebase hosting, analytics after consent, and contact/privacy information."
+      canonicalPath="/datenschutz"
+      image="/media/home-hero-cat-laptop.jpg"
+      imageWidth={1920}
+      imageHeight={960}
+      imageAlt="Privacy policy for Maria Bordiuh"
+    />
+    <LegalPageShell
+      eyebrow="Legal"
+      title="Datenschutz"
+      intro="Diese Version beschreibt nur die Dienste, die auf mariabordiuh.com tatsächlich genutzt werden: Firebase / Google Cloud, Google Analytics nach Einwilligung, E-Mail-Kontakt sowie externe Video- und Link-Ziele."
+    >
+      <div className="space-y-6">
+        {PRIVACY_SECTIONS.map((section) => (
+          <article
+            key={section.title}
+            className="rounded-[1.7rem] border border-white/10 bg-white/[0.02] p-6 md:p-8"
+          >
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.28em] text-brand-accent">
+              {section.title}
+            </h2>
 
-          <div className="mt-4 space-y-4">
-            {section.body.map((paragraph) => (
-              <p key={paragraph} className="text-sm leading-relaxed text-white/72">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-
-          {section.bullets?.length ? (
-            <ul className="mt-5 space-y-2 text-sm leading-relaxed text-white/68">
-              {section.bullets.map((bullet) => (
-                <li key={bullet} className="flex gap-3">
-                  <span className="mt-[0.45rem] h-1.5 w-1.5 flex-none rounded-full bg-brand-accent" />
-                  <span>{bullet}</span>
-                </li>
+            <div className="mt-4 space-y-4">
+              {section.body.map((paragraph) => (
+                <p key={paragraph} className="text-[0.98rem] leading-[1.72] text-white/78">
+                  {paragraph}
+                </p>
               ))}
-            </ul>
-          ) : null}
-        </article>
-      ))}
-    </div>
-  </LegalPageShell>
+            </div>
+
+            {section.bullets?.length ? (
+              <ul className="mt-5 space-y-2 text-[0.98rem] leading-[1.72] text-white/74">
+                {section.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-3">
+                    <span className="mt-[0.45rem] h-1.5 w-1.5 flex-none rounded-full bg-brand-accent" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </LegalPageShell>
+  </>
 );

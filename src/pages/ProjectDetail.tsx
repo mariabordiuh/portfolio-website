@@ -2,13 +2,61 @@ import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from '
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
+import { JsonLd } from '../components/JsonLd';
+import { OptimizedImage } from '../components/OptimizedImage';
+import { Seo, SITE_URL } from '../components/Seo';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
-import { isEmbeddableVideoUrl, isVideoFileUrl, normalizeProject, toEmbedUrl } from '../utils/portfolio';
+import { PUBLIC_PAGE_BOTTOM_GLOW_CLASS } from '../lib/layout';
+import {
+  findProjectByRouteParam,
+  getProjectRouteSegment,
+  isEmbeddableVideoUrl,
+  isVideoFileUrl,
+  normalizeProject,
+  toEmbedUrl,
+} from '../utils/portfolio';
 
 const PAGE_SHELL_CLASS = 'mx-auto max-w-[1440px] px-5 sm:px-6 md:px-8 xl:px-12';
 const ARTICLE_TEXT_CLASS = 'max-w-4xl';
 const ARTICLE_MEDIA_CLASS = 'max-w-6xl';
+
+const buildProjectSeoDescription = (project: ReturnType<typeof normalizeProject>) => {
+  const candidates = [
+    project.description,
+    project.brief,
+    project.context,
+    project.solution,
+    project.outcome,
+  ]
+    .map((value) => value?.replace(/\s+/g, ' ').trim())
+    .filter(Boolean) as string[];
+
+  if (!candidates.length) {
+    return 'A visual case study by Maria Bordiuh covering concept, process, art direction, and final outcomes.';
+  }
+
+  const base = candidates[0];
+  if (base.length <= 160) {
+    return base;
+  }
+
+  const shortened = base.slice(0, 157).trimEnd();
+  const lastSpace = shortened.lastIndexOf(' ');
+  return `${(lastSpace > 110 ? shortened.slice(0, lastSpace) : shortened).trimEnd()}...`;
+};
+
+const toAbsoluteAssetUrl = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `${SITE_URL}${value.startsWith('/') ? value : `/${value}`}`;
+};
 
 const SectionHeader = ({
   eyebrow,
@@ -27,7 +75,7 @@ const SectionHeader = ({
       {title}
     </h2>
     {description ? (
-      <p className="mt-4 max-w-none text-sm leading-relaxed text-white/63 sm:text-base md:max-w-2xl">
+      <p className="mt-4 max-w-none text-[0.98rem] leading-[1.7] text-white/72 sm:text-base md:max-w-2xl">
         {description}
       </p>
     ) : null}
@@ -38,13 +86,15 @@ const MediaFrame = ({
   children,
   className = '',
   style = 'framed',
+  rounded = true,
 }: {
   children: ReactNode;
   className?: string;
   style?: 'framed' | 'bare';
+  rounded?: boolean;
 }) => (
   style === 'bare' ? (
-    <div className={`overflow-hidden rounded-[2.2rem] ${className}`}>{children}</div>
+    <div className={`overflow-hidden ${rounded ? 'rounded-[2.2rem]' : ''} ${className}`}>{children}</div>
   ) : (
     <div className={`rounded-[2rem] border border-white/8 bg-white/[0.02] p-2.5 shadow-[0_16px_42px_rgba(0,0,0,0.16)] md:p-3 ${className}`}>
       {children}
@@ -91,10 +141,11 @@ const DetailImage = ({
           src={src}
           controls={videoPresentation === 'default'}
           autoPlay={videoPresentation === 'ambient'}
-          muted={videoPresentation === 'ambient'}
+          muted
           loop={videoPresentation === 'ambient'}
           playsInline
           preload="metadata"
+          aria-label={alt}
           className={mediaClassName ?? 'aspect-video w-full object-cover'}
         />
       </div>
@@ -103,13 +154,14 @@ const DetailImage = ({
 
   return (
     <div className={wrapperClassName}>
-      <img
+      <OptimizedImage
         src={src}
         alt={alt}
+        width={1600}
+        height={1000}
         loading="lazy"
-        decoding="async"
+        sizes="(min-width: 1280px) 72rem, (min-width: 768px) 92vw, 100vw"
         className={mediaClassName ?? 'aspect-[16/10] w-full object-cover'}
-        referrerPolicy="no-referrer"
       />
     </div>
   );
@@ -139,7 +191,7 @@ const TextSection = ({
         <h2 className="font-sans text-[clamp(1.9rem,1.45rem+1.4vw,3.35rem)] font-semibold normal-case leading-[0.96] tracking-[-0.045em] text-white">
           {title}
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-white/74 sm:text-base md:text-[1.02rem]">
+        <p className="mt-4 text-[0.98rem] leading-[1.72] text-white/78 sm:text-base md:text-[1.04rem]">
           {body}
         </p>
       </div>
@@ -160,6 +212,7 @@ const GallerySection = ({
   videoPresentation = 'default',
   flushMedia = false,
   frameStyle = 'framed',
+  rounded = true,
 }: {
   id?: string;
   eyebrow: string;
@@ -173,6 +226,7 @@ const GallerySection = ({
   videoPresentation?: 'default' | 'ambient';
   flushMedia?: boolean;
   frameStyle?: 'framed' | 'bare';
+  rounded?: boolean;
 }) => {
   if (!images.length) {
     return null;
@@ -196,6 +250,7 @@ const GallerySection = ({
             <MediaFrame
               key={`${image}-${index}`}
               style={frameStyle}
+              rounded={rounded}
               className={[compact ? 'max-w-3xl' : '', frameClassName ?? ''].filter(Boolean).join(' ')}
             >
               <DetailImage
@@ -373,11 +428,14 @@ const SlotMachineGrid = ({
         return (
           <div key={i} className="aspect-square overflow-hidden bg-white/5">
             {src ? (
-              <img
+              <OptimizedImage
                 src={src}
                 alt=""
+                width={320}
+                height={320}
+                sizes="(min-width: 1280px) 13rem, (min-width: 768px) 18vw, 25vw"
                 className="h-full w-full object-cover"
-                referrerPolicy="no-referrer"
+                loading="lazy"
               />
             ) : (
               <div className="h-full w-full" />
@@ -450,7 +508,7 @@ const MetaBlock = ({
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-accent md:tracking-[0.24em]">
         {label}
       </p>
-      <div className="space-y-2 text-sm leading-relaxed text-white/74">{value}</div>
+      <div className="space-y-2 text-[0.98rem] leading-[1.68] text-white/78">{value}</div>
     </div>
   );
 };
@@ -458,7 +516,7 @@ const MetaBlock = ({
 export const ProjectDetail = () => {
   const { id } = useParams();
   const { projects, loading } = useData();
-  const project = projects.find((entry) => entry.id === id);
+  const project = findProjectByRouteParam(projects, id);
 
   useEffect(() => {
     window.requestAnimationFrame(() => {
@@ -468,21 +526,67 @@ export const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="px-6 pt-40 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
-        brewing...
-      </div>
+      <>
+        <Seo
+          title="Case Study — Maria Bordiuh"
+          description="A visual case study by Maria Bordiuh covering concept, process, art direction, and final outcomes."
+          type="article"
+        />
+        <div className="px-6 pt-40 text-center font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
+          brewing...
+        </div>
+      </>
     );
   }
 
   if (!project) {
-    return <div className="px-6 pt-40 text-center">Project not found.</div>;
+    return (
+      <>
+        <Seo
+          title="Case Study Not Found — Maria Bordiuh"
+          description="This case study is not available on Maria Bordiuh's portfolio."
+          robots="noindex, nofollow"
+        />
+        <div className="px-6 pt-40 text-center">Project not found.</div>
+      </>
+    );
   }
 
   const normalized = normalizeProject(project);
+  const projectSeoDescription = buildProjectSeoDescription(normalized);
+  const projectRouteSegment = getProjectRouteSegment(normalized, projects);
+  const projectCanonicalPath = `/work/${projectRouteSegment}`;
+  const projectSeoImage =
+    normalized.heroImage || normalized.thumbnail || '/media/home-hero-cat-working-fallback.jpg';
+  const projectStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: normalized.title,
+    description: projectSeoDescription,
+    url: `${SITE_URL}${projectCanonicalPath}`,
+    ...(toAbsoluteAssetUrl(projectSeoImage)
+      ? { image: toAbsoluteAssetUrl(projectSeoImage) }
+      : {}),
+    creator: {
+      '@type': 'Person',
+      name: 'Maria Bordiuh',
+      alternateName: 'Mariia Bordiuh',
+      url: SITE_URL,
+    },
+  };
 
   if (normalized.pillar !== 'Art Direction') {
     return (
       <PageTransition>
+        <Seo
+          title={`${normalized.title || 'Project'} — Maria Bordiuh`}
+          description={projectSeoDescription}
+          canonicalPath={projectCanonicalPath}
+          image={projectSeoImage}
+          imageAlt={normalized.title || 'Project preview'}
+          type="article"
+        />
+        <JsonLd id={`project-${normalized.id}-structured-data`} data={projectStructuredData} />
         <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-32 text-center">
           <p className="mb-4 text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
             Preview-only entry
@@ -490,7 +594,7 @@ export const ProjectDetail = () => {
           <h1 className="text-4xl font-black uppercase tracking-tight md:text-6xl">
             This piece opens from the work grid.
           </h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-white/65">
+          <p className="mt-6 max-w-xl text-[1.02rem] leading-[1.72] text-white/74">
             AI Generated, Illustration & Design, and Animation & Motion items live as modal previews on
             the archive page instead of full case-study routes.
           </p>
@@ -621,8 +725,6 @@ export const ProjectDetail = () => {
       : null,
   ].filter(Boolean) as Array<{ id: string; label: string; eyebrow: string; title: string; body: string }>;
 
-  const hasContextContent = sections.slice(0, 4).length > 0;
-
   const caseStudyLinks = [
     { label: 'Overview', href: '#overview' },
     ...sections.slice(0, 5).map((section) => ({ label: section.label, href: `#${section.id}` })),
@@ -638,11 +740,17 @@ export const ProjectDetail = () => {
 
   return (
     <PageTransition>
+      <Seo
+        title={`${normalized.title} — Creative Case Study | Maria Bordiuh`}
+        description={projectSeoDescription}
+        canonicalPath={projectCanonicalPath}
+        image={projectSeoImage}
+        imageAlt={normalized.title}
+        type="article"
+      />
+      <JsonLd id={`project-${normalized.id}-structured-data`} data={projectStructuredData} />
       <article className="relative overflow-x-hidden bg-brand-bg text-white">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_14%,rgba(255,158,187,0.08),transparent_18%),radial-gradient(circle_at_82%_24%,rgba(255,255,255,0.035),transparent_24%)]"
-        />
+        <div aria-hidden="true" className={PUBLIC_PAGE_BOTTOM_GLOW_CLASS} />
         <div className={`${PAGE_SHELL_CLASS} grid gap-8 md:grid-cols-[148px_minmax(0,1fr)] md:gap-12`}>
           <div className="hidden self-start pt-28 md:sticky md:top-28 md:block md:pt-0">
             <SideRail links={caseStudyLinks} />
@@ -670,12 +778,18 @@ export const ProjectDetail = () => {
                       <img
                         src={heroImage}
                         alt={normalized.title}
+                        width={1600}
+                        height={900}
+                        loading="eager"
+                        fetchPriority="high"
+                        sizes="(min-width: 1280px) 72rem, (min-width: 768px) 92vw, 100vw"
                         className="h-full w-full object-cover object-center"
                         style={{
                           transform: `scale(${heroScale})`,
                           transformOrigin: 'center center',
                           objectPosition: heroPosition,
                         }}
+                        decoding="async"
                         referrerPolicy="no-referrer"
                       />
                     </div>
@@ -693,18 +807,18 @@ export const ProjectDetail = () => {
                       {normalized.title}
                     </h1>
                     {normalized.description ? (
-                      <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/68 sm:text-lg md:mt-6 md:text-[1.18rem]">
+                      <p className="mt-5 max-w-3xl text-[1.02rem] leading-[1.74] text-white/74 sm:text-lg md:mt-6 md:text-[1.18rem]">
                         {normalized.description}
                       </p>
                     ) : null}
                   </div>
 
                   {hasMeta ? (
-                    <div className="grid grid-cols-1 gap-6 rounded-[2rem] border border-white/8 bg-white/[0.02] px-6 py-6 sm:grid-cols-2 md:px-7 md:py-7 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-6 rounded-[2rem] border border-white/8 bg-white/[0.02] px-6 py-6 sm:grid-cols-2 md:px-7 md:py-7 lg:grid-cols-3">
                       {metaEntries.map((entry) => (
                         <div
                           key={entry.label}
-                          className={entry.fullWidth ? 'sm:col-span-2 lg:col-span-2' : undefined}
+                          className={entry.fullWidth ? 'sm:col-span-2 lg:col-span-3' : undefined}
                         >
                           <MetaBlock label={entry.label} value={entry.value} />
                         </div>
@@ -751,11 +865,12 @@ export const ProjectDetail = () => {
                 title="Initial visual territory"
                 images={moodboardImages}
                 columns={1}
-                mediaClassName="aspect-square w-full object-cover"
-                frameClassName="md:max-w-[72rem]"
+              mediaClassName="aspect-square w-full object-contain bg-[#030103]"
+              frameClassName="mr-auto max-w-[min(100%,calc(100svh-15rem))]"
                 videoPresentation="ambient"
                 flushMedia
                 frameStyle="bare"
+                rounded={false}
               />
 
               <GallerySection

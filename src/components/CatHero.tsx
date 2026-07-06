@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import { PrefetchLink } from './PrefetchLink';
-import { NeatHeroGradient } from './NeatHeroGradient';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 
 const headlineLines = [
   'Art direction,',
@@ -197,21 +197,7 @@ export const CatHero = () => {
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#030103]">
-      <NeatHeroGradient />
-      <div
-        className="absolute inset-0 bg-[linear-gradient(112deg,rgba(3,1,3,0.86)_0%,rgba(3,1,3,0.54)_42%,rgba(3,1,3,0.72)_100%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-[radial-gradient(circle_at_68%_24%,rgba(255,158,187,0.16),transparent_24%),radial-gradient(circle_at_76%_74%,rgba(255,158,187,0.1),transparent_30%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,1,3,0.16)_0%,rgba(3,1,3,0.03)_36%,rgba(3,1,3,0.54)_100%)]"
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1380px] flex-col justify-end px-6 pb-10 pt-24 md:px-12 md:pb-16 md:pt-32">
+      <div className={`relative z-10 flex min-h-[100svh] flex-col justify-end pb-10 pt-24 md:pb-16 md:pt-32 ${PUBLIC_SHELL_CLASS}`}>
         <div className="max-w-[74rem]">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -254,7 +240,7 @@ export const CatHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: supportingDelay + 0.06, duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[38rem] text-[clamp(0.98rem,0.86rem+0.42vw,1.18rem)] leading-relaxed text-[rgba(237,226,212,0.76)]"
+            className="max-w-[38rem] text-[clamp(1.04rem,0.92rem+0.42vw,1.2rem)] leading-[1.72] text-[rgba(237,226,212,0.8)]"
           >
             Visual worlds for brands, campaigns, and moving image projects, shaped through art
             direction, AI workflows, and motion design that still feels authored.
@@ -269,6 +255,7 @@ export const CatHero = () => {
             <PrefetchLink
               to="/work"
               data-click-sound="true"
+              data-cta-variant="sunset"
               className="btn-gradient-shift px-7 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.22em] sm:py-4"
             >
               See selected work
@@ -277,6 +264,7 @@ export const CatHero = () => {
             <PrefetchLink
               to="/about"
               data-click-sound="true"
+              data-cta-variant="sherbet"
               className="btn-glass-shift px-7 py-3.5 font-mono text-[10px] font-black uppercase tracking-[0.22em] sm:py-4"
             >
               Why work with me
@@ -294,7 +282,7 @@ export const CatHero = () => {
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent/62">
                 Focus
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-[rgba(237,226,212,0.62)]">
+              <p className="mt-2 text-[0.98rem] leading-[1.7] text-[rgba(237,226,212,0.72)]">
                 {mobileSupportLine}
               </p>
             </div>
@@ -305,7 +293,7 @@ export const CatHero = () => {
                   <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-brand-accent/62">
                     {note.label}
                   </p>
-                  <p className="max-w-sm text-sm leading-relaxed text-[rgba(237,226,212,0.62)]">
+                  <p className="max-w-sm text-[0.98rem] leading-[1.7] text-[rgba(237,226,212,0.72)]">
                     {note.value}
                   </p>
                 </div>

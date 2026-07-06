@@ -1,0 +1,896 @@
+.ai-page {
+  --ai-bg: #2a2520;
+  --ai-fg: #fbfaf6;
+  --ai-shell: 86rem;
+  --ai-pad: clamp(1.1rem, 2.4vw, 2rem);
+  --ai-gap: clamp(1rem, 1.6vw, 1.4rem);
+  --ai-section: clamp(4rem, 8vw, 7rem);
+  --ai-border-soft: rgba(251, 250, 246, 0.12);
+  --ai-border-strong: rgba(251, 250, 246, 0.24);
+  --ai-fg-muted: rgba(251, 250, 246, 0.7);
+  --ai-fg-subtle: rgba(251, 250, 246, 0.48);
+  --ai-fg-faint: rgba(251, 250, 246, 0.34);
+  --ai-bg-lift: rgba(251, 250, 246, 0.03);
+  --ai-bg-strong: rgba(251, 250, 246, 0.06);
+  --ai-shadow: 0 22px 48px rgba(42, 37, 32, 0.34);
+  --ai-focus: rgba(251, 250, 246, 0.18);
+  background: var(--ai-bg);
+  color: var(--ai-fg);
+  font-family: "DM Sans", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  min-height: 100svh;
+  scroll-behavior: smooth;
+}
+
+.ai-page *,
+.ai-page *::before,
+.ai-page *::after {
+  box-sizing: border-box;
+}
+
+.ai-page h1,
+.ai-page h2,
+.ai-page h3,
+.ai-page h4,
+.ai-page h5,
+.ai-page h6 {
+  color: var(--ai-fg);
+  font-family: "Archivo Expanded", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.ai-page p,
+.ai-page dl,
+.ai-page dt,
+.ai-page dd,
+.ai-page ul {
+  margin: 0;
+}
+
+.ai-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ai-page button,
+.ai-page input,
+.ai-page textarea {
+  font: inherit;
+}
+
+.ai-page a:focus-visible,
+.ai-page button:focus-visible,
+.ai-page input:focus-visible,
+.ai-page textarea:focus-visible {
+  box-shadow: 0 0 0 5px var(--ai-focus);
+  outline: 2px solid var(--ai-fg);
+  outline-offset: 3px;
+}
+
+.ai-announcement,
+.ai-nav,
+.ai-hero,
+.ai-how,
+.ai-compare,
+.ai-roster,
+.ai-pricing,
+.ai-work,
+.ai-bottom-cta,
+.ai-book,
+.ai-footer {
+  margin-inline: auto;
+  padding-inline: var(--ai-pad);
+  width: min(100%, var(--ai-shell));
+}
+
+.ai-announcement {
+  border-bottom: 1px solid var(--ai-border-soft);
+}
+
+.ai-announcement__inner {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 2.9rem;
+  padding-block: 0.55rem;
+}
+
+.ai-announcement__copy,
+.ai-announcement__link,
+.ai-nav__brand,
+.ai-nav__links a,
+.ai-nav__menu,
+.ai-kicker,
+.ai-button,
+.ai-step__index,
+.ai-roster-card__eyebrow,
+.ai-form__label,
+.ai-footer__nav a {
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ai-announcement__copy,
+.ai-nav__links a,
+.ai-kicker,
+.ai-showcase__lede,
+.ai-output-card__meta,
+.ai-step__body,
+.ai-roster-card__subtitle,
+.ai-form__label,
+.ai-footer__nav a {
+  color: var(--ai-fg-muted);
+}
+
+.ai-announcement__link {
+  color: var(--ai-fg);
+  flex-shrink: 0;
+}
+
+.ai-announcement__actions {
+  align-items: center;
+  display: flex;
+  gap: 0.85rem;
+}
+
+.ai-announcement__dismiss {
+  background: transparent;
+  border: 0;
+  color: var(--ai-fg-subtle);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.ai-nav {
+  background: rgba(42, 37, 32, 0.96);
+  border-bottom: 1px solid var(--ai-border-soft);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.ai-nav__inner {
+  align-items: center;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: space-between;
+  min-height: 4.4rem;
+}
+
+.ai-nav__brand {
+  color: var(--ai-fg);
+  font-family: "Archivo Expanded", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  flex-shrink: 0;
+}
+
+.ai-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem 1.6rem;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.ai-nav__menu {
+  background: transparent;
+  border: 0;
+  color: var(--ai-fg);
+  display: none;
+  padding: 0;
+}
+
+.ai-page__main {
+  display: grid;
+  gap: var(--ai-section);
+  padding-block: clamp(2.5rem, 5vw, 4rem) var(--ai-section);
+}
+
+.ai-hero {
+  display: grid;
+  gap: clamp(1.8rem, 3vw, 2.8rem);
+}
+
+.ai-hero__intro {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 52rem;
+}
+
+.ai-hero__title {
+  font-size: clamp(2.9rem, 6vw, 6rem);
+  line-height: 0.92;
+  max-width: 11ch;
+}
+
+.ai-hero__body,
+.ai-pricing__panel-body,
+.ai-book__body,
+.ai-output-card__body,
+.ai-roster-card__action,
+.ai-showcase__summary,
+.ai-footer__line {
+  color: var(--ai-fg-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.ai-hero__body {
+  max-width: 36rem;
+}
+
+.ai-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.ai-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--ai-border-strong);
+  border-radius: 999px;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 3rem;
+  min-width: 7rem;
+  padding: 0.85rem 1.3rem;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+.ai-button:hover,
+.ai-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.ai-button--solid {
+  background: var(--ai-fg);
+  color: var(--ai-bg);
+}
+
+.ai-page a.ai-button--solid,
+.ai-page button.ai-button--solid {
+  color: var(--ai-bg);
+}
+
+.ai-button--solid:hover,
+.ai-button--solid:focus-visible {
+  background: rgba(251, 250, 246, 0.92);
+}
+
+.ai-button--ghost:hover,
+.ai-button--ghost:focus-visible {
+  border-color: var(--ai-fg);
+}
+
+.ai-showcase {
+  display: grid;
+  gap: var(--ai-gap);
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.1fr) minmax(0, 0.88fr);
+}
+
+.ai-showcase__column,
+.ai-showcase__focus,
+.ai-pricing__shell,
+.ai-work-card,
+.ai-roster-card,
+.ai-step,
+.ai-bottom-cta__inner,
+.ai-book,
+.ai-form,
+.ai-output-card {
+  background: var(--ai-bg-lift);
+  border: 1px solid var(--ai-border-soft);
+  box-shadow: var(--ai-shadow);
+}
+
+.ai-showcase__column,
+.ai-showcase__focus,
+.ai-pricing__shell,
+.ai-book,
+.ai-bottom-cta__inner {
+  padding: clamp(1rem, 1.8vw, 1.35rem);
+}
+
+.ai-showcase__column,
+.ai-showcase__focus {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-showcase__toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ai-showcase__control {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 8.25rem;
+}
+
+.ai-showcase__control-label {
+  color: var(--ai-fg-subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ai-showcase__select {
+  appearance: none;
+  background: rgba(251, 250, 246, 0.02);
+  border: 1px solid var(--ai-border-soft);
+  color: var(--ai-fg);
+  padding: 0.7rem 0.8rem;
+}
+
+.ai-showcase__heading {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ai-showcase__lede {
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.ai-product-picker {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.ai-product-picker__item {
+  background: transparent;
+  border: 1px solid var(--ai-border-soft);
+  color: var(--ai-fg);
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  text-align: left;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+
+.ai-product-picker__item:hover,
+.ai-product-picker__item:focus-visible,
+.ai-product-picker__item.is-active {
+  background: var(--ai-bg-strong);
+  border-color: var(--ai-border-strong);
+  transform: translateY(-1px);
+}
+
+.ai-product-picker__label,
+.ai-output-card__title,
+.ai-roster-card__title,
+.ai-step__title,
+.ai-pricing__panel-title,
+.ai-work-card__title {
+  font-family: "Archivo Expanded", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ai-product-picker__label,
+.ai-output-card__title,
+.ai-step__title,
+.ai-roster-card__title,
+.ai-pricing__panel-title,
+.ai-work-card__title {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.ai-product-picker__note,
+.ai-work-card__detail {
+  color: var(--ai-fg-subtle);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.ai-talent-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.ai-talent-switcher__button,
+.ai-pricing__tab,
+.ai-chip,
+.ai-roster-card__action {
+  background: transparent;
+  border: 1px solid var(--ai-border-soft);
+  color: var(--ai-fg-muted);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.ai-talent-switcher__button,
+.ai-pricing__tab {
+  min-height: 2.8rem;
+  padding: 0.75rem 1rem;
+}
+
+.ai-talent-switcher__button:hover,
+.ai-talent-switcher__button:focus-visible,
+.ai-talent-switcher__button.is-active,
+.ai-pricing__tab:hover,
+.ai-pricing__tab:focus-visible,
+.ai-pricing__tab.is-active,
+.ai-chip:hover,
+.ai-chip:focus-visible,
+.ai-chip.is-active,
+.ai-roster-card__action:hover,
+.ai-roster-card__action:focus-visible {
+  background: var(--ai-bg-strong);
+  border-color: var(--ai-border-strong);
+  color: var(--ai-fg);
+}
+
+.ai-showcase__portrait-card,
+.ai-output-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-showcase__portrait-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ai-showcase__lens-note,
+.ai-output-card__hint,
+.ai-pricing__from,
+.ai-work-card__link,
+.ai-roster__link,
+.ai-roster-card__detail-tag {
+  color: var(--ai-fg-subtle);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ai-showcase__next {
+  background: transparent;
+  border: 1px solid var(--ai-border-soft);
+  color: var(--ai-fg);
+  min-height: 2rem;
+  min-width: 2rem;
+}
+
+.ai-showcase__portrait-meta,
+.ai-output-card__copy {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ai-showcase__badge,
+.ai-roster-card__eyebrow {
+  color: var(--ai-fg-subtle);
+}
+
+.ai-showcase__name {
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  line-height: 1.08;
+  margin-top: 0.35rem;
+}
+
+.ai-how,
+.ai-compare,
+.ai-roster,
+.ai-pricing,
+.ai-work,
+.ai-bottom-cta,
+.ai-book {
+  display: grid;
+  gap: clamp(1.2rem, 2vw, 1.8rem);
+}
+
+.ai-section-heading {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 46rem;
+}
+
+.ai-section-title {
+  font-size: clamp(1.6rem, 3.2vw, 3rem);
+  line-height: 1.06;
+}
+
+.ai-steps {
+  display: grid;
+  gap: var(--ai-gap);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ai-step {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.1rem;
+}
+
+.ai-step__index {
+  color: var(--ai-fg-subtle);
+}
+
+.ai-compare__table-wrap {
+  overflow-x: auto;
+}
+
+.ai-compare__table {
+  border-collapse: collapse;
+  min-width: 42rem;
+  width: 100%;
+}
+
+.ai-compare__table th,
+.ai-compare__table td {
+  border-bottom: 1px solid var(--ai-border-soft);
+  padding: 1rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ai-compare__table thead th {
+  color: var(--ai-fg-subtle);
+  font-family: "Archivo Expanded", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.84rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ai-compare__table tbody th {
+  color: var(--ai-fg);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.ai-compare__table tbody td {
+  color: var(--ai-fg-muted);
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.ai-roster__grid,
+.ai-work__grid {
+  display: grid;
+  gap: var(--ai-gap);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ai-roster-card,
+.ai-work-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.ai-roster-card.is-active {
+  border-color: var(--ai-border-strong);
+}
+
+.ai-roster-card__header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ai-roster-card__detail-tag {
+  margin-bottom: 0.2rem;
+}
+
+.ai-roster-card__specs {
+  border-top: 1px solid var(--ai-border-soft);
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+}
+
+.ai-roster-card__spec {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.ai-roster-card__spec dt {
+  color: var(--ai-fg-subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ai-roster-card__spec dd {
+  color: var(--ai-fg-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ai-roster-card__action {
+  min-height: 2.9rem;
+  padding: 0.8rem 1rem;
+  text-align: center;
+}
+
+.ai-roster__link {
+  justify-self: start;
+}
+
+.ai-pricing__shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-pricing__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.ai-pricing__panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-pricing__panel-copy {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 40rem;
+}
+
+.ai-pricing__list {
+  color: var(--ai-fg-muted);
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  max-width: 40rem;
+  padding: 0;
+}
+
+.ai-pricing__list li {
+  border-top: 1px solid var(--ai-border-soft);
+  padding-top: 0.65rem;
+}
+
+.ai-work-card__copy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ai-bottom-cta__inner {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.ai-book {
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+}
+
+.ai-book__header {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 28rem;
+}
+
+.ai-form {
+  gap: 1rem;
+}
+
+.ai-form__row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-form__field,
+.ai-form__group {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ai-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.ai-chip {
+  min-height: 2.7rem;
+  padding: 0.72rem 0.95rem;
+}
+
+.ai-form__input,
+.ai-form__textarea {
+  appearance: none;
+  background: rgba(251, 250, 246, 0.02);
+  border: 1px solid var(--ai-border-soft);
+  border-radius: 0;
+  color: var(--ai-fg);
+  line-height: 1.5;
+  padding: 0.95rem 1rem;
+  width: 100%;
+}
+
+.ai-form__textarea {
+  min-height: 10rem;
+  resize: vertical;
+}
+
+.ai-form__input::placeholder,
+.ai-form__textarea::placeholder {
+  color: var(--ai-fg-faint);
+}
+
+.ai-form__input:focus-visible,
+.ai-form__textarea:focus-visible {
+  background: rgba(251, 250, 246, 0.035);
+  border-color: var(--ai-border-strong);
+  outline: none;
+}
+
+.ai-form__submit {
+  justify-self: start;
+}
+
+.ai-footer {
+  border-top: 1px solid var(--ai-border-soft);
+  display: grid;
+  gap: 1rem;
+  padding-block: 1.4rem 2rem;
+}
+
+.ai-footer__cta {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ai-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.4rem;
+}
+
+.ai-footer__nav a:hover,
+.ai-footer__nav a:focus-visible,
+.ai-announcement__link:hover,
+.ai-announcement__link:focus-visible,
+.ai-roster__link:hover,
+.ai-roster__link:focus-visible,
+.ai-nav__links a:hover,
+.ai-nav__links a:focus-visible {
+  color: var(--ai-fg);
+}
+
+.ai-placeholder {
+  background: rgba(251, 250, 246, 0.05);
+  border: 1px solid rgba(251, 250, 246, 0.24);
+  min-width: 0;
+  width: 100%;
+}
+
+.ai-placeholder--product-tile {
+  aspect-ratio: 4 / 3;
+}
+
+.ai-placeholder--hero-portrait {
+  aspect-ratio: 4 / 5;
+}
+
+.ai-placeholder--hero-output {
+  aspect-ratio: 16 / 11;
+}
+
+.ai-placeholder--roster,
+.ai-placeholder--work {
+  aspect-ratio: 4 / 5;
+}
+
+@media (max-width: 1120px) {
+  .ai-showcase,
+  .ai-book {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-showcase__column {
+    order: 2;
+  }
+
+  .ai-showcase__focus {
+    order: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .ai-steps,
+  .ai-roster__grid,
+  .ai-work__grid,
+  .ai-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-nav__inner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 0.9rem;
+  }
+
+  .ai-nav__menu {
+    display: inline-flex;
+  }
+
+  .ai-nav__links {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .ai-announcement__inner,
+  .ai-pricing__tabs,
+  .ai-chip-group,
+  .ai-footer__nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ai-announcement__inner {
+    justify-content: flex-start;
+  }
+
+  .ai-announcement__actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-page {
+    --ai-pad: 1rem;
+    --ai-gap: 0.9rem;
+    --ai-section: clamp(3.3rem, 12vw, 4.8rem);
+  }
+
+  .ai-announcement__copy,
+  .ai-announcement__link,
+  .ai-nav__brand,
+  .ai-nav__links a,
+  .ai-kicker,
+  .ai-button,
+  .ai-step__index,
+  .ai-roster-card__eyebrow,
+  .ai-form__label,
+  .ai-footer__nav a {
+    letter-spacing: 0.13em;
+  }
+
+  .ai-compare__table {
+    min-width: 34rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-page {
+    scroll-behavior: auto;
+  }
+
+  .ai-page *,
+  .ai-page *::before,
+  .ai-page *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

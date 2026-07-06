@@ -33,7 +33,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <AlertCircle className="mx-auto mb-6 text-brand-accent" size={48} />
             <h2 className="text-2xl font-bold mb-4 tracking-tighter">Application Error</h2>
             <p className="text-brand-muted mb-8 leading-relaxed">
-              We've encountered an unexpected issue. Our team has been notified. 
+              We&apos;ve encountered an unexpected issue. Our team has been notified.
               Please try reloading the page.
             </p>
             <button 

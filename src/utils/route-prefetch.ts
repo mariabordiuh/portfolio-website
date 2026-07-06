@@ -3,6 +3,7 @@ const pageLoaders = {
   work: () => import('../pages/Work'),
   projectDetail: () => import('../pages/ProjectDetail'),
   lab: () => import('../pages/Lab'),
+  ai: () => import('../pages/AiLanding'),
   about: () => import('../pages/About'),
   impressum: () => import('../pages/Impressum'),
   datenschutz: () => import('../pages/Datenschutz'),
@@ -21,6 +22,7 @@ export const loadHomeRoute = pageLoaders.home;
 export const loadWorkRoute = pageLoaders.work;
 export const loadProjectDetailRoute = pageLoaders.projectDetail;
 export const loadLabRoute = pageLoaders.lab;
+export const loadAiRoute = pageLoaders.ai;
 export const loadAboutRoute = pageLoaders.about;
 export const loadImpressumRoute = pageLoaders.impressum;
 export const loadDatenschutzRoute = pageLoaders.datenschutz;
@@ -67,6 +69,11 @@ export const prefetchRoute = (to: string) => {
   if (to === '/lab') {
     prefetchOnce('labData', loadLabDataShell);
     prefetchOnce('lab', loadLabRoute);
+    return;
+  }
+
+  if (to === '/ai') {
+    prefetchOnce('ai', loadAiRoute);
     return;
   }
 

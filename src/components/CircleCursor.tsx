@@ -19,8 +19,6 @@ type CursorPresentation = {
 };
 
 const CURSOR_ATTR_SELECTOR = '[data-cursor]';
-const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, textarea, select, label';
-
 const getCursorTheme = (pathname: string): CursorTheme =>
   pathname === '/' ? 'brand' : 'light';
 

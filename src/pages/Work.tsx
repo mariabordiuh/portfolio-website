@@ -1,7 +1,8 @@
-import { startTransition, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Filter } from 'lucide-react';
+import { Seo } from '../components/Seo';
 import { useData } from '../context/DataContext';
 import { PageTransition } from '../components/PageTransition';
 import { ScrollScrambleText } from '../components/ScrollScrambleText';
@@ -10,6 +11,7 @@ import { PortfolioPreviewModal } from '../components/PortfolioPreviewModal';
 import { ProjectSkeleton } from '../components/Skeleton';
 import { UpdateMarquee } from '../components/UpdateMarquee';
 import { type ProjectPillar } from '../types';
+import { PUBLIC_SHELL_CLASS } from '../lib/layout';
 import {
   type PortfolioItem,
   WORK_PILLARS,
@@ -33,8 +35,6 @@ const DEFAULT_SUBCATEGORY: Record<ProjectPillar, string | null> = {
 };
 
 const WORK_TITLE_LINES = ['Archive', 'of Works.'];
-
-const SITE_SHELL_CLASS = 'mx-auto max-w-7xl px-4 sm:px-6 md:px-8 xl:px-12';
 
 const normalizeSubcategory = (value?: string | null) =>
   (value ?? '')
@@ -90,6 +90,94 @@ const sortPriorityItems = (items: PortfolioItem[]) =>
 
     return 0;
   });
+
+type FilterVariant = {
+  active: string;
+  inactive: string;
+};
+
+const WORK_FILTER_VARIANTS: FilterVariant[] = [
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.7)] bg-[linear-gradient(118deg,rgba(255,201,220,0.95)_0%,rgba(247,153,124,0.93)_12%,rgba(231,71,26,0.97)_25%,rgba(246,138,109,0.94)_42%,rgba(255,188,211,0.93)_70%,rgba(255,210,222,0.92)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.16)] bg-[linear-gradient(118deg,rgba(255,200,219,0.07)_0%,rgba(247,153,124,0.055)_12%,rgba(231,71,26,0.08)_24%,rgba(246,138,109,0.055)_42%,rgba(255,188,211,0.05)_70%,rgba(255,210,222,0.045)_100%)] text-white/68 hover:border-[rgba(var(--cta-rgb),0.28)] hover:bg-[linear-gradient(118deg,rgba(255,200,219,0.1)_0%,rgba(247,153,124,0.08)_12%,rgba(231,71,26,0.11)_24%,rgba(246,138,109,0.08)_42%,rgba(255,188,211,0.075)_70%,rgba(255,210,222,0.06)_100%)] hover:text-white',
+  },
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.7)] bg-[linear-gradient(142deg,rgba(255,216,229,0.94)_0%,rgba(255,206,224,0.92)_38%,rgba(250,190,171,0.9)_58%,rgba(237,110,64,0.95)_76%,rgba(231,71,26,0.98)_89%,rgba(247,159,141,0.92)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.16)] bg-[linear-gradient(142deg,rgba(255,216,229,0.06)_0%,rgba(255,206,224,0.045)_38%,rgba(250,190,171,0.045)_58%,rgba(237,110,64,0.065)_76%,rgba(231,71,26,0.08)_89%,rgba(247,159,141,0.045)_100%)] text-white/68 hover:border-[rgba(var(--cta-rgb),0.28)] hover:bg-[linear-gradient(142deg,rgba(255,216,229,0.095)_0%,rgba(255,206,224,0.07)_38%,rgba(250,190,171,0.07)_58%,rgba(237,110,64,0.09)_76%,rgba(231,71,26,0.11)_89%,rgba(247,159,141,0.07)_100%)] hover:text-white',
+  },
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.7)] bg-[linear-gradient(106deg,rgba(255,194,216,0.94)_0%,rgba(255,183,209,0.92)_18%,rgba(249,171,146,0.92)_31%,rgba(231,71,26,0.98)_46%,rgba(248,154,129,0.95)_59%,rgba(255,196,217,0.92)_74%,rgba(255,203,222,0.92)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.16)] bg-[linear-gradient(106deg,rgba(255,194,216,0.06)_0%,rgba(255,183,209,0.045)_18%,rgba(249,171,146,0.045)_31%,rgba(231,71,26,0.08)_46%,rgba(248,154,129,0.055)_59%,rgba(255,196,217,0.045)_74%,rgba(255,203,222,0.045)_100%)] text-white/68 hover:border-[rgba(var(--cta-rgb),0.28)] hover:bg-[linear-gradient(106deg,rgba(255,194,216,0.095)_0%,rgba(255,183,209,0.07)_18%,rgba(249,171,146,0.07)_31%,rgba(231,71,26,0.11)_46%,rgba(248,154,129,0.08)_59%,rgba(255,196,217,0.07)_74%,rgba(255,203,222,0.06)_100%)] hover:text-white',
+  },
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.7)] bg-[linear-gradient(150deg,rgba(255,219,230,0.96)_0%,rgba(255,210,226,0.94)_15%,rgba(250,185,164,0.93)_32%,rgba(226,72,32,0.98)_50%,rgba(248,170,149,0.95)_68%,rgba(255,207,223,0.94)_82%,rgba(255,210,224,0.94)_100%)] text-brand-bg shadow-[0_14px_30px_rgba(var(--cta-rgb),0.16)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.16)] bg-[linear-gradient(150deg,rgba(255,219,230,0.06)_0%,rgba(255,210,226,0.045)_15%,rgba(250,185,164,0.05)_32%,rgba(226,72,32,0.08)_50%,rgba(248,170,149,0.055)_68%,rgba(255,207,223,0.045)_82%,rgba(255,210,224,0.045)_100%)] text-white/68 hover:border-[rgba(var(--cta-rgb),0.28)] hover:bg-[linear-gradient(150deg,rgba(255,219,230,0.095)_0%,rgba(255,210,226,0.07)_15%,rgba(250,185,164,0.075)_32%,rgba(226,72,32,0.11)_50%,rgba(248,170,149,0.08)_68%,rgba(255,207,223,0.07)_82%,rgba(255,210,224,0.06)_100%)] hover:text-white',
+  },
+];
+
+const WORK_SUB_FILTER_VARIANTS: FilterVariant[] = [
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.52)] bg-[linear-gradient(118deg,rgba(255,200,219,0.28)_0%,rgba(247,153,124,0.16)_12%,rgba(231,71,26,0.26)_24%,rgba(246,138,109,0.17)_42%,rgba(255,188,211,0.16)_70%,rgba(255,210,222,0.13)_100%)] text-[rgba(250,238,229,0.94)] shadow-[0_0_18px_rgba(var(--cta-rgb),0.14)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.1)] bg-[linear-gradient(118deg,rgba(255,200,219,0.045)_0%,rgba(247,153,124,0.03)_12%,rgba(231,71,26,0.05)_24%,rgba(246,138,109,0.03)_42%,rgba(255,188,211,0.03)_70%,rgba(255,210,222,0.03)_100%)] text-white/56 hover:border-[rgba(var(--cta-rgb),0.18)] hover:bg-[linear-gradient(118deg,rgba(255,200,219,0.08)_0%,rgba(247,153,124,0.055)_12%,rgba(231,71,26,0.075)_24%,rgba(246,138,109,0.055)_42%,rgba(255,188,211,0.05)_70%,rgba(255,210,222,0.04)_100%)] hover:text-white/86',
+  },
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.52)] bg-[linear-gradient(140deg,rgba(255,216,229,0.24)_0%,rgba(255,206,224,0.16)_38%,rgba(250,190,171,0.14)_58%,rgba(237,110,64,0.22)_76%,rgba(231,71,26,0.28)_89%,rgba(247,159,141,0.15)_100%)] text-[rgba(250,238,229,0.94)] shadow-[0_0_18px_rgba(var(--cta-rgb),0.14)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.1)] bg-[linear-gradient(140deg,rgba(255,216,229,0.04)_0%,rgba(255,206,224,0.03)_38%,rgba(250,190,171,0.028)_58%,rgba(237,110,64,0.04)_76%,rgba(231,71,26,0.05)_89%,rgba(247,159,141,0.03)_100%)] text-white/56 hover:border-[rgba(var(--cta-rgb),0.18)] hover:bg-[linear-gradient(140deg,rgba(255,216,229,0.075)_0%,rgba(255,206,224,0.05)_38%,rgba(250,190,171,0.048)_58%,rgba(237,110,64,0.065)_76%,rgba(231,71,26,0.075)_89%,rgba(247,159,141,0.05)_100%)] hover:text-white/86',
+  },
+  {
+    active: 'border-[rgba(var(--cta-rgb),0.52)] bg-[linear-gradient(106deg,rgba(255,194,216,0.24)_0%,rgba(255,183,209,0.16)_18%,rgba(249,171,146,0.14)_31%,rgba(231,71,26,0.28)_46%,rgba(248,154,129,0.16)_59%,rgba(255,196,217,0.14)_74%,rgba(255,203,222,0.14)_100%)] text-[rgba(250,238,229,0.94)] shadow-[0_0_18px_rgba(var(--cta-rgb),0.14)]',
+    inactive:
+      'border-[rgba(var(--cta-rgb),0.1)] bg-[linear-gradient(106deg,rgba(255,194,216,0.04)_0%,rgba(255,183,209,0.03)_18%,rgba(249,171,146,0.028)_31%,rgba(231,71,26,0.05)_46%,rgba(248,154,129,0.03)_59%,rgba(255,196,217,0.028)_74%,rgba(255,203,222,0.03)_100%)] text-white/56 hover:border-[rgba(var(--cta-rgb),0.18)] hover:bg-[linear-gradient(106deg,rgba(255,194,216,0.075)_0%,rgba(255,183,209,0.05)_18%,rgba(249,171,146,0.048)_31%,rgba(231,71,26,0.075)_46%,rgba(248,154,129,0.05)_59%,rgba(255,196,217,0.048)_74%,rgba(255,203,222,0.04)_100%)] hover:text-white/86',
+  },
+];
+
+const getFilterVariantClasses = (label: string, active: boolean, variants: FilterVariant[]) => {
+  const variant = variants[hashString(label) % variants.length];
+  return active ? variant.active : variant.inactive;
+};
+
+const getWorkSeoCopy = ({
+  activePillar,
+  activeSubcategory,
+  activeTool,
+}: {
+  activePillar: ProjectPillar | 'All';
+  activeSubcategory: string | null;
+  activeTool: string | null;
+}) => {
+  if (activeTool) {
+    return {
+      title: `${activeTool} Work — Maria Bordiuh`,
+      description: `Selected portfolio work by Maria Bordiuh featuring ${activeTool}, spanning art direction, motion, illustration, and AI-forward visual output.`,
+    };
+  }
+
+  if (activePillar !== 'All' && activeSubcategory) {
+    return {
+      title: `${activePillar} / ${activeSubcategory} — Maria Bordiuh`,
+      description: `${activeSubcategory} work from Maria Bordiuh's ${activePillar.toLowerCase()} archive, including selected visual systems, motion, and campaign-driven output.`,
+    };
+  }
+
+  if (activePillar !== 'All') {
+    return {
+      title: `${activePillar} Work — Maria Bordiuh`,
+      description: `Selected ${activePillar.toLowerCase()} work by Maria Bordiuh, from campaign concepts and motion pieces to AI visuals and image systems.`,
+    };
+  }
+
+  return {
+    title: 'Work — Maria Bordiuh',
+    description:
+      'Selected work by Maria Bordiuh across art direction, motion, illustration, AI visuals, and campaign image systems.',
+  };
+};
 
 export const Work = () => {
   const { projects, videos, galleryImages, loading } = useData();
@@ -192,6 +280,7 @@ export const Work = () => {
   const isAnimationAndMotionView =
     pillarParam === 'Animation & Motion' || activePillar === 'Animation & Motion';
   const gridMaxColumns = isAnimationAndMotionView ? 2 : 4;
+  const seoCopy = getWorkSeoCopy({ activePillar, activeSubcategory, activeTool });
 
   const handlePillarChange = (pillar: ProjectPillar | 'All') => {
     const nextParams = new URLSearchParams(searchParams);
@@ -204,22 +293,29 @@ export const Work = () => {
       setActiveSubcategory(DEFAULT_SUBCATEGORY[pillar]);
     }
 
-    startTransition(() => {
-      setActivePillar(pillar);
-      setSearchParams(nextParams);
-    });
+    setActivePillar(pillar);
+    setSearchParams(nextParams, { replace: true, preventScrollReset: true });
   };
 
   const handleClearTool = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('tool');
     setActiveTool(null);
-    setSearchParams(nextParams);
+    setSearchParams(nextParams, { replace: true, preventScrollReset: true });
   };
 
   return (
     <PageTransition>
-      <div className={`${SITE_SHELL_CLASS} pb-24 pt-28 sm:pb-28 sm:pt-32 md:pb-32 md:pt-36`}>
+      <div className={`${PUBLIC_SHELL_CLASS} pb-24 pt-28 sm:pb-28 sm:pt-32 md:pb-32 md:pt-36`}>
+        <Seo
+          title={seoCopy.title}
+          description={seoCopy.description}
+          canonicalPath="/work"
+          image="/media/home-hero-cat-working-fallback.jpg"
+          imageWidth={1920}
+          imageHeight={960}
+          imageAlt="Selected work by Maria Bordiuh"
+        />
         <header className="mb-10 sm:mb-12">
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
             <div className="max-w-[54rem]">
@@ -232,7 +328,7 @@ export const Work = () => {
                 accentLastCharacter
                 className="mt-3 max-w-[13ch] font-display text-[clamp(1.9rem,3.8vw,3.7rem)] font-normal uppercase leading-[1.08] tracking-[0.02em]"
               />
-              <p className="mt-4 max-w-[42rem] text-[0.98rem] leading-relaxed text-white/62 md:text-[1.04rem]">
+              <p className="mt-4 max-w-[42rem] text-[1.02rem] leading-[1.72] text-white/72 md:text-[1.08rem]">
                 Campaign worlds, motion pieces, AI image systems, and experiments arranged to
                 be scanned fast.
               </p>
@@ -245,7 +341,7 @@ export const Work = () => {
                     initial={{ opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
-                    className="flex items-center gap-3 rounded-full border border-brand-accent/30 bg-brand-accent/10 py-2 pl-4 pr-2"
+                    className="flex items-center gap-3 rounded-full border border-[rgba(var(--cta-rgb),0.36)] bg-[linear-gradient(124deg,rgba(255,188,211,0.12)_0%,rgba(255,188,211,0.08)_24%,rgba(231,71,26,0.14)_56%,rgba(231,71,26,0.22)_100%)] py-2 pl-4 pr-2 shadow-[0_12px_28px_rgba(var(--cta-rgb),0.12)]"
                   >
                     <Filter size={12} className="text-brand-accent" />
                     <span className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-accent">
@@ -255,7 +351,7 @@ export const Work = () => {
                       type="button"
                       onClick={handleClearTool}
                       data-click-sound="true"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-accent/15 text-brand-accent transition-colors hover:bg-brand-accent hover:text-brand-bg"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(var(--cta-rgb),0.38)] bg-[linear-gradient(120deg,rgba(255,188,211,0.92)_0%,rgba(255,172,200,0.88)_18%,rgba(231,71,26,0.96)_19%,rgba(231,71,26,1)_72%,rgba(255,176,201,0.86)_100%)] text-brand-bg transition-all hover:scale-[1.04] hover:shadow-[0_12px_24px_rgba(var(--cta-rgb),0.18)]"
                     >
                       <svg width="8" height="8" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -268,16 +364,12 @@ export const Work = () => {
           </div>
 
           <div className="mt-8 flex flex-col gap-5 border-t border-white/6 pt-5 md:mt-9 md:gap-4">
-            <div className="flex w-full flex-wrap items-center gap-2 md:flex-nowrap md:gap-3 md:overflow-x-auto md:pb-0 md:[&::-webkit-scrollbar]:hidden md:[-ms-overflow-style:none] md:[scrollbar-width:none]">
+            <div className="flex w-full flex-wrap items-center gap-2 md:-mx-1 md:-my-1 md:flex-nowrap md:gap-3 md:overflow-x-auto md:px-1 md:py-1 md:[&::-webkit-scrollbar]:hidden md:[-ms-overflow-style:none] md:[scrollbar-width:none]">
               <button
                 type="button"
                 onClick={() => handlePillarChange('All')}
                 data-click-sound="true"
-                className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-5 sm:tracking-[0.2em] ${
-                  activePillar === 'All'
-                    ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
-                    : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
-                }`}
+                className={`flex-shrink-0 rounded-full border px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-all sm:px-5 ${getFilterVariantClasses('All', activePillar === 'All', WORK_FILTER_VARIANTS)}`}
               >
                 All
               </button>
@@ -291,11 +383,7 @@ export const Work = () => {
                     type="button"
                     onClick={() => handlePillarChange(isActive ? 'All' : pillar)}
                     data-click-sound="true"
-                    className={`flex-shrink-0 rounded-full border px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-5 sm:tracking-[0.2em] ${
-                      isActive
-                        ? 'border-brand-accent bg-brand-accent/10 text-brand-accent'
-                        : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/90'
-                    }`}
+                    className={`flex-shrink-0 rounded-full border px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] transition-all sm:px-5 ${getFilterVariantClasses(pillar, isActive, WORK_FILTER_VARIANTS)}`}
                   >
                     {pillar}
                   </button>
@@ -310,9 +398,9 @@ export const Work = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                className="overflow-hidden pt-1"
               >
-                  <div className="mt-4 flex w-full items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:pb-3">
+                  <div className="mt-3 flex w-full items-center gap-2 overflow-x-auto px-1 py-1 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:pb-3">
                   <div className="h-4 w-px bg-white/20 ml-2 mr-1 flex-shrink-0" />
                   {SUB_CATEGORIES[activePillar].map((sub) => {
                     const isActive = activeSubcategory === sub;
@@ -322,11 +410,7 @@ export const Work = () => {
                         type="button"
                         onClick={() => setActiveSubcategory(sub)}
                         data-click-sound="true"
-                        className={`flex-shrink-0 rounded-full border px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.16em] backdrop-blur-sm transition-all hover:-translate-y-0.5 sm:px-4 sm:tracking-[0.2em] ${
-                          isActive
-                            ? 'border-brand-accent/50 bg-brand-accent/20 text-brand-accent shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]'
-                            : 'border-white/5 bg-white/[0.02] text-white/40 hover:border-white/10 hover:text-white/80'
-                        }`}
+                        className={`flex-shrink-0 rounded-full border px-3.5 py-2 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] transition-all sm:px-4 ${getFilterVariantClasses(`${activePillar}-${sub}`, isActive, WORK_SUB_FILTER_VARIANTS)}`}
                       >
                         {sub}
                       </button>
@@ -347,7 +431,7 @@ export const Work = () => {
         ) : filteredItems.length === 0 ? (
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] py-32 text-center">
             <p className="text-[10px] uppercase tracking-[0.3em] text-brand-muted font-mono">
-              Full hard drive, empty page. Maria's mid-espresso and uploading. Come back soon :)
+              Full hard drive, empty page. Maria&apos;s mid-espresso and uploading. Come back soon :)
             </p>
           </div>
         ) : (

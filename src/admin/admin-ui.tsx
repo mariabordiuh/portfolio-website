@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactNode, useDeferredValue, useMemo, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useDeferredValue, useId, useMemo, useState } from 'react';
 import {
   AlertCircle,
   Check,
@@ -685,13 +685,17 @@ function StatusPill({
 function FieldLabel({
   label,
   required = false,
+  htmlFor,
 }: {
   label: string;
   required?: boolean;
+  htmlFor?: string;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs uppercase tracking-[0.25em] text-brand-muted">{label}</span>
+      <label htmlFor={htmlFor} className="text-xs uppercase tracking-[0.25em] text-brand-muted">
+        {label}
+      </label>
       {required ? (
         <span className="rounded-full bg-brand-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-accent">
           Essential
@@ -706,6 +710,7 @@ export function TextField({
   value,
   onChange,
   hint,
+  error,
   placeholder,
   required = false,
   className,
@@ -717,6 +722,7 @@ export function TextField({
   value: string;
   onChange: (value: string) => void;
   hint?: string;
+  error?: string;
   placeholder?: string;
   required?: boolean;
   className?: string;
@@ -724,6 +730,7 @@ export function TextField({
   quickPicks?: string[];
   suggestionMode?: 'single' | 'list';
 }) {
+  const inputId = useId();
   const normalizedSuggestions = useMemo(
     () =>
       (suggestions ?? [])
@@ -768,9 +775,10 @@ export function TextField({
   }, [existingEntries, normalizedSuggestions, query, quickPicks, suggestionMode]);
 
   return (
-    <label className={cn('space-y-2', className)}>
-      <FieldLabel label={label} required={required} />
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} required={required} htmlFor={inputId} />
       <input
+        id={inputId}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -782,8 +790,9 @@ export function TextField({
           onChange(suggestionMode === 'list' ? replaceListSuggestion(value, nextValue) : nextValue)
         }
       />
+      {error ? <span className="text-xs text-red-300">{error}</span> : null}
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
-    </label>
+    </div>
   );
 }
 
@@ -810,6 +819,7 @@ export function LongField({
   quickPicks?: string[];
   suggestionMode?: 'single' | 'list';
 }) {
+  const textareaId = useId();
   const normalizedSuggestions = useMemo(
     () =>
       (suggestions ?? [])
@@ -854,9 +864,10 @@ export function LongField({
   }, [existingEntries, normalizedSuggestions, query, quickPicks, suggestionMode]);
 
   return (
-    <label className={cn('space-y-2', className)}>
-      <FieldLabel label={label} required={required} />
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} required={required} htmlFor={textareaId} />
       <textarea
+        id={textareaId}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -869,7 +880,7 @@ export function LongField({
         }
       />
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
-    </label>
+    </div>
   );
 }
 
@@ -888,10 +899,12 @@ export function SelectField({
   hint?: string;
   className?: string;
 }) {
+  const selectId = useId();
   return (
-    <label className={cn('space-y-2', className)}>
-      <FieldLabel label={label} />
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} htmlFor={selectId} />
       <select
+        id={selectId}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-brand-accent"
@@ -903,7 +916,7 @@ export function SelectField({
         ))}
       </select>
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
-    </label>
+    </div>
   );
 }
 
@@ -932,6 +945,8 @@ export function StorageImageField({
   previewScale?: number;
   previewPosition?: string;
 }) {
+  const urlInputId = useId();
+  const fileInputId = useId();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -947,7 +962,7 @@ export function StorageImageField({
     try {
       setUploadError(null);
       const storageRef = ref(storage, `${pathPrefix}/${Date.now()}-${file.name}`);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, file, { cacheControl: 'public, max-age=31536000, immutable' });
       const url = await getDownloadURL(storageRef);
       onChange(url);
     } catch (error) {
@@ -962,10 +977,11 @@ export function StorageImageField({
   };
 
   return (
-    <label className={cn('space-y-2', className)}>
-      <FieldLabel label={label} required={required} />
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} required={required} htmlFor={urlInputId} />
       <div className="flex flex-wrap gap-3">
         <input
+          id={urlInputId}
           value={value}
           onChange={(event) => {
             setUploadError(null);
@@ -974,11 +990,11 @@ export function StorageImageField({
           className="min-w-[240px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
           placeholder="Paste a URL or upload a file"
         />
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm">
+        <label htmlFor={fileInputId} className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm">
           {uploading ? <LoaderCircle size={16} className="animate-spin" /> : <ImagePlus size={16} />}
           Upload
-          <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
         </label>
+        <input id={fileInputId} type="file" accept="image/*" onChange={handleFile} className="hidden" />
       </div>
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
       {value ? (
@@ -1010,7 +1026,7 @@ export function StorageImageField({
         </div>
       ) : null}
       {uploadError ? <p className="text-xs text-red-300">{uploadError}</p> : null}
-    </label>
+    </div>
   );
 }
 
@@ -1039,6 +1055,8 @@ export function StorageVideoField({
   hint?: string;
   className?: string;
 }) {
+  const videoInputId = useId();
+  const fileInputId = useId();
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -1078,10 +1096,11 @@ export function StorageVideoField({
   };
 
   return (
-    <label className={cn('space-y-2', className)}>
-      <FieldLabel label={label} required />
+    <div className={cn('space-y-2', className)}>
+      <FieldLabel label={label} required htmlFor={videoInputId} />
       <div className="flex flex-wrap gap-3">
         <input
+          id={videoInputId}
           value={value}
           onChange={(event) => {
             setUploadError(null);
@@ -1090,11 +1109,11 @@ export function StorageVideoField({
           className="min-w-[240px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-brand-muted focus:border-brand-accent"
           placeholder="Paste a video URL or upload a file"
         />
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm">
+        <label htmlFor={fileInputId} className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm">
           {uploading ? <LoaderCircle size={16} className="animate-spin" /> : <Film size={16} />}
           {uploading ? 'Optimizing...' : 'Upload video'}
-          <input type="file" accept="video/*" onChange={handleFile} className="hidden" />
         </label>
+        <input id={fileInputId} type="file" accept="video/*" onChange={handleFile} className="hidden" />
       </div>
       {hint ? <span className="text-xs text-brand-muted">{hint}</span> : null}
       {status ? <p className="text-xs text-brand-muted">{status}</p> : null}
@@ -1104,8 +1123,10 @@ export function StorageVideoField({
             src={value}
             poster={thumbnailValue || undefined}
             controls
+            muted
             playsInline
             preload="metadata"
+            aria-label={`${label} preview`}
             className="aspect-video w-full max-w-2xl object-contain"
           />
         </div>
@@ -1121,7 +1142,7 @@ export function StorageVideoField({
         </a>
       ) : null}
       {uploadError ? <p className="text-xs text-red-300">{uploadError}</p> : null}
-    </label>
+    </div>
   );
 }
 

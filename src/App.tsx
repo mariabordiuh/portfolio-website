@@ -11,13 +11,18 @@ import { AnalyticsConsentBanner } from './components/AnalyticsConsentBanner';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Seo } from './components/Seo';
-import { initGoogleAnalytics, isGoogleAnalyticsEnabled, trackPageView } from './lib/google-analytics';
+import {
+  initializeAnalyticsFromStoredConsent,
+  isGoogleAnalyticsEnabled,
+  trackPageView,
+} from './lib/google-analytics';
 import { UnderConstruction } from './pages/UnderConstruction';
 import { clearPublicDataCaches } from './context/PublicDataProvider';
 import {
   loadAboutRoute,
   loadAdminDataShell,
   loadAdminRoute,
+  loadAiRoute,
   loadDatenschutzRoute,
   loadHomeRoute,
   loadImpressumRoute,
@@ -36,6 +41,7 @@ const ProjectDetail = lazy(() =>
   loadProjectDetailRoute().then((module) => ({ default: module.ProjectDetail })),
 );
 const Lab = lazy(() => loadLabRoute().then((module) => ({ default: module.Lab })));
+const AiLanding = lazy(() => loadAiRoute().then((module) => ({ default: module.AiLanding })));
 const About = lazy(() => loadAboutRoute().then((module) => ({ default: module.About })));
 const Impressum = lazy(() =>
   loadImpressumRoute().then((module) => ({ default: module.Impressum })),
@@ -106,6 +112,7 @@ const AnimatedRoutes = () => {
           <Route path="/admin" element={<SuspenseRoute><Admin /></SuspenseRoute>} />
         </Route>
 
+        <Route path="/ai" element={<SuspenseRoute><AiLanding /></SuspenseRoute>} />
         <Route path="/about" element={<SuspenseRoute><About /></SuspenseRoute>} />
         <Route path="/impressum" element={<SuspenseRoute><Impressum /></SuspenseRoute>} />
         <Route path="/datenschutz" element={<SuspenseRoute><Datenschutz /></SuspenseRoute>} />
@@ -119,11 +126,13 @@ const AnimatedRoutes = () => {
 const AppShell = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const isAiRoute = location.pathname === '/ai';
   const previousIsAdminRef = useRef(isAdmin);
   const isWorkDetailRoute = location.pathname.startsWith('/work/');
   const isKnownPublicPath =
     location.pathname === '/' ||
     location.pathname === '/work' ||
+    location.pathname === '/ai' ||
     location.pathname === '/lab' ||
     location.pathname === '/about' ||
     location.pathname === '/impressum' ||
@@ -132,14 +141,16 @@ const AppShell = () => {
       isWorkDetailRoute;
   const isNotFoundRoute = !isAdmin && !isKnownPublicPath;
   const enableSmoothScroll =
-    !isAdmin && (location.pathname === '/' || isWorkDetailRoute || isNotFoundRoute);
+    !isAdmin && !isAiRoute && (location.pathname === '/' || isWorkDetailRoute || isNotFoundRoute);
   const enableCustomCursor =
     !isAdmin &&
+    !isAiRoute &&
     (location.pathname === '/' ||
       location.pathname === '/work' ||
       isWorkDetailRoute ||
       isNotFoundRoute);
   const enableClickSound = enableCustomCursor;
+  const shouldUseShellSeo = isAdmin || isNotFoundRoute;
 
   useLayoutEffect(() => {
     if (previousIsAdminRef.current && !isAdmin) {
@@ -154,7 +165,7 @@ const AppShell = () => {
       return;
     }
 
-    initGoogleAnalytics();
+    void initializeAnalyticsFromStoredConsent();
   }, [isAdmin]);
 
   useEffect(() => {
@@ -187,7 +198,9 @@ const AppShell = () => {
 
   const appFrame = (
     <div
-      className={`selection:bg-brand-accent selection:text-brand-bg bg-brand-bg text-white ${
+      className={`${isAiRoute ? '' : 'selection:bg-brand-accent selection:text-brand-bg'} bg-brand-bg ${
+        isAdmin ? 'text-white' : isAiRoute ? '' : 'public-cream-whites text-brand-ink'
+      } ${
         isNotFoundRoute ? 'h-[100svh] overflow-hidden flex flex-col' : 'min-h-screen flex flex-col'
       }`}
     >
@@ -197,7 +210,7 @@ const AppShell = () => {
       >
         Skip to content
       </a>
-      {!isAdmin && !isNotFoundRoute ? <Nav /> : null}
+      {!isAdmin && !isNotFoundRoute && !isAiRoute ? <Nav /> : null}
       <main
         id="main-content"
         className={`flex-grow relative z-10 ${isNotFoundRoute ? 'min-h-0 h-full overflow-hidden' : 'min-h-[100svh]'}`}
@@ -207,14 +220,14 @@ const AppShell = () => {
       </main>
       {!isAdmin ? <ScrollToTop /> : null}
       {!isAdmin && !isNotFoundRoute ? <AnalyticsConsentBanner /> : null}
-      {!isAdmin && !isNotFoundRoute ? <Footer /> : null}
+      {!isAdmin && !isNotFoundRoute && !isAiRoute ? <Footer /> : null}
     </div>
   );
 
   if (isAdmin) {
     return (
       <>
-        <Seo />
+        {shouldUseShellSeo ? <Seo /> : null}
         {appFrame}
       </>
     );
@@ -230,7 +243,7 @@ const AppShell = () => {
 
   return (
     <>
-      <Seo />
+      {shouldUseShellSeo ? <Seo /> : null}
       {enableSmoothScroll ? (
         <SmoothScrollProvider>{interactiveFrame}</SmoothScrollProvider>
       ) : (

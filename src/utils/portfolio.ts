@@ -2,7 +2,6 @@ import {
   type AIGeneratedSubtype,
   type GalleryImage,
   type LegacyProjectPillar,
-  type MotionMediaType,
   type Project,
   type ProjectContentType,
   type ProjectPillar,
@@ -23,6 +22,7 @@ export type PortfolioItem = {
   source: PortfolioItemSource;
   sourceId: string;
   routeId?: string;
+  routeSlug?: string;
   title: string;
   pillar: ProjectPillar;
   contentType: ProjectContentType;
@@ -52,6 +52,19 @@ export type PortfolioItem = {
 };
 
 const trim = (value?: string | null) => value?.trim() ?? '';
+
+export const normalizeSlugSegment = (value?: string | null) =>
+  trim(value)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+
+export const isValidProjectSlug = (value?: string | null) =>
+  /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(trim(value));
 
 const isBrokenDownloadUrl = (url?: string | null) => {
   const value = trim(url);
@@ -136,6 +149,56 @@ export const uniqueStrings = (values?: Array<string | null | undefined>) => {
   }
 
   return result;
+};
+
+export const deriveProjectSlug = (project: Pick<Project, 'title' | 'id' | 'slug'>) =>
+  normalizeSlugSegment(project.slug) || normalizeSlugSegment(project.title) || project.id;
+
+export const getProjectRouteSegment = (
+  project: Pick<Project, 'id' | 'title' | 'slug'>,
+  allProjects?: Array<Pick<Project, 'id' | 'title' | 'slug'>>,
+) => {
+  const baseSlug = deriveProjectSlug(project);
+
+  if (!allProjects?.length) {
+    return baseSlug;
+  }
+
+  const normalizedId = trim(project.id);
+  const collisionCount = allProjects.reduce((count, entry) => {
+    const entrySlug = deriveProjectSlug(entry);
+    return entrySlug === baseSlug ? count + 1 : count;
+  }, 0);
+
+  if (collisionCount <= 1) {
+    return baseSlug;
+  }
+
+  const idSuffix = normalizeSlugSegment(normalizedId).slice(0, 8) || normalizedId;
+  return `${baseSlug}-${idSuffix}`;
+};
+
+export const findProjectByRouteParam = (
+  projects: Project[],
+  routeParam?: string,
+) => {
+  const routeValue = trim(routeParam);
+
+  if (!routeValue) {
+    return undefined;
+  }
+
+  const byId = projects.find((entry) => entry.id === routeValue);
+  if (byId) {
+    return byId;
+  }
+
+  const byPreferredSlug = projects.find((entry) => getProjectRouteSegment(entry, projects) === routeValue);
+  if (byPreferredSlug) {
+    return byPreferredSlug;
+  }
+
+  return projects.find((entry) => deriveProjectSlug(entry) === routeValue);
 };
 
 export const isVideoFileUrl = (url?: string | null) => {
@@ -336,6 +399,7 @@ export const normalizeProject = (project: Partial<Project> & { id: string }): Pr
 
   return {
     id: project.id,
+    slug: trim(project.slug),
     title: trim(project.title),
     pillar,
     status: project.status ?? 'published',
@@ -420,6 +484,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
   const contentType = normalized.contentType ?? inferProjectContentType(normalized);
   const isArtDirection = normalized.pillar === 'Art Direction';
   const isAIItem = contentType === 'ai-image' || contentType === 'ai-video';
+  const routeSlug = isArtDirection ? deriveProjectSlug(normalized) : undefined;
   const images =
     contentType === 'illustration'
       ? uniqueStrings(normalized.images.length ? normalized.images : [normalized.thumbnail])
@@ -434,6 +499,7 @@ export const toPortfolioItem = (project: Project): PortfolioItem => {
     source: 'project',
     sourceId: normalized.id,
     routeId: isArtDirection ? normalized.id : undefined,
+    routeSlug,
     title: normalized.title,
     pillar: normalized.pillar,
     contentType,

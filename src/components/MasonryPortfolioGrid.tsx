@@ -1,7 +1,12 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Play } from 'lucide-react';
-import { type PortfolioItem, getPortfolioImageSrc, isArtDirectionItem } from '../utils/portfolio';
+import {
+  type PortfolioItem,
+  getPortfolioImageSrc,
+  getProjectRouteSegment,
+  isArtDirectionItem,
+} from '../utils/portfolio';
 import { OptimizedImage } from './OptimizedImage';
 
 const STILL_RATIO = { width: 4, height: 5 };
@@ -46,14 +51,6 @@ const getDisplayRatio = (item: PortfolioItem) => {
 
 const getCardSubline = (item: PortfolioItem) =>
   item.client || item.year || item.subCategory || '';
-
-const getHoverLabel = (item: PortfolioItem) => {
-  if (item.contentType === 'art-direction') {
-    return 'Open case';
-  }
-
-  return isVideoItem(item) ? 'Play preview' : 'Open preview';
-};
 
 const estimateCardHeight = (ratio: { width: number; height: number }) => {
   const visualHeight = ratio.height / ratio.width;
@@ -111,7 +108,13 @@ const MasonryCard = memo(({
   const Wrapper = isArt ? Link : 'button';
   const cursorMode = isVideo ? 'play' : 'card';
   const extraProps = isArt
-    ? { to: `/work/${item.routeId}` }
+    ? {
+        to: `/work/${getProjectRouteSegment({
+          id: item.sourceId,
+          slug: item.routeSlug,
+          title: item.title,
+        })}`,
+      }
     : { type: 'button' as const, onClick: () => onPreview(item) };
 
   useEffect(() => {
@@ -225,7 +228,7 @@ const MasonryCard = memo(({
                 {item.title}
               </p>
               {getCardSubline(item) ? (
-                <p className="mt-2 truncate text-sm text-white/46">
+                <p className="mt-2 truncate text-[0.95rem] leading-[1.55] text-white/58">
                   {getCardSubline(item)}
                 </p>
               ) : null}
@@ -255,11 +258,6 @@ export const MasonryPortfolioGrid = ({
   );
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
 
-  const ratioSourceKey = useMemo(
-    () => items.map((item) => `${item.id}:${getPortfolioImageSrc(item)}`).join('|'),
-    [items],
-  );
-
   const useBalancedGrid = items.length <= Math.max(columnCount * 2, 6);
   const isForcedTwoColumnGrid = maxColumns === 2;
   const gridClassName =
@@ -274,6 +272,26 @@ export const MasonryPortfolioGrid = ({
     maxColumns === 2
       ? '(min-width: 1280px) 46vw, (min-width: 768px) 48vw, 100vw'
       : '(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 768px) 48vw, 100vw';
+  const columns = useMemo(() => {
+    const nextColumns = Array.from({ length: columnCount }, () => ({
+      height: 0,
+      items: [] as Array<{ item: PortfolioItem; index: number }>,
+    }));
+
+    for (const [index, item] of items.entries()) {
+      const ratio = getDisplayRatio(item);
+      const shortestColumn = nextColumns.reduce(
+        (smallest, column, currentIndex) =>
+          column.height < nextColumns[smallest].height ? currentIndex : smallest,
+        0,
+      );
+
+      nextColumns[shortestColumn].items.push({ item, index });
+      nextColumns[shortestColumn].height += estimateCardHeight(ratio);
+    }
+
+    return nextColumns.map((column) => column.items);
+  }, [columnCount, items]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -291,7 +309,7 @@ export const MasonryPortfolioGrid = ({
         Object.entries(current).filter(([key]) => activeImageKeys.has(key)),
       ),
     );
-  }, [ratioSourceKey]);
+  }, [items]);
 
   const handleImageLoad = useCallback((imageKey: string) => {
     setLoadedImages((current) =>
@@ -329,27 +347,6 @@ export const MasonryPortfolioGrid = ({
       </div>
     );
   }
-
-  const columns = useMemo(() => {
-    const nextColumns = Array.from({ length: columnCount }, () => ({
-      height: 0,
-      items: [] as Array<{ item: PortfolioItem; index: number }>,
-    }));
-
-    for (const [index, item] of items.entries()) {
-      const ratio = getDisplayRatio(item);
-      const shortestColumn = nextColumns.reduce(
-        (smallest, column, currentIndex) =>
-          column.height < nextColumns[smallest].height ? currentIndex : smallest,
-        0,
-      );
-
-      nextColumns[shortestColumn].items.push({ item, index });
-      nextColumns[shortestColumn].height += estimateCardHeight(ratio);
-    }
-
-    return nextColumns.map((column) => column.items);
-  }, [columnCount, items]);
 
   if (useBalancedGrid) {
     return (

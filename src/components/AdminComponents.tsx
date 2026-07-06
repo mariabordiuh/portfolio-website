@@ -63,7 +63,7 @@ export const UploadBox = ({
   onUpload,
   progress,
   status,
-  state,
+  state: _state,
   stateSetter,
   accept = 'image/*',
   mediaType = 'image',
@@ -190,7 +190,7 @@ export const ImagePhaseManager = ({
   onUpload,
   progress,
   status,
-  state,
+  state: _state,
   stateSetter,
   onRemove,
   hideHeading = false,
@@ -298,6 +298,8 @@ export const TeamManager = ({
   members: TeamMember[];
   onChange: (next: TeamMember[]) => void;
 }) => {
+  const teamMemberNameId = useId();
+  const teamMemberRoleId = useId();
   const [draft, setDraft] = useState<TeamMember>({ name: '', role: '' });
 
   const addMember = () => {
@@ -318,8 +320,9 @@ export const TeamManager = ({
     <div className="space-y-6">
       <div className="flex items-end gap-4">
         <div className="flex-1 space-y-2">
-          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Team member</label>
+          <label htmlFor={teamMemberNameId} className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Team member</label>
           <input
+            id={teamMemberNameId}
             type="text"
             value={draft.name}
             onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
@@ -328,8 +331,9 @@ export const TeamManager = ({
           />
         </div>
         <div className="flex-1 space-y-2">
-          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Role</label>
+          <label htmlFor={teamMemberRoleId} className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Role</label>
           <input
+            id={teamMemberRoleId}
             type="text"
             value={draft.role}
             onChange={e => setDraft(prev => ({ ...prev, role: e.target.value }))}

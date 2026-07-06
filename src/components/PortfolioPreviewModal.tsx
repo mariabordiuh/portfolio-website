@@ -2,6 +2,8 @@ import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
+import { trapFocusWithin } from '../lib/focus-trap';
 import { cn } from '../lib/utils';
 import {
   type PortfolioItem,
@@ -11,13 +13,14 @@ import {
 } from '../utils/portfolio';
 
 const ModalImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
-  <img
+  <OptimizedImage
     src={src}
     alt={alt}
+    width={1600}
+    height={1200}
     loading="lazy"
-    decoding="async"
+    sizes="(min-width: 1024px) 920px, 100vw"
     className={cn('block max-w-full', className)}
-    referrerPolicy="no-referrer"
   />
 );
 
@@ -57,6 +60,7 @@ export const PortfolioPreviewModal = ({
   const descriptionId = useId();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const isAIItem = item.contentType === 'ai-image' || item.contentType === 'ai-video';
   const previewLabel = getPreviewLabel(item);
 
@@ -68,15 +72,18 @@ export const PortfolioPreviewModal = ({
     closeButtonRef.current?.focus();
     scrollAreaRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
+        return;
       }
+
+      trapFocusWithin(event, dialogRef.current);
     };
 
-    window.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
@@ -114,9 +121,11 @@ export const PortfolioPreviewModal = ({
           <video
             src={mediaUrl}
             controls
+            muted
             playsInline
             preload="metadata"
             poster={item.thumbnail || undefined}
+            aria-label={`${item.title} video preview`}
             className="h-full w-full object-contain"
           />
         </div>
@@ -187,6 +196,7 @@ export const PortfolioPreviewModal = ({
       role="presentation"
     >
       <motion.div
+        ref={dialogRef}
         initial={{ opacity: 0, y: 32, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -223,7 +233,7 @@ export const PortfolioPreviewModal = ({
               {item.description ? (
                 <p
                   id={descriptionId}
-                  className="mt-3 max-w-3xl text-sm leading-relaxed text-white/66 md:text-base"
+                  className="mt-3 max-w-3xl text-[0.98rem] leading-[1.68] text-white/74 md:text-[1.02rem]"
                 >
                   {item.description}
                 </p>
@@ -244,7 +254,7 @@ export const PortfolioPreviewModal = ({
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/20 hover:text-white sm:h-12 sm:w-12"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:border-white/20 hover:text-white focus-visible:border-brand-accent sm:h-12 sm:w-12"
               aria-label="Close preview"
             >
               <X size={18} />
@@ -258,7 +268,7 @@ export const PortfolioPreviewModal = ({
             {!isAIItem && (item.categories.length || item.credits?.length) ? (
               <div className="grid gap-6 border-t border-white/5 pt-6 md:grid-cols-2">
                 <div>
-                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/58">
                     Categories
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -272,23 +282,23 @@ export const PortfolioPreviewModal = ({
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-white/40">No categories added.</span>
+                      <span className="text-[0.96rem] text-white/48">No categories added.</span>
                     )}
                   </div>
                 </div>
                 <div>
-                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/58">
                     Credits
                   </p>
                   <div className="space-y-2">
                     {item.credits?.length ? (
                       item.credits.map((credit) => (
-                        <p key={credit} className="text-sm text-white/65">
+                        <p key={credit} className="text-[0.96rem] leading-[1.6] text-white/72">
                           {credit}
                         </p>
                       ))
                     ) : (
-                      <span className="text-sm text-white/40">No credits added.</span>
+                      <span className="text-[0.96rem] text-white/48">No credits added.</span>
                     )}
                   </div>
                 </div>

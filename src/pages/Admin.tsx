@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  X, Trash2, Edit3, LogOut, Info, Rocket,
-  Check, CheckCircle2, Image as ImageIcon, Star,
+  X, Trash2, LogOut, Info, Rocket,
+  Check, CheckCircle2, Image as ImageIcon,
   Compass, Zap, Cpu, Code, ArrowRight, AlertTriangle
 } from 'lucide-react';
 import { 
@@ -99,38 +99,6 @@ const hasText = (value?: string | null) => Boolean(value?.trim());
 const toValidationMessage = (errors: string[]) =>
   errors.length === 1 ? errors[0] : `Missing: ${errors.join(', ')}.`;
 
-const createEmptyProject = (pillar: ProjectPillar = 'Art Direction'): Partial<Project> => ({
-  title: '',
-  pillar,
-  contentType: pillar === 'Art Direction' ? 'art-direction' : inferProjectContentType({ pillar }),
-  aiSubtype: pillar === 'AI Generated' ? 'ai-image' : undefined,
-  motionType: pillar === 'Animation & Motion' ? 'embed' : undefined,
-  category: '',
-  categories: [],
-  description: '',
-  thumbnail: '',
-  heroImage: '',
-  images: [],
-  mediaUrl: '',
-  embedUrl: '',
-  tools: [],
-  year: '',
-  client: '',
-  role: '',
-  credits: [],
-  creativeTension: '',
-  globalContext: '',
-  approach: '',
-  moodboardImages: [],
-  sketchImages: [],
-  explorationType: 'masonry',
-  slotMachineGridSize: 4,
-  slotMachineFps: 12,
-  explorationImages: [],
-  outcomeImages: [],
-  outcomeCopy: '',
-});
-
 const applyProjectPillar = (draft: Partial<Project>, pillar: ProjectPillar): Partial<Project> => ({
   ...draft,
   pillar,
@@ -148,15 +116,6 @@ export const Admin = () => {
     videos: videos.filter(v => v.featured).length,
     gallery: galleryImages.filter(g => g.featured).length,
   }), [projects, videos, galleryImages]);
-  const topWorkItems = useMemo(
-    () => [
-      ...projects.map((item) => ({ collectionName: 'projects' as const, id: item.id, rank: item.workPriorityRank })),
-      ...videos.map((item) => ({ collectionName: 'videos' as const, id: item.id, rank: item.workPriorityRank })),
-      ...galleryImages.map((item) => ({ collectionName: 'gallery' as const, id: item.id, rank: item.workPriorityRank })),
-    ].filter((item) => typeof item.rank === 'number' && item.rank >= 1 && item.rank <= 6),
-    [projects, videos, galleryImages],
-  );
-
   const [activeTab, setActiveTab] = useState<'projects' | 'videos' | 'lab' | 'gallery' | 'hero' | 'storage'>('projects');
   
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
@@ -186,16 +145,12 @@ export const Admin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: string }>({});
-  const [storageConnected, setStorageConnected] = useState<'testing' | 'ok' | 'blocked'>('testing');
+  const [, setStorageConnected] = useState<'testing' | 'ok' | 'blocked'>('testing');
   const [loginError, setLoginError] = useState<string | null>(null);
   const hasActiveUploads = Object.keys(uploadProgress).length > 0;
 
   const showAdminNotice = (notice: AdminNotice) => {
     setAdminNotice(notice);
-  };
-
-  const triggerAdminNotice = (message: string, tone: AdminNotice['tone']) => {
-    showAdminNotice({ tone, message });
   };
 
   const reportFirestoreError = (error: unknown, operationType: OperationType, path: string) => {
@@ -210,18 +165,23 @@ export const Admin = () => {
   };
 
   useEffect(() => {
+    if (!user || !isUserAdmin) {
+      setStorageConnected('testing');
+      return;
+    }
+
     const testStorage = async () => {
       try {
         await fetch(`https://firebasestorage.googleapis.com/v0/b/${storage.app.options.storageBucket}/o`, { method: 'GET', mode: 'no-cors' });
         setStorageConnected('ok');
-      } catch (e) {
+      } catch (_e) {
         setStorageConnected('blocked');
       }
     };
     testStorage();
     const interval = setInterval(testStorage, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isUserAdmin, user]);
 
   useEffect(() => {
     setHomeHeroDraft(homeHero);
@@ -270,7 +230,8 @@ export const Admin = () => {
     setUploadProgress(prev => ({ ...prev, [uploadId]: 1 }));
     setUploadStatus(prev => ({ ...prev, [uploadId]: 'Verifying Sync...' }));
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
+      const runUpload = async () => {
       const storagePath = `${activeTab}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
       const storageRef = ref(storage, storagePath);
 
@@ -333,6 +294,9 @@ export const Admin = () => {
           resolve(downloadURL);
         }
       );
+      };
+
+      void runUpload();
     });
   };
 
@@ -359,67 +323,6 @@ export const Admin = () => {
       }
 
       setLoginError(toReadableGoogleSignInError(error));
-    }
-  };
-
-  const toggleProjectFeatured = async (project: Project) => {
-    try {
-      const docRef = doc(db, 'projects', project.id);
-      await updateDoc(docRef, { featured: !project.featured, updatedAt: serverTimestamp() });
-      triggerAdminNotice(`Project ${project.featured ? 'removed from' : 'added to'} Homepage`, 'success');
-    } catch (error) {
-      console.error(error);
-      triggerAdminNotice(`Failed to toggle feature status for ${project.title}`, 'error');
-    }
-  };
-
-  const toggleVideoFeatured = async (video: Video) => {
-    try {
-      const docRef = doc(db, 'videos', video.id);
-      await updateDoc(docRef, { featured: !video.featured, updatedAt: serverTimestamp() });
-      triggerAdminNotice(`Video ${video.featured ? 'removed from' : 'added to'} Homepage`, 'success');
-    } catch (error) {
-      console.error(error);
-      triggerAdminNotice(`Failed to toggle feature status for ${video.title}`, 'error');
-    }
-  };
-
-  const toggleGalleryFeatured = async (img: GalleryImage) => {
-    try {
-      const docRef = doc(db, 'gallery', img.id);
-      await updateDoc(docRef, { featured: !img.featured, updatedAt: serverTimestamp() });
-      triggerAdminNotice(`Gallery image ${img.featured ? 'removed from' : 'added to'} Homepage`, 'success');
-    } catch (error) {
-      console.error(error);
-      triggerAdminNotice(`Failed to toggle gallery image feature status`, 'error');
-    }
-  };
-
-  const toggleWorkPriority = async (
-    collectionName: 'projects' | 'videos' | 'gallery',
-    item: Project | Video | GalleryImage,
-  ) => {
-    try {
-      const docRef = doc(db, collectionName, item.id);
-      if (item.workPriorityRank) {
-        await updateDoc(docRef, { workPriorityRank: null, updatedAt: serverTimestamp() });
-        triggerAdminNotice('Removed from Work top 6.', 'success');
-        return;
-      }
-
-      const usedRanks = new Set(topWorkItems.map((entry) => entry.rank));
-      const nextRank = [1, 2, 3, 4, 5, 6].find((rank) => !usedRanks.has(rank));
-
-      if (!nextRank) {
-        triggerAdminNotice('Top 6 is full. Remove one first.', 'error');
-        return;
-      }
-
-      await updateDoc(docRef, { workPriorityRank: nextRank, updatedAt: serverTimestamp() });
-      triggerAdminNotice(`Added to Work top ${nextRank}.`, 'success');
-    } catch (error) {
-      console.error(error);
-      triggerAdminNotice('Failed to update Work top 6.', 'error');
     }
   };
 
@@ -735,10 +638,6 @@ export const Admin = () => {
     }
   };
 
-  const requestDeleteFromFirestore = (collectionName: string, id: string, label: string) => {
-    setDeleteTarget({ collectionName, id, label });
-  };
-
   const confirmDeleteFromFirestore = async () => {
     if (!deleteTarget) return;
 
@@ -910,7 +809,7 @@ export const Admin = () => {
                 <div className="grid gap-10 px-10 py-10 xl:grid-cols-[minmax(0,1.1fr)_22rem]">
                   <div className="space-y-10">
                     <div className="space-y-4">
-                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Hero mode</label>
+                      <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Hero mode</p>
                       <div className="grid gap-4 sm:grid-cols-2">
                         {[
                           ['image', 'Image Hero'],
@@ -932,7 +831,7 @@ export const Admin = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Orientation</label>
+                      <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Orientation</p>
                       <button
                         type="button"
                         onClick={() => setHomeHeroDraft({ ...homeHeroDraft, flipHorizontal: !homeHeroDraft.flipHorizontal })}
@@ -948,7 +847,7 @@ export const Admin = () => {
                     {homeHeroDraft.mode === 'image' ? (
                       <div className="grid gap-8 lg:grid-cols-2">
                         <div className="p-8 glass rounded-[2.5rem] border border-brand-accent/10 space-y-6">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop image</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop image</p>
                           <UploadBox
                             field="desktopImage"
                             value={homeHeroDraft.desktopImage}
@@ -963,7 +862,7 @@ export const Admin = () => {
                         </div>
 
                         <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile image</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile image</p>
                           <UploadBox
                             field="mobileImage"
                             value={homeHeroDraft.mobileImage}
@@ -980,7 +879,7 @@ export const Admin = () => {
                     ) : (
                       <div className="grid gap-8 xl:grid-cols-2">
                         <div className="p-8 glass rounded-[2.5rem] border border-brand-accent/10 space-y-6">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop video</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Desktop video</p>
                           <UploadBox
                             field="desktopVideo"
                             value={homeHeroDraft.desktopVideo}
@@ -996,7 +895,7 @@ export const Admin = () => {
                         </div>
 
                         <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile video</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Mobile video</p>
                           <UploadBox
                             field="mobileVideo"
                             value={homeHeroDraft.mobileVideo}
@@ -1012,7 +911,7 @@ export const Admin = () => {
                         </div>
 
                         <div className="p-8 glass rounded-[2.5rem] border border-white/5 space-y-6 xl:col-span-2">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster image fallback</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster image fallback</p>
                           <UploadBox
                             field="posterImage"
                             value={homeHeroDraft.posterImage}
@@ -1026,7 +925,7 @@ export const Admin = () => {
                           />
 
                           <div className="pt-2 border-t border-white/5 space-y-4">
-                            <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster Orientation</label>
+                            <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Poster Orientation</p>
                             <button
                               type="button"
                               onClick={() => setHomeHeroDraft({ ...homeHeroDraft, flipPosterHorizontal: !homeHeroDraft.flipPosterHorizontal })}
@@ -1197,7 +1096,7 @@ export const Admin = () => {
                             <div className="space-y-10">
                               <InputGroup label="Title" description="The name shown on the work grid." value={editingProject.title || ''} onChange={v => setEditingProject({ ...editingProject, title: v })} />
                               <div className="space-y-4">
-                                <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Pillar</label>
+                                <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Pillar</p>
                                 <div className="grid grid-cols-2 gap-4">
                                   {WORK_PILLARS.map((pillar) => (
                                     <button
@@ -1217,7 +1116,7 @@ export const Admin = () => {
 
                               {currentProjectPillar === 'AI Generated' ? (
                                 <div className="space-y-4">
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">AI subtype</label>
+                                  <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">AI subtype</p>
                                   <div className="grid grid-cols-2 gap-4">
                                     {[
                                       ['ai-image', 'AI Image'],
@@ -1241,7 +1140,7 @@ export const Admin = () => {
 
                               {currentProjectPillar === 'Animation & Motion' ? (
                                 <div className="space-y-4">
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Motion format</label>
+                                  <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Motion format</p>
                                   <div className="grid grid-cols-3 gap-4">
                                     {[
                                       ['embed', 'Embed'],
@@ -1320,7 +1219,7 @@ export const Admin = () => {
                               {currentProjectPillar === 'Art Direction' ? (
                                 <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                   <div className="grain-overlay" />
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Hero image</label>
+                                  <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Hero image</p>
                                   <UploadBox
                                     field="heroImage"
                                     value={editingProject.heroImage || editingProject.thumbnail}
@@ -1439,7 +1338,7 @@ export const Admin = () => {
                                 onRemove={index => setEditingProject({ ...editingProject, sketchImages: editingProject.sketchImages?.filter((_, currentIndex) => currentIndex !== index) })}
                               />
                               <div className="space-y-6">
-                                <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Exploration display mode</label>
+                                <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Exploration display mode</p>
                                 <div className="grid grid-cols-2 gap-4">
                                   {(['masonry', 'slot-machine'] as const).map(mode => (
                                     <button
@@ -1458,7 +1357,7 @@ export const Admin = () => {
                                 {(editingProject.explorationType || 'masonry') === 'slot-machine' ? (
                                   <div className="grid gap-8 md:grid-cols-2 p-8 glass rounded-[2rem] border border-brand-accent/10">
                                     <div className="space-y-4">
-                                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Grid size</label>
+                                      <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">Grid size</p>
                                       <div className="grid grid-cols-2 gap-3">
                                         {[3, 4].map(size => (
                                           <button
@@ -1476,7 +1375,7 @@ export const Admin = () => {
                                       </div>
                                     </div>
                                     <div className="space-y-4">
-                                      <label className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">FPS</label>
+                                      <p className="text-[10px] uppercase tracking-widest text-brand-muted block font-black">FPS</p>
                                       <input
                                         type="number"
                                         value={editingProject.slotMachineFps ?? 12}
@@ -1522,7 +1421,7 @@ export const Admin = () => {
                               {(editingProject.aiSubtype || 'ai-image') === 'ai-image' ? (
                                 <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                   <div className="grain-overlay" />
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Image asset</label>
+                                  <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Image asset</p>
                                   <UploadBox
                                     field="thumbnail"
                                     value={editingProject.thumbnail}
@@ -1537,7 +1436,7 @@ export const Admin = () => {
                               ) : (
                                 <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                   <div className="grain-overlay" />
-                                  <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Video file</label>
+                                  <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Video file</p>
                                   <UploadBox
                                     field="mediaUrl"
                                     value={editingProject.mediaUrl || editingProject.videoUrl}
@@ -1576,7 +1475,7 @@ export const Admin = () => {
                                   <InputGroup label="YouTube / Vimeo URL" value={editingProject.embedUrl || ''} onChange={v => setEditingProject({ ...editingProject, embedUrl: v })} />
                                   <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                     <div className="grain-overlay" />
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</p>
                                     <UploadBox
                                       field="thumbnail"
                                       value={editingProject.thumbnail}
@@ -1595,7 +1494,7 @@ export const Admin = () => {
                                 <div className="grid gap-10 lg:grid-cols-2">
                                   <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                     <div className="grain-overlay" />
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">GIF file</label>
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">GIF file</p>
                                     <UploadBox
                                       field="mediaUrl"
                                       value={editingProject.mediaUrl || editingProject.videoUrl}
@@ -1610,7 +1509,7 @@ export const Admin = () => {
                                   </div>
                                   <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                     <div className="grain-overlay" />
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</p>
                                     <UploadBox
                                       field="thumbnail"
                                       value={editingProject.thumbnail}
@@ -1629,7 +1528,7 @@ export const Admin = () => {
                                 <div className="grid gap-10 lg:grid-cols-2">
                                   <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                     <div className="grain-overlay" />
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">MP4 file</label>
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">MP4 file</p>
                                     <UploadBox
                                       field="mediaUrl"
                                       value={editingProject.mediaUrl || editingProject.videoUrl}
@@ -1645,7 +1544,7 @@ export const Admin = () => {
                                   </div>
                                   <div className="p-10 glass rounded-[3rem] border border-brand-accent/10 relative overflow-hidden">
                                     <div className="grain-overlay" />
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</label>
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-6 block font-black border-b border-brand-accent/20 pb-4">Thumbnail</p>
                                     <UploadBox
                                       field="thumbnail"
                                       value={editingProject.thumbnail}
@@ -1770,7 +1669,7 @@ export const Admin = () => {
                 <h2 id="video-editor-title" className="text-5xl font-black uppercase tracking-tighter mb-12">Video Node</h2>
                 <form onSubmit={(e) => { e.preventDefault(); saveToFirestore('videos', editingVideo, editingVideo.id, () => setEditingVideo(null)); }} className="space-y-8">
                   <div className="space-y-4">
-                    <label className="text-[10px] uppercase tracking-widest text-brand-accent mb-4 block font-black text-center">Target Discipline</label>
+                    <p className="text-[10px] uppercase tracking-widest text-brand-accent mb-4 block font-black text-center">Target Discipline</p>
                     <div className="grid grid-cols-2 gap-4">
                       {['Animation & Motion', 'AI Generated'].map((p) => (
                         <button key={p} type="button" onClick={() => setEditingVideo({...editingVideo, pillar: p as any})} className={cn("px-4 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all h-16 flex items-center justify-center", editingVideo.pillar === p ? "bg-white text-black border-white shadow-xl" : "glass border-white/5")}>{p}</button>
@@ -1803,7 +1702,7 @@ export const Admin = () => {
                        <InputGroup label="Experiment Title" value={editingLab.title || ''} onChange={v => setEditingLab({...editingLab, title: v})} />
                        <div className="grid md:grid-cols-2 gap-8">
                           <div>
-                            <label className="text-[10px] uppercase tracking-widest text-brand-muted mb-4 block font-black">Variant Class</label>
+                            <p className="text-[10px] uppercase tracking-widest text-brand-muted mb-4 block font-black">Variant Class</p>
                             <select value={editingLab.type} onChange={e => setEditingLab({...editingLab, type: e.target.value as any})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none appearance-none text-xs font-black uppercase tracking-widest focus:border-brand-accent">
                               {['Experiment', 'Learning', 'AI', 'Vibe'].map(t => <option key={t} value={t} className="bg-brand-bg">{t}</option>)}
                             </select>
@@ -1813,7 +1712,7 @@ export const Admin = () => {
                        <InputGroup label="Log / Findings" value={editingLab.content || ''} onChange={v => setEditingLab({...editingLab, content: v})} isTextarea />
                        <InputGroup label="Code Logic (Optional)" value={editingLab.code || ''} onChange={v => setEditingLab({...editingLab, code: v})} isTextarea />
                        <div className="space-y-4">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Asset Visual</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-accent block font-black">Asset Visual</p>
                           <UploadBox field="image" value={editingLab.image} onUpload={handleFileUpload} progress={uploadProgress} status={uploadStatus} state={editingLab} stateSetter={setEditingLab} />
                        </div>
                        <ListManager label="Tool Integration" items={editingLab.tools || []} onAdd={v => setEditingLab({...editingLab, tools: [...(editingLab.tools || []), v]})} onRemove={i => setEditingLab({...editingLab, tools: editingLab.tools?.filter((_, idx) => idx !== i)})} />
@@ -1835,7 +1734,7 @@ export const Admin = () => {
                     <h2 id="gallery-editor-title" className="text-5xl font-black uppercase tracking-tighter mb-10">Gallery Asset</h2>
                     <form onSubmit={(e) => { e.preventDefault(); saveToFirestore('gallery', editingGalleryImage, editingGalleryImage.id, () => setEditingGalleryImage(null)); }} className="space-y-8">
                        <div className="space-y-4">
-                          <label className="text-[10px] uppercase tracking-widest text-brand-accent block font-black text-center">Pillar Allocation</label>
+                          <p className="text-[10px] uppercase tracking-widest text-brand-accent block font-black text-center">Pillar Allocation</p>
                           <div className="grid grid-cols-2 gap-4">
                             {['Illustration & Design', 'AI Generated'].map((p) => (
                               <button key={p} type="button" onClick={() => setEditingGalleryImage({...editingGalleryImage, pillar: p as any})} className={cn("px-4 py-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all h-20 flex items-center justify-center leading-tight", editingGalleryImage.pillar === p ? "bg-white text-black border-white shadow-xl" : "glass border-white/5")}>{p}</button>
@@ -1884,7 +1783,7 @@ export const Admin = () => {
                                  const payload = { url: item.url, pillar: bulkPillar, tags: [...bulkTags, ...item.tags], software: item.software || '', info: item.info || '', createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
                                  const docRef = await addDoc(collection(db, 'gallery'), payload);
                                  item.dbId = docRef.id; item.status = 'Uploaded'; item.progress = 100; setBulkGalleryQueue([...newQueue]);
-                               } catch (err) { item.status = 'Failed'; setBulkGalleryQueue([...newQueue]); }
+                               } catch (_err) { item.status = 'Failed'; setBulkGalleryQueue([...newQueue]); }
                              }
                              setIsSubmitting(false);
                              if (newQueue.every(it => it.status === 'Uploaded')) { setBulkGalleryQueue([]); setBulkTags([]); }

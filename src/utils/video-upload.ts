@@ -54,7 +54,10 @@ const uploadBlob = async (blob: Blob, storagePath: string, contentType: string) 
   }
 
   const storageReference = ref(storage, storagePath);
-  await uploadBytes(storageReference, blob, { contentType });
+  await uploadBytes(storageReference, blob, {
+    contentType,
+    cacheControl: 'public, max-age=31536000, immutable',
+  });
   return getDownloadURL(storageReference);
 };
 
