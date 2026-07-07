@@ -156,37 +156,39 @@
   width: 100%;
 }
 
-.ai-btn--solid {
+/* Variant colors are .ai-page-scoped so they beat `.ai-page a { color: inherit }`
+   (single-class variants lose that specificity fight → black-on-black links). */
+.ai-page .ai-btn--solid {
   background: var(--ai-fg);
   color: #fff;
 }
-.ai-btn--solid:hover {
+.ai-page .ai-btn--solid:hover {
   background: #2a2a2c;
 }
 
-.ai-btn--outline {
+.ai-page .ai-btn--outline {
   background: transparent;
   border-color: var(--ai-border-strong);
   color: var(--ai-fg);
 }
-.ai-btn--outline:hover {
+.ai-page .ai-btn--outline:hover {
   background: var(--ai-fill);
 }
 
-.ai-btn--invert {
+.ai-page .ai-btn--invert {
   background: #fff;
   color: var(--ai-fg);
 }
-.ai-btn--invert:hover {
+.ai-page .ai-btn--invert:hover {
   background: rgba(255, 255, 255, 0.9);
 }
 
-.ai-btn--outline-light {
+.ai-page .ai-btn--outline-light {
   background: transparent;
   border-color: rgba(255, 255, 255, 0.32);
   color: #fff;
 }
-.ai-btn--outline-light:hover {
+.ai-page .ai-btn--outline-light:hover {
   border-color: rgba(255, 255, 255, 0.7);
 }
 
@@ -487,6 +489,20 @@
   margin-top: 0.5rem;
 }
 
+/* ---------- demo video (Ohneis-style slot) ---------- */
+.ai-demo__frame {
+  border-radius: 20px;
+  margin: 1.5rem auto 0;
+  max-width: 52rem;
+  overflow: hidden;
+}
+.ai-demo__video {
+  aspect-ratio: 16 / 9;
+  background: #111112;
+  display: block;
+  width: 100%;
+}
+
 /* ---------- steps ---------- */
 .ai-steps {
   display: grid;
@@ -736,29 +752,16 @@
   margin-top: 0.75rem;
 }
 .ai-contact__signoff {
-  align-items: center;
   display: flex;
-  gap: 0.7rem;
   justify-content: center;
   margin-top: 1.75rem;
-}
-.ai-contact__avatar {
-  align-items: center;
-  background: #3a3a3c;
-  border-radius: 50%;
-  display: flex;
-  font-size: 0.72rem;
-  font-weight: 600;
-  height: 38px;
-  justify-content: center;
-  width: 38px;
 }
 .ai-contact__signoff-text {
   color: var(--ai-on-panel);
   font-size: 0.8rem;
   line-height: 1.5;
-  max-width: 22rem;
-  text-align: left;
+  max-width: 26rem;
+  text-align: center;
 }
 .ai-contact__signoff-text strong {
   color: #fff;
@@ -919,6 +922,10 @@
 }
 
 /* ---------- mobile sticky CTA ---------- */
+.ai-page .ai-sticky-cta {
+  color: #fff;
+}
+
 .ai-sticky-cta {
   background: var(--ai-fg);
   border-radius: 99px;

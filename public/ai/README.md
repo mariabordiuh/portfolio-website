@@ -27,6 +27,13 @@ fine jewelry, sofa, sneakers. Deliberately mixed — the range IS the pitch.
 - loop-1.mp4   (autoplays muted in the bento "Auch in Bewegung" tile)
 - loop-1-poster.jpg  (fallback frame)
 
+## demo.mp4 — the Ohneis-style sales/demo video (16:9, with sound)
+- demo.mp4 + demo-poster.jpg + demo-captions.vtt (German subtitles)
+The "So entsteht eine Kampagne" section is INVISIBLE until this file exists —
+drop it in and the section appears automatically. Plays with controls, not
+autoplay (it has a voiceover). Subtitles matter: many people watch muted.
+ElevenLabs voiceover plan: see spec §10.
+
 ## Everything editable (prices, slots, stats, FAQ, WhatsApp, Cal link):
 src/pages/ai/data.ts
 - STATS → the 48h / 900+ bento numbers (count 900+ before launch!)

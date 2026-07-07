@@ -127,9 +127,6 @@ export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionPr
         </form>
 
         <div className="ai-contact__signoff">
-          <span className="ai-contact__avatar" aria-hidden="true">
-            {SIGNOFF.initials}
-          </span>
           <p className="ai-contact__signoff-text">
             <strong>{tx(SIGNOFF.intro)}</strong> {tx(SIGNOFF.line)}
           </p>

@@ -102,14 +102,14 @@ export const TIERS: Tier[] = [
     priceSuffix: c('/month', '/Monat'),
     setup: 2400,
     blurb: c(
-      'Your own exclusive model identity — trained for your brand, locked to your brand, delivering fresh image drops every month.',
-      'Ihre eigene exklusive Model-Identität — für Ihre Marke trainiert, exklusiv für Ihre Marke, mit monatlichen Bild-Drops.',
+      'Your own exclusive model identity — trained for your brand, owned by you permanently, delivering fresh image drops every month.',
+      'Ihre eigene exklusive Model-Identität — für Ihre Marke trainiert, gehört Ihnen dauerhaft, mit monatlichen Bild-Drops.',
     ),
     bullets: [
       c('Custom-trained model, exclusive to you', 'Individuell trainiertes Model, exklusiv für Sie'),
       c('Monthly image drops, ongoing art direction', 'Monatliche Bild-Drops, laufende Art Direction'),
       c('Same face across every campaign, forever', 'Dasselbe Gesicht in jeder Kampagne, dauerhaft'),
-      c('Cancel monthly — identity setup is yours', 'Monatlich kündbar — das Identity-Setup gehört Ihnen'),
+      c('The model is yours — for good, not per season', 'Das Model gehört Ihnen — für immer, nicht pro Saison'),
     ],
     time: c('~2 weeks setup', '~2 Wochen Setup'),
     cta: c('Ask about Signature', 'Signature anfragen'),
@@ -159,24 +159,25 @@ export const FOOTNOTES: Copy[] = [
 
 // The one-line pointer to the Signature tier that sits under the price cards.
 export const SIGNATURE_LINK = c(
-  'Ongoing need? Signature — your own exclusive model, from €790/month ›',
-  'Laufender Bedarf? Signature — Ihr exklusives Model, ab €790/Monat ›',
+  'Want your own model that belongs to you forever? Signature — from €790/month ›',
+  'Ihr eigenes Model, das Ihnen für immer gehört? Signature — ab €790/Monat ›',
 );
 
-// Personal sign-off in the dark contact panel (founder-face trust).
+// Personal sign-off in the dark contact panel. Text only — no photo/avatar
+// of Maria anywhere on the page (her call).
 export const SIGNOFF = {
   intro: c('Hi, I’m Maria', 'Hi, ich bin Maria'),
   line: c(
     '— art director from Hamburg. I read every request personally.',
     '— Art Directorin aus Hamburg. Ich sehe jede Anfrage persönlich.',
   ),
-  initials: 'MB',
 };
 
-// Caption under the bento models face-pile.
+// Caption under the bento models face-pile. No fixed count — Maria can create
+// unlimited identities, including models the client owns.
 export const MODELS_CAPTION = c(
-  '6 models that always look the same. In every campaign.',
-  '6 Models, die immer gleich aussehen. In jeder Kampagne.',
+  'Consistent models — the same face in every campaign. As many as you need, including your own.',
+  'Konsistente Models — dasselbe Gesicht in jeder Kampagne. So viele Sie brauchen, auch Ihr eigenes.',
 );
 
 // ------------------------------------------------------------
@@ -430,10 +431,10 @@ export const FAQ: Array<{ q: Copy; a: Copy }> = [
     ),
   },
   {
-    q: c('Can a roster face be exclusive to our brand?', 'Kann ein Roster-Gesicht exklusiv für unsere Marke sein?'),
+    q: c('Can we have our own model?', 'Können wir ein eigenes Model haben?'),
     a: c(
-      'Yes — roster exclusivity is available per season, and the Signature tier gives you a fully custom identity that is yours alone.',
-      'Ja — Roster-Exklusivität gibt es pro Saison, und das Signature-Paket liefert eine komplett eigene Identität, die nur Ihnen gehört.',
+      'Yes, two ways: lock a roster face exclusively per season — or we build a custom model just for you that you own permanently and can use forever (Signature). A digital twin of your real founder or model is possible too, with written consent.',
+      'Ja, auf zwei Wegen: Ein Roster-Gesicht exklusiv pro Saison sichern — oder wir bauen ein eigenes Model nur für Sie, das Ihnen dauerhaft gehört und das Sie für immer nutzen können (Signature). Auch ein digitaler Zwilling Ihres echten Founders oder Models ist möglich, mit schriftlicher Einwilligung.',
     ),
   },
   {

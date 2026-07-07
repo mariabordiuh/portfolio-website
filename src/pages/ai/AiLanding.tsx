@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Eye, Package, Play, ShieldCheck, Upload } from 'lucide-react';
 import { JsonLd } from '../../components/JsonLd';
 import { PrefetchLink } from '../../components/PrefetchLink';
@@ -75,7 +75,9 @@ const T = {
   free: c('€0', '€0'),
   forStart: c('To get started.', 'Für den Anfang.'),
   faqTitle: c('The questions buyers actually ask.', 'Die Fragen, die wirklich gestellt werden.'),
-  footerTagline: c('AI photo studio for products — Hamburg.', 'KI-Fotostudio für Produkte — Hamburg.'),
+  footerTagline: c('An art-director-led AI photo studio — Hamburg.', 'KI-Fotostudio, geführt von einer Art Directorin — Hamburg.'),
+  demoTitle: c('See how a campaign is made.', 'So entsteht eine Kampagne.'),
+  demoSub: c('60 seconds, no marketing talk.', '60 Sekunden, kein Marketing-Sprech.'),
 };
 
 const STEP_ICONS = [Upload, Eye, Package];
@@ -88,6 +90,32 @@ export const AiLanding = () => {
   const { lang, setLang, tx } = useLang();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [motionFailed, setMotionFailed] = useState(false);
+  // The Ohneis-style demo/sales video. The whole section stays hidden until
+  // /ai/demo.mp4 exists — no empty slot for visitors, appears when dropped in.
+  const [demoFailed, setDemoFailed] = useState(false);
+  const motionVideoRef = useRef<HTMLVideoElement>(null);
+  const demoVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Media error events can fire before React's onError listener attaches
+  // (missing files come back as 200/text-html via the SPA rewrite, failing
+  // fast) — so also poll the elements' error state directly after mount.
+  useEffect(() => {
+    const bind = (el: HTMLVideoElement | null, fail: () => void) => {
+      if (!el) return () => {};
+      if (el.error) {
+        fail();
+        return () => {};
+      }
+      el.addEventListener('error', fail);
+      return () => el.removeEventListener('error', fail);
+    };
+    const unbindMotion = bind(motionVideoRef.current, () => setMotionFailed(true));
+    const unbindDemo = bind(demoVideoRef.current, () => setDemoFailed(true));
+    return () => {
+      unbindMotion();
+      unbindDemo();
+    };
+  }, []);
 
   const reveal = prefersReducedMotion
     ? {}
@@ -101,7 +129,6 @@ export const AiLanding = () => {
   // Cards on the page: test / starter / campaign. Signature is a link, not a card.
   const cardTiers = TIERS.filter((tier) => tier.id !== 'signature');
   const faces = ROSTER.slice(0, 3);
-  const overflow = ROSTER.length - faces.length;
 
   const aiStructuredData = {
     '@context': 'https://schema.org',
@@ -235,7 +262,7 @@ export const AiLanding = () => {
                       />
                     </span>
                   ))}
-                  {overflow > 0 ? <span className="ai-facepile__more">+{overflow}</span> : null}
+                  <span className="ai-facepile__more">+</span>
                 </div>
                 <p className="ai-bento__label">{tx(MODELS_CAPTION)}</p>
               </div>
@@ -247,6 +274,7 @@ export const AiLanding = () => {
                   </span>
                 ) : (
                   <video
+                    ref={motionVideoRef}
                     className="ai-bento__video"
                     src="/ai/motion/loop-1.mp4"
                     poster="/ai/motion/loop-1-poster.jpg"
@@ -289,6 +317,29 @@ export const AiLanding = () => {
               ))}
             </div>
           </motion.section>
+
+          {/* DEMO VIDEO (Ohneis-style; hidden until /ai/demo.mp4 exists) */}
+          {!demoFailed ? (
+            <motion.section className="ai-section ai-demo" {...reveal}>
+              <h2 className="ai-h2">{tx(T.demoTitle)}</h2>
+              <p className="ai-sub">{tx(T.demoSub)}</p>
+              <div className="ai-demo__frame">
+                <video
+                  ref={demoVideoRef}
+                  className="ai-demo__video"
+                  src="/ai/demo.mp4"
+                  poster="/ai/demo-poster.jpg"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  aria-label={tx(T.demoTitle)}
+                  onError={() => setDemoFailed(true)}
+                >
+                  <track kind="captions" src="/ai/demo-captions.vtt" srcLang="de" label="Deutsch" default />
+                </video>
+              </div>
+            </motion.section>
+          ) : null}
 
           {/* STEPS */}
           <motion.section className="ai-section" id="ai-ablauf" {...reveal}>
