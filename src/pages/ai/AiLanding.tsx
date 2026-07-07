@@ -189,7 +189,7 @@ export const AiLanding = () => {
               reduced-motion. */}
           <section className="ai-hero">
             <div className="ai-hero__intro ai-rise">
-              <p className="ai-kicker-serif">{tx(T.kicker)}</p>
+              <p className="ai-kicker">{tx(T.kicker)}</p>
               <h1 className="ai-hero__title">{tx(T.heroTitle)}</h1>
               <p className="ai-hero__sub">{tx(T.heroSub)}</p>
               <div className="ai-hero__actions">

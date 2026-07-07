@@ -1,23 +1,40 @@
 /* ============================================================
-   /ai — mono-ink Apple-bento design (v3).
-   White + ink + gray only; the product photos are the color.
-   Fonts: Instrument Sans (UI/body) + Instrument Serif italic (voice).
-   Self-hosted via public/fonts/fonts.css (loaded in index.html).
+   /ai — Albert Sans + "Blaire" gradient palette (v4).
+   Mostly white; navy→teal→lime gradient used as accents only
+   (ambient hero glow, lime CTAs, gradient stat tile, navy panels).
+   Font: Albert Sans, self-hosted via public/fonts/fonts.css.
    ============================================================ */
 
 .ai-page {
   --ai-bg: #ffffff;
-  --ai-fg: #111112;
-  --ai-fill: #f2f2f3;
-  --ai-fill-2: #f7f7f8;
-  --ai-border-soft: rgba(17, 17, 18, 0.1);
-  --ai-border-strong: rgba(17, 17, 18, 0.18);
+  --ai-fg: #14161c; /* cool near-black */
+  --ai-fill: #f2f3f5;
+  --ai-fill-2: #f7f8fa;
+  --ai-border-soft: rgba(20, 22, 28, 0.1);
+  --ai-border-strong: rgba(20, 22, 28, 0.18);
   /* Grays tuned for WCAG AA (>=4.5:1) on both white and the light-gray tiles. */
-  --ai-fg-muted: rgba(17, 17, 18, 0.68);
-  --ai-fg-subtle: rgba(17, 17, 18, 0.62);
-  --ai-fg-faint: rgba(17, 17, 18, 0.55);
-  --ai-panel: #111112;
-  --ai-on-panel: rgba(255, 255, 255, 0.6);
+  --ai-fg-muted: rgba(20, 22, 28, 0.68);
+  --ai-fg-subtle: rgba(20, 22, 28, 0.62);
+  --ai-fg-faint: rgba(20, 22, 28, 0.55);
+
+  /* Blaire palette */
+  --ai-navy: #16224a;
+  --ai-blue: #274a86;
+  --ai-teal: #5f93a8;
+  --ai-accent: #235e72; /* deep teal — AA-legible for kicker/link TEXT on white */
+  --ai-lime: #d6de5c;
+  --ai-lime-ink: #2c3208; /* dark text on lime (AA) */
+  --ai-gradient: linear-gradient(140deg, #16224a 0%, #274a86 46%, #5f93a8 80%, #d6de5c 140%);
+  --ai-glow: radial-gradient(
+    60% 55% at 50% 38%,
+    rgba(39, 74, 134, 0.24),
+    rgba(95, 147, 168, 0.16) 45%,
+    rgba(214, 222, 92, 0.14) 72%,
+    rgba(255, 255, 255, 0) 100%
+  );
+
+  --ai-panel: var(--ai-navy); /* dark surfaces use deep navy, not pure black */
+  --ai-on-panel: rgba(255, 255, 255, 0.66);
   --ai-shell: 74rem;
   --ai-pad: clamp(1.1rem, 3vw, 1.75rem);
   --ai-gap: clamp(0.7rem, 1.2vw, 0.85rem);
@@ -27,8 +44,9 @@
 
   background: var(--ai-bg);
   color: var(--ai-fg);
-  font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
   min-height: 100svh;
+  overflow-x: clip; /* contain the hero glow bleed on all viewports */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
 }
@@ -49,7 +67,7 @@
 }
 
 /* Override the global site heading font (Press Start 2P / Archivo Expanded).
-   /ai is Instrument Sans throughout; the serif kicker opts back in below. */
+   /ai is Albert Sans throughout. */
 .ai-page,
 .ai-page h1,
 .ai-page h2,
@@ -59,7 +77,7 @@
 .ai-page input,
 .ai-page select,
 .ai-page textarea {
-  font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Global site forces uppercase headings; /ai is sentence case. */
@@ -120,11 +138,12 @@
   text-align: center;
 }
 
-.ai-kicker-serif {
-  color: var(--ai-fg-subtle);
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 1.05rem;
-  font-style: italic;
+.ai-kicker {
+  color: var(--ai-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 /* ---------- buttons ---------- */
@@ -158,13 +177,14 @@
 }
 
 /* Variant colors are .ai-page-scoped so they beat `.ai-page a { color: inherit }`
-   (single-class variants lose that specificity fight → black-on-black links). */
+   (single-class variants lose that specificity fight → black-on-black links).
+   Lime is the action color (dark ink text on it = AA). */
 .ai-page .ai-btn--solid {
-  background: var(--ai-fg);
-  color: #fff;
+  background: var(--ai-lime);
+  color: var(--ai-lime-ink);
 }
 .ai-page .ai-btn--solid:hover {
-  background: #2a2a2c;
+  background: #cad356;
 }
 
 .ai-page .ai-btn--outline {
@@ -176,12 +196,13 @@
   background: var(--ai-fill);
 }
 
+/* On dark navy panels: lime button also works (dark text on lime). */
 .ai-page .ai-btn--invert {
-  background: #fff;
-  color: var(--ai-fg);
+  background: var(--ai-lime);
+  color: var(--ai-lime-ink);
 }
 .ai-page .ai-btn--invert:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: #cad356;
 }
 
 .ai-page .ai-btn--outline-light {
@@ -285,7 +306,29 @@
 
 .ai-hero {
   padding-top: clamp(2.5rem, 6vw, 3.75rem);
+  position: relative;
   text-align: center;
+}
+
+/* Ambient Blaire glow behind the hero — decorative only, never over text
+   contrast. Sits under the intro, fades to white. */
+.ai-hero::before {
+  background: var(--ai-glow);
+  content: '';
+  filter: blur(26px);
+  height: 420px;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: -40px;
+  transform: translateX(-50%);
+  width: min(760px, 108%);
+  z-index: 0;
+}
+.ai-hero__intro,
+.ai-hero__plate {
+  position: relative;
+  z-index: 1;
 }
 
 .ai-hero__intro {
@@ -318,7 +361,8 @@
   margin-top: 1.6rem;
 }
 
-.ai-hero__textlink {
+.ai-page .ai-hero__textlink {
+  color: var(--ai-accent);
   font-size: 0.9rem;
   font-weight: 500;
   text-decoration: underline;
@@ -375,11 +419,11 @@
 }
 
 .ai-bento__tile--dark {
-  background: var(--ai-panel);
+  background: var(--ai-gradient);
   color: #fff;
 }
 .ai-bento__tile--dark .ai-bento__label {
-  color: var(--ai-on-panel);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .ai-bento__num {
@@ -634,8 +678,8 @@
   margin-top: auto;
 }
 
-.ai-signature-link {
-  color: var(--ai-fg);
+.ai-page .ai-signature-link {
+  color: var(--ai-accent);
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
@@ -950,11 +994,11 @@
 
 /* ---------- mobile sticky CTA ---------- */
 .ai-page .ai-sticky-cta {
-  color: #fff;
+  color: var(--ai-lime-ink);
 }
 
 .ai-sticky-cta {
-  background: var(--ai-fg);
+  background: var(--ai-lime);
   border-radius: 99px;
   bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   color: #fff;

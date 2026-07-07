@@ -112,13 +112,34 @@ Section order:
 Mobile: sticky bottom CTA bar ("Gratis-Testshooting starten") appears after
 scrolling past the hero; bento collapses to 1–2 cols; gallery to 2 cols.
 
-## 3. Design system (mono ink — APPROVED)
+## 3. Design system (v4 — Albert Sans + "Blaire" gradient — APPROVED 2026-07-08)
 
-Palette is **monochrome: white, ink, grays only.** No accent hue — the product
-photos are the only color on the page. This was chosen over lilac/coral/blue/
-green/luxury options explicitly (Maria: "mono ink", "minimalistic luxury but
-saas vibes, not old, white only, no green no purple"). Do NOT reintroduce a
-brand color.
+**Superseded the earlier mono-ink direction.** Still mostly white, but a
+navy→teal→lime gradient palette (pulled from a Blaire serum product photo) is
+used as ACCENTS only — never a full-page wash. Font is **Albert Sans**
+(elegant geometric sans, self-hosted; replaces Instrument Sans/Serif).
+
+Application (Maria picked "ambient glow" + "lime accents"):
+- **Ambient hero glow**: a blurred radial navy/teal/lime behind the hero,
+  fading to white (`.ai-hero::before`, `--ai-glow`). Decorative only, never
+  over text contrast.
+- **Lime CTAs**: primary/nav/sticky/featured buttons are lime (`--ai-lime`
+  #d6de5c) with dark ink text (`--ai-lime-ink` #2c3208 — AA).
+- **Gradient stat tile**: the bento `48h` tile is the full gradient
+  (`--ai-gradient`), white text.
+- **Navy dark surfaces**: contact panel + featured price card use deep navy
+  `--ai-navy` #16224a (not pure black), white text.
+- **Teal text accent**: kicker + secondary links use `--ai-accent` #235e72
+  (deep teal, AA on white). Body/headings stay cool near-black `--ai-fg`
+  #14161c.
+
+Tokens live in the `.ai-page` block of `src/styles/ai-page.css`. Grays kept at
+the AA-tuned values from the QA pass. Mostly-white discipline preserved: the
+gradient appears in exactly ~3 places (glow, one tile, dark blocks) + lime on
+buttons.
+
+Rejected earlier (do not revisit): mono-ink monochrome, lilac, serif display
+fonts, warm/beige, full-page gradient wash.
 
 Replace the `.ai-page` token block in `src/styles/ai-page.css`:
 
