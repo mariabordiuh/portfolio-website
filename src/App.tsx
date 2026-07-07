@@ -221,7 +221,7 @@ const AppShell = () => {
       >
         <AnimatedRoutes />
       </main>
-      {!isAdmin ? <ScrollToTop /> : null}
+      {!isAdmin && !isAiRoute ? <ScrollToTop /> : null}
       {!isAdmin && !isNotFoundRoute ? <AnalyticsConsentBanner /> : null}
       {!isAdmin && !isNotFoundRoute && !isAiRoute ? <Footer /> : null}
     </div>

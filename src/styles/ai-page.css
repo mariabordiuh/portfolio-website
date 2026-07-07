@@ -10,11 +10,12 @@
   --ai-fg: #111112;
   --ai-fill: #f2f2f3;
   --ai-fill-2: #f7f7f8;
-  --ai-border-soft: rgba(17, 17, 18, 0.09);
-  --ai-border-strong: rgba(17, 17, 18, 0.16);
-  --ai-fg-muted: rgba(17, 17, 18, 0.6);
-  --ai-fg-subtle: rgba(17, 17, 18, 0.45);
-  --ai-fg-faint: rgba(17, 17, 18, 0.42);
+  --ai-border-soft: rgba(17, 17, 18, 0.1);
+  --ai-border-strong: rgba(17, 17, 18, 0.18);
+  /* Grays tuned for WCAG AA (>=4.5:1) on both white and the light-gray tiles. */
+  --ai-fg-muted: rgba(17, 17, 18, 0.68);
+  --ai-fg-subtle: rgba(17, 17, 18, 0.62);
+  --ai-fg-faint: rgba(17, 17, 18, 0.55);
   --ai-panel: #111112;
   --ai-on-panel: rgba(255, 255, 255, 0.6);
   --ai-shell: 74rem;
@@ -133,7 +134,7 @@
   border-radius: var(--ai-radius-btn);
   cursor: pointer;
   display: inline-flex;
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   font-weight: 500;
   gap: 0.4rem;
   justify-content: center;
@@ -149,7 +150,7 @@
 
 .ai-btn--sm {
   padding: 0.5rem 0.95rem;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
 .ai-btn--block {
@@ -223,7 +224,7 @@
 
 .ai-nav__links a {
   color: var(--ai-fg-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 .ai-nav__links a:hover {
   color: var(--ai-fg);
@@ -244,9 +245,10 @@
   border: none;
   color: var(--ai-fg-subtle);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 0.2rem 0.35rem;
+  min-height: 32px;
+  padding: 0.35rem 0.4rem;
 }
 .ai-nav__lang button.is-active {
   color: var(--ai-fg);
@@ -257,6 +259,28 @@
 /* ---------- hero ---------- */
 .ai-page__main {
   display: block;
+}
+
+/* Hero entrance via CSS (not JS/motion). The headline is the LCP element, so it
+   animates POSITION ONLY and stays fully opaque — it's readable instantly even
+   if the animation never runs (background tab, slow JS, reduced motion). The
+   image plate (not LCP-critical) may fade. */
+@keyframes ai-rise {
+  from {
+    transform: translateY(10px);
+  }
+}
+@keyframes ai-fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.ai-rise {
+  animation: ai-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ai-rise--fade {
+  animation: ai-fade-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
 .ai-hero {
@@ -367,7 +391,7 @@
 
 .ai-bento__label {
   color: var(--ai-fg-muted);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   line-height: 1.45;
   margin-top: auto;
   padding-top: 0.9rem;
@@ -453,6 +477,7 @@
   color: var(--ai-fg-muted);
   font-size: 0.85rem;
   line-height: 1.45;
+  max-width: 62ch;
 }
 .ai-bento__bar strong {
   color: var(--ai-fg);
@@ -467,7 +492,7 @@
   display: grid;
   gap: var(--ai-gap);
   grid-template-columns: repeat(4, 1fr);
-  margin-top: 1.5rem;
+  margin-top: 1.6rem;
 }
 .ai-gallery__item {
   overflow: hidden;
@@ -485,7 +510,7 @@
 }
 .ai-gallery__item figcaption {
   color: var(--ai-fg-subtle);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   margin-top: 0.5rem;
 }
 
@@ -508,7 +533,7 @@
   display: grid;
   gap: var(--ai-gap);
   grid-template-columns: repeat(3, 1fr);
-  margin-top: 1.5rem;
+  margin-top: 1.6rem;
 }
 .ai-step {
   background: var(--ai-fill-2);
@@ -532,8 +557,8 @@
   margin-top: 0.8rem;
 }
 .ai-step__body {
-  color: var(--ai-fg-subtle);
-  font-size: 0.84rem;
+  color: var(--ai-fg-muted);
+  font-size: 0.85rem;
   line-height: 1.5;
   margin-top: 0.25rem;
 }
@@ -587,15 +612,15 @@
   vertical-align: super;
 }
 .ai-tier__meta {
-  font-size: 0.75rem;
-  margin-top: 0.15rem;
-  opacity: 0.65;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  opacity: 0.7;
 }
 .ai-tier__meta s {
   opacity: 0.8;
 }
 .ai-tier__blurb {
-  font-size: 0.83rem;
+  font-size: 0.85rem;
   line-height: 1.5;
   margin: 0.9rem 0 1.2rem;
   opacity: 0.85;
@@ -622,8 +647,8 @@
 
 /* ---------- faq ---------- */
 .ai-faq {
-  margin: 1.5rem auto 0;
-  max-width: 44rem;
+  margin: 1.6rem auto 0;
+  max-width: 40rem;
 }
 .ai-faq__item {
   border-bottom: 0.5px solid var(--ai-border-soft);
@@ -650,9 +675,10 @@
 }
 .ai-faq__a {
   color: var(--ai-fg-muted);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   line-height: 1.6;
   padding: 0 0.25rem 1.1rem;
+  max-width: 34rem;
 }
 
 /* ---------- contact (dark panel) ---------- */
@@ -704,7 +730,7 @@
 }
 .ai-contact__form-sub {
   color: var(--ai-on-panel);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   margin-top: 0.2rem;
 }
 .ai-field-row {
@@ -746,7 +772,7 @@
   margin-top: 1rem;
 }
 .ai-contact__privacy {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.72rem;
   line-height: 1.5;
   margin-top: 0.75rem;
@@ -892,9 +918,10 @@
   border-top: 0.5px solid var(--ai-border-soft);
   color: var(--ai-fg-faint);
   display: grid;
-  font-size: 0.68rem;
-  gap: 0.4rem;
+  font-size: 0.72rem;
+  gap: 0.45rem;
   line-height: 1.6;
+  max-width: 60rem;
   padding-top: 1.4rem;
 }
 .ai-footer__bar {
@@ -902,7 +929,7 @@
   color: var(--ai-fg-subtle);
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   gap: 0.8rem;
   justify-content: space-between;
   margin-top: 1.4rem;

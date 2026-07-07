@@ -184,14 +184,11 @@ export const AiLanding = () => {
         </header>
 
         <main className="ai-page__main">
-          {/* HERO */}
+          {/* HERO — CSS-animated (not motion): the LCP content must be visible
+              on load without depending on rAF/JS, and stay visible under
+              reduced-motion. */}
           <section className="ai-hero">
-            <motion.div
-              className="ai-hero__intro"
-              {...(prefersReducedMotion
-                ? {}
-                : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const } })}
-            >
+            <div className="ai-hero__intro ai-rise">
               <p className="ai-kicker-serif">{tx(T.kicker)}</p>
               <h1 className="ai-hero__title">{tx(T.heroTitle)}</h1>
               <p className="ai-hero__sub">{tx(T.heroSub)}</p>
@@ -203,9 +200,9 @@ export const AiLanding = () => {
                   {tx(T.ctaCall)}
                 </a>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div className="ai-hero__plate" {...reveal}>
+            <div className="ai-hero__plate ai-rise--fade">
               <SmartImage
                 src="/ai/hero.jpg"
                 alt={tx(T.heroCaption)}
@@ -213,7 +210,7 @@ export const AiLanding = () => {
                 placeholderClassName="ai-ph--hero"
               />
               <span className="ai-hero__plate-chip">{tx(T.heroCaption)}</span>
-            </motion.div>
+            </div>
           </section>
 
           {/* BENTO */}
