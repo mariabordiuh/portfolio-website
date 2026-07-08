@@ -1,40 +1,44 @@
 /* ============================================================
-   /ai — Albert Sans + "Blaire" gradient palette (v4).
-   Mostly white; navy→teal→lime gradient used as accents only
-   (ambient hero glow, lime CTAs, gradient stat tile, navy panels).
+   /ai — Albert Sans + DARK "Blaire" gradient theme (v5).
+   Deep-navy base, high-contrast teal→lime glow (the serum photo).
+   Lime is the single action colour; photos glow on the dark.
    Font: Albert Sans, self-hosted via public/fonts/fonts.css.
    ============================================================ */
 
 .ai-page {
-  --ai-bg: #ffffff;
-  --ai-fg: #14161c; /* cool near-black */
-  --ai-fill: #f2f3f5;
-  --ai-fill-2: #f7f8fa;
-  --ai-border-soft: rgba(20, 22, 28, 0.1);
-  --ai-border-strong: rgba(20, 22, 28, 0.18);
-  /* Grays tuned for WCAG AA (>=4.5:1) on both white and the light-gray tiles. */
-  --ai-fg-muted: rgba(20, 22, 28, 0.68);
-  --ai-fg-subtle: rgba(20, 22, 28, 0.62);
-  --ai-fg-faint: rgba(20, 22, 28, 0.55);
+  /* DARK "Blaire" theme — deep navy base, high-contrast teal→lime glow,
+     matching the serum reference photo. Mostly navy; lime is the one action. */
+  --ai-bg: #0b1026; /* deep navy near-black (trust, premium, photos glow) */
+  --ai-fg: #eef1f8; /* mist white */
+  --ai-fill: rgba(255, 255, 255, 0.055); /* translucent card on navy */
+  --ai-fill-2: rgba(255, 255, 255, 0.035);
+  --ai-border-soft: rgba(255, 255, 255, 0.1);
+  --ai-border-strong: rgba(255, 255, 255, 0.2);
+  /* Light text tuned for WCAG AA on the navy base + translucent tiles. */
+  --ai-fg-muted: rgba(238, 241, 248, 0.74);
+  --ai-fg-subtle: rgba(238, 241, 248, 0.62);
+  --ai-fg-faint: rgba(238, 241, 248, 0.52);
 
   /* Blaire palette */
-  --ai-navy: #16224a;
+  --ai-navy: #14224e;
   --ai-blue: #274a86;
   --ai-teal: #5f93a8;
-  --ai-accent: #235e72; /* deep teal — AA-legible for kicker/link TEXT on white */
+  --ai-accent: #8ecfe0; /* bright teal — AA-legible link/kicker TEXT on navy */
   --ai-lime: #d6de5c;
   --ai-lime-ink: #2c3208; /* dark text on lime (AA) */
-  --ai-gradient: linear-gradient(140deg, #16224a 0%, #274a86 46%, #5f93a8 80%, #d6de5c 140%);
+  /* High-contrast gradient: near-black navy melting to luminous lime. */
+  --ai-gradient: linear-gradient(140deg, #080c22 0%, #17346a 46%, #4f9fbe 78%, #e8f06a 122%);
+  /* Brighter glow so it pops against the dark base (the photo's light source). */
   --ai-glow: radial-gradient(
-    60% 55% at 50% 38%,
-    rgba(39, 74, 134, 0.24),
-    rgba(95, 147, 168, 0.16) 45%,
-    rgba(214, 222, 92, 0.14) 72%,
-    rgba(255, 255, 255, 0) 100%
+    58% 52% at 50% 40%,
+    rgba(95, 165, 195, 0.45),
+    rgba(214, 230, 90, 0.24) 46%,
+    rgba(39, 74, 134, 0.22) 72%,
+    rgba(11, 16, 38, 0) 100%
   );
 
-  --ai-panel: var(--ai-navy); /* dark surfaces use deep navy, not pure black */
-  --ai-on-panel: rgba(255, 255, 255, 0.66);
+  --ai-panel: #101a3e; /* raised navy surface (contact panel uses gradient) */
+  --ai-on-panel: rgba(255, 255, 255, 0.7);
   --ai-shell: 74rem;
   --ai-pad: clamp(1.1rem, 3vw, 1.75rem);
   --ai-gap: clamp(0.7rem, 1.2vw, 0.85rem);
@@ -216,9 +220,9 @@
 
 /* ---------- nav ---------- */
 .ai-nav {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(11, 16, 38, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 0.5px solid var(--ai-border-soft);
   position: sticky;
   top: 0;
@@ -491,17 +495,17 @@
   width: 100%;
 }
 .ai-ph--facefill {
-  background: #b6b6b8;
+  background: #2a3358;
 }
 .ai-facepile__more {
   align-items: center;
-  background: var(--ai-fg);
-  border: 2px solid var(--ai-fill);
+  background: var(--ai-lime);
+  border: 2px solid var(--ai-bg);
   border-radius: 50%;
-  color: #fff;
+  color: var(--ai-lime-ink);
   display: flex;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   height: 34px;
   justify-content: center;
   margin-left: -11px;
@@ -587,9 +591,10 @@
 }
 .ai-step__badge {
   align-items: center;
-  background: var(--ai-fg);
+  background: rgba(142, 207, 224, 0.14);
+  border: 0.5px solid rgba(142, 207, 224, 0.3);
   border-radius: 50%;
-  color: #fff;
+  color: var(--ai-accent);
   display: inline-flex;
   height: 42px;
   justify-content: center;
@@ -625,13 +630,14 @@
   text-align: center;
 }
 .ai-tier.is-featured {
-  background: var(--ai-panel);
+  background: #16265c;
+  border: 1px solid rgba(214, 222, 92, 0.35);
   color: #fff;
 }
 .ai-tier__badge {
-  background: #fff;
+  background: var(--ai-lime);
   border-radius: 99px;
-  color: var(--ai-fg);
+  color: var(--ai-lime-ink);
   font-size: 0.66rem;
   font-weight: 600;
   left: 50%;
@@ -732,7 +738,12 @@
   width: min(100%, var(--ai-shell));
 }
 .ai-contact__panel {
-  background: var(--ai-panel);
+  /* Solid navy base (all the form text stays AA-legible) + a soft teal glow in
+     the top corner for drama, kept away from the dense copy. */
+  background:
+    radial-gradient(70% 60% at 88% 8%, rgba(95, 165, 195, 0.28), rgba(214, 222, 92, 0.1) 45%, transparent 72%),
+    #0e1738;
+  border: 0.5px solid var(--ai-border-soft);
   border-radius: 22px;
   color: #fff;
   padding: clamp(2rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
@@ -920,9 +931,10 @@
 }
 
 /* ---------- image placeholders (SmartImage fallback) ---------- */
+/* Dark slate so empty slots don't glare on the navy base. */
 .ai-placeholder {
   align-items: center;
-  background: #dcdcdd;
+  background: #1b2547;
   color: var(--ai-fg-subtle);
   display: flex;
   justify-content: center;
@@ -935,7 +947,7 @@
 }
 .ai-ph--hero {
   aspect-ratio: 21 / 9;
-  background: #8d8d8f;
+  background: #172140;
   width: 100%;
 }
 .ai-ph--gallery {
@@ -944,14 +956,14 @@
   width: 100%;
 }
 .ai-ph--face {
-  background: #b6b6b8;
+  background: #2a3358;
 }
 .ai-ph--motion {
-  background: #6f6f71;
+  background: #202b52;
   color: rgba(255, 255, 255, 0.8);
 }
 .ai-placeholder--ba {
-  background: #b9b9bb;
+  background: #222d52;
 }
 
 /* ---------- footer + footnotes ---------- */
@@ -1010,7 +1022,7 @@
   position: fixed;
   transform: translateX(-50%);
   z-index: 45;
-  box-shadow: 0 8px 30px rgba(17, 17, 18, 0.25);
+  box-shadow: 0 6px 26px rgba(214, 222, 92, 0.35);
 }
 
 /* ---------- responsive ---------- */

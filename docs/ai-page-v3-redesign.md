@@ -112,12 +112,28 @@ Section order:
 Mobile: sticky bottom CTA bar ("Gratis-Testshooting starten") appears after
 scrolling past the hero; bento collapses to 1–2 cols; gallery to 2 cols.
 
-## 3. Design system (v4 — Albert Sans + "Blaire" gradient — APPROVED 2026-07-08)
+## 3. Design system (v5 — DARK Albert Sans + "Blaire" gradient — APPROVED 2026-07-08)
 
-**Superseded the earlier mono-ink direction.** Still mostly white, but a
-navy→teal→lime gradient palette (pulled from a Blaire serum product photo) is
-used as ACCENTS only — never a full-page wash. Font is **Albert Sans**
-(elegant geometric sans, self-hosted; replaces Instrument Sans/Serif).
+**Now a DARK theme** (v4 was the light version; superseded). Deep-navy base
+`#0b1026` with a high-contrast teal→lime glow matching the Blaire serum photo's
+chiaroscuro. Font **Albert Sans**. Rationale (color psychology): navy = trust
+(beats AI-skepticism, resonates with German buyers); dark makes the product
+photos glow like a gallery; a single lime CTA is the brightest thing on screen
+= maximum click salience; premium framing justifies the higher prices.
+
+Where the drama lives (high contrast, little text): the ambient hero glow and
+the bento `48h` gradient tile use the full navy→lime gradient. Text-heavy
+surfaces (contact panel) use solid navy + a corner glow so all copy stays AA.
+Featured price card = lighter navy `#16265c` with a lime border + lime "Beliebt"
+badge. Lime CTAs everywhere (dark ink text). Kicker/links = bright teal
+`#8ecfe0`. Every text element verified WCAG AA on the dark base (≥6.8:1).
+
+Tokens in the `.ai-page` block of `src/styles/ai-page.css` (`--ai-bg` dark,
+`--ai-gradient` high-contrast, `--ai-glow` brighter). SmartImage placeholders
+are dark slate so empty slots don't glare. This section replaces the v4
+white/accent description below — keep it for history but build to v5.
+
+--- (v4, superseded) Still mostly white, but a
 
 Application (Maria picked "ambient glow" + "lime accents"):
 - **Ambient hero glow**: a blurred radial navy/teal/lime behind the hero,
