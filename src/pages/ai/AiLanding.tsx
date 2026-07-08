@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Eye, Package, Play, ShieldCheck, Upload } from 'lucide-react';
+import { ArrowUpRight, Eye, Package, Play, Sparkles, Upload } from 'lucide-react';
 import { JsonLd } from '../../components/JsonLd';
 import { PrefetchLink } from '../../components/PrefetchLink';
 import { Seo, SITE_URL } from '../../components/Seo';
@@ -155,6 +155,7 @@ export const AiLanding = () => {
       <JsonLd id="ai-structured-data" data={aiStructuredData} />
 
       <div className="ai-page">
+        <div className="ai-grain" aria-hidden="true" />
         {/* NAV */}
         <header className="ai-nav">
           <div className="ai-nav__inner">
@@ -214,7 +215,8 @@ export const AiLanding = () => {
           </section>
 
           {/* BENTO */}
-          <motion.section className="ai-section" {...reveal}>
+          <motion.section className="ai-section ai-section--glow" {...reveal}>
+            <div className="ai-blob ai-blob--teal" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.bentoTitle)}</h2>
             <div className="ai-bento">
               <div className="ai-bento__ba">
@@ -288,7 +290,7 @@ export const AiLanding = () => {
               </div>
 
               <div className="ai-bento__bar">
-                <ShieldCheck size={22} strokeWidth={1.6} aria-hidden="true" />
+                <Sparkles size={22} strokeWidth={1.6} aria-hidden="true" />
                 <p>
                   <strong>{tx(T.guarantee)}</strong> {tx(T.guaranteeBody)}
                 </p>
@@ -358,7 +360,8 @@ export const AiLanding = () => {
           </motion.section>
 
           {/* PRICING */}
-          <motion.section className="ai-section" id="ai-preise" {...reveal}>
+          <motion.section className="ai-section ai-section--glow" id="ai-preise" {...reveal}>
+            <div className="ai-blob ai-blob--lime" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.pricingTitle)}</h2>
             {SCARCITY.foundingLeft > 0 ? (
               <p className="ai-sub">
@@ -416,7 +419,8 @@ export const AiLanding = () => {
           </motion.section>
 
           {/* FAQ */}
-          <motion.section className="ai-section" id="ai-faq" {...reveal}>
+          <motion.section className="ai-section ai-section--glow" id="ai-faq" {...reveal}>
+            <div className="ai-blob ai-blob--blue" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.faqTitle)}</h2>
             <div className="ai-faq">
               {FAQ.map((item, index) => {

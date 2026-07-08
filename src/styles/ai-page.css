@@ -51,8 +51,72 @@
   font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
   min-height: 100svh;
   overflow-x: clip; /* contain the hero glow bleed on all viewports */
+  position: relative; /* containing block for the grain overlay */
+  isolation: isolate; /* own stacking context so z-index:-1 decorations stay local */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- grain overlay ---------- */
+/* Tiny tiled feTurbulence noise, blended over the whole page. Gives the flat
+   navy texture and depth instead of reading as a solid digital fill. Kept
+   very low-opacity so it never affects text contrast. */
+.ai-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  inset: 0;
+  mix-blend-mode: overlay;
+  opacity: 0.05;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+/* ---------- ambient aurora blobs ---------- */
+/* Large, heavily blurred color orbs behind specific sections (bento, pricing,
+   FAQ) so the page has depth for the glass tiles to actually blur against.
+   A slow drift for motion-ok users; the site-wide reduced-motion rule below
+   already forces `animation: none`, freezing these in their static position. */
+@keyframes ai-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(3%, -4%) scale(1.06);
+  }
+}
+.ai-blob {
+  animation: ai-drift 22s ease-in-out infinite;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+.ai-blob--teal {
+  animation-delay: -3s;
+  background: radial-gradient(circle, rgba(95, 165, 195, 0.32), transparent 70%);
+  height: 420px;
+  right: -10%;
+  top: -8%;
+  width: 420px;
+}
+.ai-blob--lime {
+  animation-delay: -11s;
+  background: radial-gradient(circle, rgba(214, 222, 92, 0.24), transparent 70%);
+  bottom: -12%;
+  height: 380px;
+  left: -8%;
+  width: 380px;
+}
+.ai-blob--blue {
+  animation-delay: -7s;
+  background: radial-gradient(circle, rgba(39, 74, 134, 0.4), transparent 70%);
+  height: 460px;
+  right: 6%;
+  top: 10%;
+  width: 460px;
 }
 
 .ai-page *,
@@ -114,7 +178,6 @@
 }
 
 /* ---------- shared blocks ---------- */
-.ai-nav__inner,
 .ai-hero,
 .ai-section,
 .ai-footer {
@@ -127,12 +190,20 @@
   padding-block: var(--ai-section);
 }
 
+/* Sections that host an .ai-blob need their own stacking context so the
+   blob's negative z-index stays contained (doesn't drop behind the page bg). */
+.ai-section--glow {
+  isolation: isolate;
+  position: relative;
+}
+
 .ai-h2 {
   font-size: clamp(1.35rem, 3vw, 1.7rem);
   font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1.1;
   text-align: center;
+  text-wrap: balance;
 }
 
 .ai-sub {
@@ -147,6 +218,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.2em;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -163,7 +235,8 @@
   justify-content: center;
   line-height: 1;
   padding: 0.82rem 1.35rem;
-  transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, opacity 0.16s ease;
+  transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, opacity 0.16s ease,
+    box-shadow 0.16s ease;
   white-space: nowrap;
 }
 
@@ -182,13 +255,16 @@
 
 /* Variant colors are .ai-page-scoped so they beat `.ai-page a { color: inherit }`
    (single-class variants lose that specificity fight → black-on-black links).
-   Lime is the action color (dark ink text on it = AA). */
+   Lime is the action color (dark ink text on it = AA), with a soft bloom so
+   it reads as the one lit-up thing on a dark page. */
 .ai-page .ai-btn--solid {
   background: var(--ai-lime);
+  box-shadow: 0 4px 22px rgba(214, 222, 92, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   color: var(--ai-lime-ink);
 }
 .ai-page .ai-btn--solid:hover {
   background: #cad356;
+  box-shadow: 0 6px 30px rgba(214, 222, 92, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .ai-page .ai-btn--outline {
@@ -203,10 +279,12 @@
 /* On dark navy panels: lime button also works (dark text on lime). */
 .ai-page .ai-btn--invert {
   background: var(--ai-lime);
+  box-shadow: 0 4px 22px rgba(214, 222, 92, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   color: var(--ai-lime-ink);
 }
 .ai-page .ai-btn--invert:hover {
   background: #cad356;
+  box-shadow: 0 6px 30px rgba(214, 222, 92, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .ai-page .ai-btn--outline-light {
@@ -218,12 +296,10 @@
   border-color: rgba(255, 255, 255, 0.7);
 }
 
-/* ---------- nav ---------- */
+/* ---------- nav (floating glass pill, no edge-to-edge line) ---------- */
 .ai-nav {
-  background: rgba(11, 16, 38, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 0.5px solid var(--ai-border-soft);
+  padding: 0.85rem var(--ai-pad) 0;
+  pointer-events: none; /* clicks pass through the padding to whatever's beneath */
   position: sticky;
   top: 0;
   z-index: 40;
@@ -231,9 +307,20 @@
 
 .ai-nav__inner {
   align-items: center;
+  background: rgba(16, 24, 54, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.3); /* glass rim */
+  border-radius: 999px;
+  box-shadow: 0 10px 34px rgba(3, 6, 16, 0.35);
   display: flex;
   gap: 1.1rem;
+  margin-inline: auto;
+  max-width: 62rem;
   min-height: 3.4rem;
+  padding: 0.5rem 0.6rem 0.5rem 1.4rem;
+  pointer-events: auto;
 }
 
 .ai-nav__brand {
@@ -336,6 +423,9 @@
 }
 
 .ai-hero__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-inline: auto;
   max-width: 34rem;
 }
@@ -346,6 +436,8 @@
   letter-spacing: -0.032em;
   line-height: 1.02;
   margin-top: 0.6rem;
+  text-align: center;
+  text-wrap: balance; /* even line lengths instead of one ragged long line */
 }
 
 .ai-hero__sub {
@@ -354,6 +446,8 @@
   line-height: 1.55;
   margin: 1rem auto 0;
   max-width: 26rem;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .ai-hero__actions {
@@ -414,7 +508,12 @@
 
 .ai-bento__tile {
   background: var(--ai-fill);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.22); /* light catching the glass rim */
   border-radius: var(--ai-radius-card);
+  box-shadow: 0 10px 30px rgba(3, 6, 16, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   grid-column: span 2;
@@ -424,6 +523,9 @@
 
 .ai-bento__tile--dark {
   background: var(--ai-gradient);
+  backdrop-filter: none; /* opaque gradient — nothing behind it to blur */
+  border-color: rgba(255, 255, 255, 0.16);
+  border-top-color: rgba(255, 255, 255, 0.35);
   color: #fff;
 }
 .ai-bento__tile--dark .ai-bento__label {
@@ -515,7 +617,12 @@
 .ai-bento__bar {
   align-items: center;
   background: var(--ai-fill);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.22);
   border-radius: var(--ai-radius-card);
+  box-shadow: 0 10px 30px rgba(3, 6, 16, 0.28);
   display: flex;
   gap: 0.9rem;
   grid-column: span 6;
@@ -622,7 +729,12 @@
 }
 .ai-tier {
   background: var(--ai-fill-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.22);
   border-radius: var(--ai-radius-card);
+  box-shadow: 0 10px 30px rgba(3, 6, 16, 0.28);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1.25rem;
@@ -630,16 +742,21 @@
   text-align: center;
 }
 .ai-tier.is-featured {
-  background: #16265c;
-  border: 1px solid rgba(214, 222, 92, 0.35);
+  background: rgba(22, 38, 92, 0.55);
+  border: 1px solid rgba(214, 222, 92, 0.4);
+  border-top-color: rgba(214, 222, 92, 0.6);
+  box-shadow: 0 10px 34px rgba(214, 222, 92, 0.12), 0 10px 30px rgba(3, 6, 16, 0.3);
   color: #fff;
 }
 .ai-tier__badge {
-  background: var(--ai-lime);
+  background: rgba(214, 222, 92, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(214, 222, 92, 0.55);
   border-radius: 99px;
-  color: var(--ai-lime-ink);
+  color: var(--ai-lime);
   font-size: 0.66rem;
-  font-weight: 600;
+  font-weight: 700;
   left: 50%;
   padding: 0.25rem 0.9rem;
   position: absolute;
@@ -743,10 +860,13 @@
   background:
     radial-gradient(70% 60% at 88% 8%, rgba(95, 165, 195, 0.28), rgba(214, 222, 92, 0.1) 45%, transparent 72%),
     #0e1738;
-  border: 0.5px solid var(--ai-border-soft);
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.2); /* glass rim catching light */
   border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(3, 6, 16, 0.4);
   color: #fff;
   padding: clamp(2rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
+  position: relative;
   text-align: center;
 }
 .ai-contact__title {
@@ -767,9 +887,13 @@
   margin-top: 1.5rem;
 }
 .ai-contact__form {
-  background: rgba(255, 255, 255, 0.04);
-  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.28);
   border-radius: var(--ai-radius-card);
+  box-shadow: 0 14px 40px rgba(3, 6, 16, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   margin: 1.75rem auto 0;
   max-width: 34rem;
   padding: clamp(1.2rem, 3vw, 1.6rem);
@@ -810,12 +934,20 @@
 }
 .ai-field input,
 .ai-field select {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--ai-radius-btn);
   color: #fff;
   padding: 0.65rem 0.75rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
   width: 100%;
+}
+.ai-field input:focus,
+.ai-field select:focus {
+  border-color: var(--ai-accent);
+  box-shadow: 0 0 0 3px rgba(142, 207, 224, 0.28);
 }
 .ai-field input::placeholder {
   color: rgba(255, 255, 255, 0.35);
@@ -854,7 +986,10 @@
   height: 100%;
 }
 .ai-ba__frame {
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.22);
   border-radius: var(--ai-radius-card);
+  box-shadow: 0 10px 30px rgba(3, 6, 16, 0.28);
   cursor: ew-resize;
   height: 100%;
   min-height: 200px;

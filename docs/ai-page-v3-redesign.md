@@ -1,8 +1,10 @@
-# /ai v3 — Light One-Pager Redesign (build spec)
+# /ai v3 — One-Pager Redesign (build spec)
 
 **For the implementing agent:** this spec is the single source of truth. All decisions
-below were made with Maria — do not re-litigate them, do not add sections, do not
-switch back to a dark theme. The v2 code in `src/pages/ai/` is the starting point:
+below were made with Maria — do not re-litigate them, do not add sections. **The
+theme is now DARK (v5/v6, see bottom of file) — an earlier note here said "don't
+switch back to dark"; that was superseded 2026-07-08 when Maria asked for the dark
+"Blaire" gradient theme.** The v2 code in `src/pages/ai/` is the starting point:
 keep the architecture (data.ts / i18n.ts / components), restyle and restructure per
 this document. German is the default language; every visible string stays a
 `Copy = { en, de }` via the existing `c()` helper.
@@ -298,3 +300,63 @@ Ohneis-style demo videos (proof-as-content: each video teaches one trick while
 showing her output; ElevenLabs voiceover) → becomes the content engine for
 IG/TikTok + ads. Cold outreach kit (free test shoot as the hook). Firestore
 inquiries + admin inbox. English static route variant for crawlers.
+
+## 11. v6 — Glass & atmosphere pass (APPROVED 2026-07-08)
+
+Maria's reaction to v5 (dark navy, but flat/solid): "looks like antivirus
+software." She approved this fix list wholesale (items 1–7, 10–12; items 8
+"gradient text moment" and 9 "image ambient glow" explicitly deferred —
+**ask her again before adding them**, do not add unprompted):
+
+1. **Grain overlay** — `.ai-grain`, a tiny tiled feTurbulence-noise data-URI,
+   `mix-blend-mode: overlay`, opacity 0.05, `position:absolute; z-index:-1`
+   inside `.ai-page` (which has `isolation:isolate` so the negative z-index
+   stays contained instead of dropping behind the whole document).
+2. **Ambient aurora blobs** — 3 large blurred radial-gradient orbs
+   (`.ai-blob--teal/lime/blue`), one each behind the bento, pricing, and FAQ
+   sections (`.ai-section--glow` modifier adds `position:relative;
+   isolation:isolate`). Slow `ai-drift` keyframe animation; the existing
+   site-wide `@media (prefers-reduced-motion: reduce) { animation: none }`
+   rule freezes them automatically — no separate reduced-motion code needed.
+3. **Vignette** — covered by the blobs + existing hero glow; no separate
+   vignette layer was added.
+4. **Real glassmorphism on big surfaces** — bento tiles, the before/after
+   frame, the guarantee bar, pricing cards, and the contact form all got
+   `backdrop-filter: blur(20–24px)` + a translucent fill + a **light top
+   border** (`border-top-color: rgba(255,255,255,.2–.3)`, simulating light
+   catching a glass rim) + a soft drop shadow. The opaque gradient tile
+   (`.ai-bento__tile--dark`) explicitly keeps `backdrop-filter:none` (nothing
+   behind it to blur). Small elements (step icon badges, the facepile) stay
+   simple translucency, no blur — per Maria's "glass on big, simple on small."
+5. **Floating glass pill nav** — `.ai-nav` is now just a sticky positioning
+   shell (padding, no bg/border/line); `.ai-nav__inner` is the actual pill:
+   `border-radius:999px`, `max-width:62rem` (narrower than the content shell,
+   so it visibly floats), glass bg+blur+light-top-edge+shadow. Was previously
+   included in the shared full-width container rule — now styled standalone.
+6. **Glass form fields** — `.ai-field input/select` get a translucent bg +
+   `backdrop-filter:blur(8px)` + a teal glow ring on `:focus`
+   (`box-shadow: 0 0 0 3px rgba(142,207,224,.28)`), alongside the existing
+   white focus outline (both fire; not a conflict).
+7. **Lime CTA bloom** — `.ai-btn--solid` / `--invert` get a colored glow
+   (`box-shadow` in lime) + an inset top highlight, intensifying on `:hover`.
+   `box-shadow` was added to the shared `.ai-btn` transition list so the bloom
+   animates smoothly. The sticky mobile CTA already had this from v5.
+8. ~~Gradient text moment~~ — **deferred, ask Maria before implementing.**
+9. ~~Image ambient glow (backlight effect behind photos)~~ — **deferred, ask
+   Maria before implementing.**
+10. **Nav line removed** — solved by #5 (no more `border-bottom` on `.ai-nav`).
+11. **Hero centering fixed** — `.ai-hero__title`/`.ai-hero__sub`/`.ai-kicker`
+    get explicit `text-align:center` + `text-wrap:balance` (even line lengths
+    instead of one ragged long line); `.ai-hero__intro` is now a centered flex
+    column. `.ai-h2` (section headings) got `text-wrap:balance` too for
+    consistency.
+12. **De-antivirus details** — the guarantee-bar icon changed from
+    `ShieldCheck` (literal security-software iconography) to `Sparkles`
+    (lucide-react). The pricing "Beliebt" badge changed from a solid lime
+    chip to a glass pill (translucent lime bg + blur + lime border/text).
+
+Verified after this pass: full WCAG AA contrast re-sweep on every text
+element including the new glass surfaces (all ≥6.8:1), zero real horizontal
+scroll (blobs intentionally exceed the viewport but `.ai-page{overflow-x:clip}`
+contains them — this is expected, not a bug), no console errors, `npm run
+check` clean.
