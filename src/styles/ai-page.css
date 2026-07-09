@@ -48,6 +48,7 @@
 
   background: var(--ai-bg);
   color: var(--ai-fg);
+  color-scheme: dark; /* native scrollbars, selects, autofill match the dark page */
   font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
   min-height: 100svh;
   overflow-x: clip; /* contain the hero glow bleed on all viewports */
@@ -55,6 +56,19 @@
   isolation: isolate; /* own stacking context so z-index:-1 decorations stay local */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Brand text selection — small premium tell. */
+.ai-page ::selection {
+  background: var(--ai-lime);
+  color: var(--ai-lime-ink);
+}
+
+/* Anchor targets must clear the floating pill nav, or section headings land
+   hidden underneath it after an in-page jump. */
+.ai-page [id] {
+  scroll-margin-top: 5.25rem;
 }
 
 /* ---------- grain overlay ---------- */
@@ -519,6 +533,12 @@
   grid-column: span 2;
   min-height: 150px;
   padding: 1.15rem;
+  transition: transform 0.25s ease, border-top-color 0.25s ease, box-shadow 0.25s ease;
+}
+.ai-bento__tile:hover {
+  border-top-color: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 14px 38px rgba(3, 6, 16, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
 }
 
 .ai-bento__tile--dark {
@@ -534,6 +554,7 @@
 
 .ai-bento__num {
   font-size: clamp(2rem, 4vw, 2.4rem);
+  font-variant-numeric: tabular-nums; /* no digit jitter during count-up */
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -740,6 +761,11 @@
   padding: 1.5rem 1.25rem;
   position: relative;
   text-align: center;
+  transition: transform 0.25s ease, border-top-color 0.25s ease, box-shadow 0.25s ease;
+}
+.ai-tier:hover {
+  border-top-color: rgba(255, 255, 255, 0.38);
+  transform: translateY(-3px);
 }
 .ai-tier.is-featured {
   background: rgba(22, 38, 92, 0.55);
@@ -769,6 +795,7 @@
 }
 .ai-tier__price {
   font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
   letter-spacing: -0.03em;
   margin-top: 0.7rem;

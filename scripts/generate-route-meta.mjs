@@ -48,6 +48,7 @@ const ROUTES = [
     description:
       'Kampagnenreife KI-Fotoshootings mit konsistenten Model-Identitäten — art-direktiert von einem Menschen, geliefert in Tagen. Stills und Motion für E-Commerce-, Produkt- und Fashion-Marken.',
     image: '/og/ai.jpg',
+    locale: 'de_DE',
   },
   {
     route: '/impressum',
@@ -98,12 +99,15 @@ const replaceOrThrow = (html, pattern, replacement, label, route) => {
 
 const base = await readFile(path.join(dist, 'index.html'), 'utf8');
 
-for (const { route, title, description, image, type = 'website' } of ROUTES) {
+for (const { route, title, description, image, type = 'website', locale } of ROUTES) {
   const t = escapeHtml(title);
   const d = escapeHtml(description);
   const url = `${SITE_URL}${route}`;
   const img = `${SITE_URL}${image}`;
   let html = base;
+  if (locale) {
+    html = replaceOrThrow(html, /(<meta property="og:locale" content=")[^"]*(")/, `$1${locale}$2`, 'og:locale', route);
+  }
   html = replaceOrThrow(html, /<title>[^<]*<\/title>/, `<title>${t}</title>`, '<title>', route);
   html = replaceOrThrow(html, /(<meta name="description" content=")[^"]*(")/, `$1${d}$2`, 'description', route);
   html = replaceOrThrow(html, /(<meta property="og:title" content=")[^"]*(")/, `$1${t}$2`, 'og:title', route);

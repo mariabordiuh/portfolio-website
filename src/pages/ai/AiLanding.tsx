@@ -72,7 +72,6 @@ const T = {
   pricingScarcity: c('{n} of {t} founding rates left.', 'Noch {n} von {t} Founding-Preisen frei.'),
   from: c('From', 'Ab'),
   later: c('Founding rate', 'Founding-Preis'),
-  free: c('€0', '€0'),
   forStart: c('To get started.', 'Für den Anfang.'),
   faqTitle: c('The questions buyers actually ask.', 'Die Fragen, die wirklich gestellt werden.'),
   footerTagline: c('An art-director-led AI photo studio — Hamburg.', 'KI-Fotostudio, geführt von einer Art Directorin — Hamburg.'),
@@ -85,6 +84,11 @@ const STEP_ICONS = [Upload, Eye, Package];
 const fill = (template: string, values: Record<string, string | number>) =>
   template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
 
+// German currency convention puts the symbol after the number ("340 €"),
+// English before ("€340") — a small tell that separates local from template.
+const formatPrice = (value: number, lang: 'en' | 'de') =>
+  lang === 'de' ? `${value} €` : `€${value}`;
+
 export const AiLanding = () => {
   const prefersReducedMotion = useReducedMotion() ?? false;
   const { lang, setLang, tx } = useLang();
@@ -95,6 +99,18 @@ export const AiLanding = () => {
   const [demoFailed, setDemoFailed] = useState(false);
   const motionVideoRef = useRef<HTMLVideoElement>(null);
   const demoVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Mobile browser chrome (address bar) should match the dark page instead of
+  // the portfolio's near-black — restore the original on unmount.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const previous = meta.getAttribute('content');
+    meta.setAttribute('content', '#0b1026');
+    return () => {
+      if (previous) meta.setAttribute('content', previous);
+    };
+  }, []);
 
   // Media error events can fire before React's onError listener attaches
   // (missing files come back as 200/text-html via the SPA rewrite, failing
@@ -382,10 +398,10 @@ export const AiLanding = () => {
                     <p className="ai-tier__name">{tx(tier.name)}</p>
                     <p className="ai-tier__price">
                       {isFree ? (
-                        tx(T.free)
+                        formatPrice(0, lang)
                       ) : (
                         <>
-                          {tx(T.from)} €{tier.price.founding}
+                          {tx(T.from)} {formatPrice(tier.price.founding ?? 0, lang)}
                           {tier.priceSuffix ? tx(tier.priceSuffix) : ''}
                           <sup>3</sup>
                         </>
@@ -396,7 +412,7 @@ export const AiLanding = () => {
                         tx(T.forStart)
                       ) : showFounding && tier.price.regular != null ? (
                         <>
-                          <s>€{tier.price.regular}</s> — {tx(T.later)}
+                          <s>{formatPrice(tier.price.regular, lang)}</s> — {tx(T.later)}
                         </>
                       ) : (
                         tx(T.later)

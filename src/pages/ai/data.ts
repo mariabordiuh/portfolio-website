@@ -160,7 +160,7 @@ export const FOOTNOTES: Copy[] = [
 // The one-line pointer to the Signature tier that sits under the price cards.
 export const SIGNATURE_LINK = c(
   'Want your own model that belongs to you forever? Signature — from €790/month ›',
-  'Ihr eigenes Model, das Ihnen für immer gehört? Signature — ab €790/Monat ›',
+  'Ihr eigenes Model, das Ihnen für immer gehört? Signature — ab 790 €/Monat ›',
 );
 
 // Personal sign-off in the dark contact panel. Text only — no photo/avatar
