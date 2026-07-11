@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PrefetchLink } from './PrefetchLink';
 import { PUBLIC_SHELL_CLASS } from '../lib/layout';
+import { readInitialLang, type Lang } from '../pages/ai/i18n';
 import {
   ANALYTICS_CONSENT_OPEN_EVENT,
   denyAnalyticsConsent,
@@ -12,10 +13,28 @@ import {
   type AnalyticsConsentChoice,
 } from '../lib/google-analytics';
 
+// Bilingual copy for the /ai variant only — read once on mount (no live sync
+// with the page's own language toggle; correct on load, which covers the
+// overwhelming case). Deliberately NOT using useLang(): that hook mutates
+// document.documentElement.lang and resets it on unmount, which is fine
+// scoped to the /ai page itself but wrong for this banner, since it mounts
+// on every route and would corrupt <html lang> everywhere else.
+const AI_COPY = {
+  body: {
+    en: 'We use simple analytics to see what people actually visit. That’s all.',
+    de: 'Wir nutzen einfache Analytics, um zu sehen, was Besucher wirklich interessiert. Das ist alles.',
+  },
+  details: { en: 'Details in', de: 'Details in' },
+  accept: { en: 'Accept', de: 'Akzeptieren' },
+  decline: { en: 'Decline', de: 'Ablehnen' },
+} as const satisfies Record<string, Record<Lang, string>>;
+
 export const AnalyticsConsentBanner = () => {
   const location = useLocation();
   const [consentChoice, setConsentChoice] = useState<AnalyticsConsentChoice | null>(null);
   const isHomePage = location.pathname === '/';
+  const isAiRoute = location.pathname === '/ai';
+  const [aiLang] = useState<Lang>(readInitialLang);
 
   useEffect(() => {
     setConsentChoice(getStoredAnalyticsConsent());
@@ -95,6 +114,50 @@ export const AnalyticsConsentBanner = () => {
       </div>
     </div>
   );
+
+  if (isAiRoute) {
+    const aiBannerCard = (
+      <div
+        className="relative overflow-hidden rounded-[18px] border border-white/15 bg-white/[0.06] p-4 shadow-[0_14px_40px_rgba(3,6,16,0.3),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-2xl"
+        style={{ fontFamily: "'Albert Sans', ui-sans-serif, system-ui, sans-serif" }}
+      >
+        <h2 className="text-[0.92rem] font-semibold leading-snug text-[#eef1f8]">
+          {AI_COPY.body[aiLang]}
+        </h2>
+        <p className="mt-2.5 text-[12px] leading-relaxed text-[#eef1f8]/[0.62]">
+          {AI_COPY.details[aiLang]}{' '}
+          <PrefetchLink to="/datenschutz" className="font-medium text-[#8ecfe0] underline underline-offset-4">
+            Datenschutz
+          </PrefetchLink>
+          .
+        </p>
+        <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => handleChoice('accepted')}
+            className="rounded-[8px] bg-[#d6de5c] px-4 py-2.5 text-[12.5px] font-medium text-[#2c3208] shadow-[0_4px_22px_rgba(214,222,92,0.35),inset_0_1px_0_rgba(255,255,255,0.5)] transition-colors hover:bg-[#cad356]"
+          >
+            {AI_COPY.accept[aiLang]}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleChoice('rejected')}
+            className="rounded-[8px] border border-white/18 bg-transparent px-4 py-2.5 text-[12.5px] font-medium text-[#eef1f8] transition-colors hover:bg-white/[0.055]"
+          >
+            {AI_COPY.decline[aiLang]}
+          </button>
+        </div>
+      </div>
+    );
+
+    return (
+      // Mobile bottom offset clears /ai's own sticky "Gratis-Test" pill
+      // (CSS shows that pill below 40rem/640px — sm: matches that exactly).
+      <div className="fixed inset-x-4 bottom-[6.5rem] z-[140] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:max-w-[24rem]">
+        {aiBannerCard}
+      </div>
+    );
+  }
 
   if (!isHomePage) {
     return (

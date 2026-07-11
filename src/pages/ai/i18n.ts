@@ -9,7 +9,11 @@ const STORAGE_KEY = 'mb-ai-lang';
 
 // German is the default — the target market is DACH. ?lang=en or the
 // visible toggle switches; the choice persists in localStorage.
-const readInitialLang = (): Lang => {
+// Exported (read-only, no side effects) so other components sharing this
+// page — e.g. the global cookie banner — can match the visitor's language
+// without touching `document.documentElement.lang` themselves; only
+// `useLang` below (used by the page itself) should own that side effect.
+export const readInitialLang = (): Lang => {
   if (typeof window === 'undefined') return 'de';
   const param = new URLSearchParams(window.location.search).get('lang');
   if (param === 'de' || param === 'en') return param;
