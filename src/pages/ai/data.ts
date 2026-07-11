@@ -8,6 +8,10 @@ import { c, type Copy } from './i18n';
 // ------------------------------------------------------------
 // Booking
 // ------------------------------------------------------------
+// Calendly scheduling page, e.g. 'https://calendly.com/mariabordiuh/15-min-intro'.
+// Preferred over CAL_LINK when both are set. Leave '' to fall back to Cal.com,
+// then to the email link if neither is set.
+export const CALENDLY_LINK = 'https://calendly.com/mariabordiuh/15-min-intro';
 // Cal.com link, e.g. 'mariabordiuh/intro'. Leave '' until the account
 // exists — the page then shows the email/form path only.
 export const CAL_LINK = '';

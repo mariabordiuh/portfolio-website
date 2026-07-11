@@ -651,9 +651,12 @@
 }
 .ai-bento__bar p {
   color: var(--ai-fg-muted);
+  flex: 1 1 auto; /* stretch to fill the bar instead of shrinking to content width */
   font-size: 0.85rem;
   line-height: 1.45;
-  max-width: 62ch;
+  min-width: 0; /* let a flex child actually wrap instead of overflowing */
+  /* No max-width: this bar spans the full 6-column bento width, so the text
+     should fill it (a ch-based cap here left roughly half the bar empty). */
 }
 .ai-bento__bar strong {
   color: var(--ai-fg);
@@ -872,7 +875,8 @@
   font-size: 0.9rem;
   line-height: 1.6;
   padding: 0 0.25rem 1.1rem;
-  max-width: 34rem;
+  /* No max-width here: the outer .ai-faq column (40rem) already sets the
+     reading measure — an extra inner cap left an asymmetric empty gap. */
 }
 
 /* ---------- contact (dark panel) ---------- */
@@ -913,7 +917,17 @@
   justify-content: center;
   margin-top: 1.5rem;
 }
-.ai-contact__form {
+/* Two glass panels side by side: the Calendly embed and the test-shoot form.
+   Both share .ai-contact__panel for the glass chrome. */
+.ai-contact__panels {
+  display: grid;
+  gap: var(--ai-gap);
+  grid-template-columns: 1fr 1fr;
+  margin: 1.75rem auto 0;
+  max-width: 68rem;
+  text-align: left;
+}
+.ai-contact__panel {
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -921,10 +935,25 @@
   border-top-color: rgba(255, 255, 255, 0.28);
   border-radius: var(--ai-radius-card);
   box-shadow: 0 14px 40px rgba(3, 6, 16, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  margin: 1.75rem auto 0;
-  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
   padding: clamp(1.2rem, 3vw, 1.6rem);
-  text-align: left;
+}
+.ai-contact__panel--cal {
+  min-height: 26rem;
+}
+.ai-contact__cal-frame {
+  border: 0;
+  border-radius: 12px;
+  flex: 1;
+  margin-top: 0.9rem;
+  min-height: 38rem;
+  width: 100%;
+}
+.ai-page .ai-contact__cal-open {
+  color: var(--ai-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .ai-contact__form-head {
   margin-bottom: 1rem;
@@ -1209,6 +1238,12 @@
   .ai-tier__badge {
     left: 1.25rem;
     transform: none;
+  }
+  .ai-contact__panels {
+    grid-template-columns: 1fr;
+  }
+  .ai-contact__cal-frame {
+    min-height: 44rem;
   }
 }
 
