@@ -17,6 +17,12 @@ One striking campaign image. Shows full-width under the headline.
   (the bento face-pile shows the first 3; add the rest if you like)
 - clara-portrait.jpg, zuri-portrait.jpg, jonas-portrait.jpg
 
+### roster/{id}-output-1.jpg, {id}-output-2.jpg (1:1 square) — the "Meet the roster" proof shots
+For each identity, two campaign shots (different product/context, SAME face)
+sitting right under the portrait — this is what actually proves "consistent
+models" instead of just claiming it. Optional: missing ones show a plain
+placeholder square, so add them whenever a real campaign uses that identity.
+
 ## sets/ — the "anything can look premium" gallery (3:4)
 - item-1.jpg … item-8.jpg
 Captions live in src/pages/ai/data.ts (SHOWCASE_ITEMS), current order:

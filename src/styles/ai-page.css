@@ -139,12 +139,16 @@
   box-sizing: border-box;
 }
 
-.ai-page h1,
-.ai-page h2,
-.ai-page h3,
-.ai-page p,
-.ai-page figure,
-.ai-page ul {
+/* :where() keeps this reset at near-zero specificity (element-only) so any
+   bare component class (e.g. .ai-hero__sub, .ai-scarcity) can set its own
+   margin without needing extra scoping to win — a plain `.ai-page p` ancestor
+   selector would out-specificity a single class and silently zero it out. */
+:where(.ai-page) h1,
+:where(.ai-page) h2,
+:where(.ai-page) h3,
+:where(.ai-page) p,
+:where(.ai-page) figure,
+:where(.ai-page) ul {
   margin: 0;
 }
 
@@ -234,6 +238,25 @@
   letter-spacing: 0.2em;
   text-align: center;
   text-transform: uppercase;
+}
+
+/* Scarcity/urgency pill — deliberately distinct from .ai-sub: this is a
+   mechanic (real countdown), not a descriptive tagline, so it gets its own
+   accented badge treatment instead of blending into generic subtext. */
+.ai-scarcity {
+  align-items: center;
+  background: rgba(214, 222, 92, 0.12);
+  border: 1px solid rgba(214, 222, 92, 0.35);
+  border-radius: 99px;
+  color: var(--ai-lime);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 0.4rem;
+  justify-content: center;
+  margin: 0.9rem auto 0;
+  padding: 0.4rem 0.95rem;
+  width: fit-content;
 }
 
 /* ---------- buttons ---------- */
@@ -500,6 +523,7 @@
   background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   bottom: 14px;
+  color: var(--ai-bg);
   font-size: 0.72rem;
   font-weight: 500;
   left: 16px;
@@ -693,6 +717,154 @@
   margin-top: 0.5rem;
 }
 
+/* ---------- roster carousel (consistency proof) ---------- */
+.ai-carousel {
+  margin-top: 1.6rem;
+  position: relative;
+}
+.ai-roster {
+  display: flex;
+  gap: var(--ai-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: auto; /* JS drives the auto-flow scroll; arrow clicks opt into smooth inline */
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.ai-roster::-webkit-scrollbar {
+  display: none;
+}
+.ai-roster__card {
+  background: var(--ai-fill-2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ai-border-soft);
+  border-top-color: rgba(255, 255, 255, 0.22);
+  border-radius: var(--ai-radius-card);
+  box-shadow: 0 10px 30px rgba(3, 6, 16, 0.28);
+  flex: 0 0 clamp(190px, 25vw, 270px);
+  overflow: hidden;
+  transition: transform 0.25s ease, border-top-color 0.25s ease;
+}
+.ai-roster__card:hover {
+  border-top-color: rgba(255, 255, 255, 0.38);
+  transform: translateY(-3px);
+}
+.ai-carousel__arrow {
+  align-items: center;
+  background: rgba(11, 16, 38, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--ai-border-strong);
+  border-radius: 50%;
+  color: var(--ai-fg);
+  cursor: pointer;
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  width: 38px;
+  z-index: 2;
+}
+.ai-carousel__arrow:hover {
+  background: rgba(11, 16, 38, 0.9);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.ai-carousel__arrow:active {
+  transform: translateY(-50%) scale(0.94);
+}
+.ai-carousel__arrow--prev {
+  left: -0.9rem;
+}
+.ai-carousel__arrow--next {
+  right: -0.9rem;
+}
+@media (max-width: 40rem) {
+  .ai-carousel__arrow {
+    display: none; /* swipe/drag covers it on touch; arrows would sit on top of cards at this width */
+  }
+}
+.ai-roster__portrait {
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+.ai-roster__portrait-img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+.ai-roster__proof {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: 1fr 1fr;
+}
+.ai-roster__proof-img {
+  aspect-ratio: 1 / 1;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+.ai-roster__body {
+  padding: 1.1rem 1.2rem 1.3rem;
+}
+.ai-roster__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.ai-roster__title {
+  color: var(--ai-accent);
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}
+.ai-roster__short {
+  color: var(--ai-fg-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: 0.55rem;
+}
+.ai-roster__card--custom {
+  align-items: center;
+  border-style: dashed;
+  border-color: var(--ai-border-strong);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 1.8rem 1.4rem;
+  text-align: center;
+}
+.ai-roster__custom-icon {
+  align-items: center;
+  background: rgba(214, 222, 92, 0.14);
+  border: 0.5px solid rgba(214, 222, 92, 0.35);
+  border-radius: 50%;
+  color: var(--ai-lime);
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+.ai-roster__card--custom .ai-roster__name {
+  margin-top: 0.9rem;
+}
+.ai-roster__card--custom .ai-roster__short {
+  margin-bottom: 0.9rem;
+}
+.ai-ph--roster {
+  aspect-ratio: 1 / 1;
+  background: #202b52;
+  width: 100%;
+}
+.ai-ph--rosterproof {
+  aspect-ratio: 1 / 1;
+  background: #1b2547;
+  width: 100%;
+}
+
 /* ---------- demo video (Ohneis-style slot) ---------- */
 .ai-demo__frame {
   border-radius: 20px;
@@ -816,16 +988,36 @@
 .ai-tier__meta s {
   opacity: 0.8;
 }
-.ai-tier__blurb {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 0.9rem 0 1.2rem;
-  opacity: 0.85;
+.ai-tier__bullets {
+  border-top: 0.5px solid var(--ai-border-soft);
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.1rem 0 1.3rem;
+  padding-top: 1rem;
+  text-align: left;
 }
-.ai-tier.is-featured .ai-tier__blurb,
+.ai-tier__bullets li {
+  align-items: flex-start;
+  color: var(--ai-fg-muted);
+  display: flex;
+  font-size: 0.82rem;
+  gap: 0.55rem;
+  line-height: 1.4;
+}
+.ai-tier__bullets svg {
+  color: var(--ai-lime);
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
 .ai-tier.is-featured .ai-tier__meta {
   color: rgba(255, 255, 255, 0.72);
   opacity: 1;
+}
+.ai-tier.is-featured .ai-tier__bullets {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+.ai-tier.is-featured .ai-tier__bullets li {
+  color: rgba(255, 255, 255, 0.82);
 }
 .ai-tier .ai-btn {
   margin-top: auto;
@@ -1074,7 +1266,7 @@
   background: rgba(255, 255, 255, 0.92);
   border-radius: 8px;
   bottom: 12px;
-  color: var(--ai-fg);
+  color: var(--ai-bg);
   font-size: 0.66rem;
   font-weight: 500;
   padding: 0.3rem 0.65rem;
@@ -1106,7 +1298,7 @@
   align-items: center;
   background: #fff;
   border-radius: 50%;
-  color: var(--ai-fg);
+  color: var(--ai-bg);
   display: flex;
   font-size: 0.85rem;
   height: 32px;
@@ -1253,6 +1445,9 @@
   }
   .ai-bento__tile {
     grid-column: span 6;
+  }
+  .ai-roster__card {
+    flex-basis: 76vw;
   }
   .ai-field-row {
     grid-template-columns: 1fr;

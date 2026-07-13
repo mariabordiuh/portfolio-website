@@ -1,11 +1,12 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Eye, Package, Play, Sparkles, Upload } from 'lucide-react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, Check, ChevronLeft, ChevronRight, Eye, Flame, Package, Play, Sparkles, Upload, UserPlus } from 'lucide-react';
 import { JsonLd } from '../../components/JsonLd';
 import { PrefetchLink } from '../../components/PrefetchLink';
 import { Seo, SITE_URL } from '../../components/Seo';
 import '../../styles/ai-page.css';
 import {
+  CUSTOM_IDENTITY,
   FAQ,
   FOOTNOTES,
   MODELS_CAPTION,
@@ -49,7 +50,7 @@ const T = {
   ),
   ctaPrimary: c('Get a free test shoot', 'Gratis-Testshooting starten'),
   ctaCall: c('Book a 15-min call ›', '15-Min-Call buchen ›'),
-  heroCaption: c('Hero campaign — Zuri for a workwear brand', 'Hero-Kampagne — Zuri für eine Workwear-Marke'),
+  heroCaption: c('Hero campaign — Zuri for an activewear brand', 'Hero-Kampagne — Zuri für eine Activewear-Marke'),
   bentoTitle: c('Why it works.', 'Warum es funktioniert.'),
   baChip: c('Before → after. Drag it yourself.', 'Vorher → Nachher. Ziehen Sie selbst.'),
   baBefore: c('Your photo', 'Ihr Foto'),
@@ -62,6 +63,12 @@ const T = {
   ),
   galleryTitle: c('Anything can look premium.', 'Alles kann premium aussehen.'),
   gallerySub: c('Fashion is easy. The interesting part is everything else.', 'Fashion ist einfach. Interessant wird es bei allem anderen.'),
+  rosterTitle: c('Meet the roster.', 'Das Roster.'),
+  rosterSub: c(
+    'Same identity, every time — not a new face per shoot.',
+    'Dieselbe Identität, jedes Mal — kein neues Gesicht pro Shooting.',
+  ),
+  rosterCustomCta: c('Build a custom identity', 'Eigene Identität anfragen'),
   stepsTitle: c('Three steps. No surprises.', 'Drei Schritte. Keine Überraschungen.'),
   steps: [
     { title: c('Send a photo', 'Foto schicken'), body: c('A phone photo is enough.', 'Ein Handyfoto reicht völlig.') },
@@ -132,6 +139,38 @@ export const AiLanding = () => {
       unbindDemo();
     };
   }, []);
+
+  // Roster carousel — auto-flows slowly, pauses on hover, and stops for good
+  // the moment a visitor drags or clicks an arrow (never fights a manual
+  // scroll by resuming under them). The track renders the roster twice back
+  // to back so the wrap-around loop is seamless.
+  const rosterTrackRef = useRef<HTMLDivElement>(null);
+  const rosterHoverRef = useRef(false);
+  const rosterInteractedRef = useRef(false);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const track = rosterTrackRef.current;
+    if (!track) return;
+    let raf: number;
+    const step = () => {
+      if (!rosterHoverRef.current && !rosterInteractedRef.current) {
+        const half = track.scrollWidth / 2;
+        track.scrollLeft += 0.5;
+        if (track.scrollLeft >= half) {
+          track.scrollLeft -= half;
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [prefersReducedMotion]);
+
+  const scrollRoster = (direction: 1 | -1) => {
+    rosterInteractedRef.current = true;
+    rosterTrackRef.current?.scrollBy({ left: direction * 280, behavior: 'smooth' });
+  };
 
   const reveal = prefersReducedMotion
     ? {}
@@ -333,6 +372,103 @@ export const AiLanding = () => {
             </div>
           </motion.section>
 
+          {/* ROSTER — proves "consistent models" isn't just a claim: each card
+              pairs the identity's portrait with 2 in-campaign shots of the
+              same face. Output shots are optional (SmartImage placeholder
+              fallback) so the section works today and fills in as Maria
+              adds /ai/roster/{id}-output-1.jpg / -output-2.jpg.
+              Deliberately name-only — no "best used for" copy per face; see
+              the note on ROSTER in data.ts for why.
+              Renders as an auto-flowing carousel: the sequence is duplicated
+              back to back so the rAF-driven scroll (see rosterTrackRef effect
+              above) can loop seamlessly; arrows + hover-pause + drag all work
+              on the single underlying scroll container. */}
+          <motion.section className="ai-section" {...reveal}>
+            <h2 className="ai-h2">{tx(T.rosterTitle)}</h2>
+            <p className="ai-sub">{tx(T.rosterSub)}</p>
+            <div
+              className="ai-carousel"
+              onMouseEnter={() => {
+                rosterHoverRef.current = true;
+              }}
+              onMouseLeave={() => {
+                rosterHoverRef.current = false;
+              }}
+            >
+              <button
+                type="button"
+                className="ai-carousel__arrow ai-carousel__arrow--prev"
+                onClick={() => scrollRoster(-1)}
+                aria-label={tx(c('Previous', 'Zurück'))}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div
+                className="ai-roster"
+                ref={rosterTrackRef}
+                onPointerDown={() => {
+                  rosterInteractedRef.current = true;
+                }}
+                onWheel={() => {
+                  rosterInteractedRef.current = true;
+                }}
+              >
+                {[0, 1].map((loop) => (
+                  <Fragment key={loop}>
+                    {ROSTER.map((identity) => (
+                      <article key={`${identity.id}-${loop}`} className="ai-roster__card">
+                        <div className="ai-roster__portrait">
+                          <SmartImage
+                            src={`/ai/roster/${identity.id}-portrait.jpg`}
+                            alt={identity.name}
+                            className="ai-roster__portrait-img"
+                            placeholderClassName="ai-ph--roster"
+                          />
+                        </div>
+                        <div className="ai-roster__proof" aria-hidden="true">
+                          <SmartImage
+                            src={`/ai/roster/${identity.id}-output-1.jpg`}
+                            alt=""
+                            className="ai-roster__proof-img"
+                            placeholderClassName="ai-ph--rosterproof"
+                          />
+                          <SmartImage
+                            src={`/ai/roster/${identity.id}-output-2.jpg`}
+                            alt=""
+                            className="ai-roster__proof-img"
+                            placeholderClassName="ai-ph--rosterproof"
+                          />
+                        </div>
+                        <div className="ai-roster__body">
+                          <p className="ai-roster__name">{identity.name}</p>
+                        </div>
+                      </article>
+                    ))}
+                    <article key={`custom-${loop}`} className="ai-roster__card ai-roster__card--custom">
+                      <span className="ai-roster__custom-icon" aria-hidden="true">
+                        <UserPlus size={19} strokeWidth={1.7} />
+                      </span>
+                      <p className="ai-roster__name">{tx(CUSTOM_IDENTITY.name)}</p>
+                      <p className="ai-roster__title">{tx(CUSTOM_IDENTITY.badge)}</p>
+                      <p className="ai-roster__short">{tx(CUSTOM_IDENTITY.short)}</p>
+                      <a className="ai-btn ai-btn--outline ai-btn--block" href="#ai-kontakt">
+                        {tx(T.rosterCustomCta)}
+                      </a>
+                    </article>
+                  </Fragment>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="ai-carousel__arrow ai-carousel__arrow--next"
+                onClick={() => scrollRoster(1)}
+                aria-label={tx(c('Next', 'Weiter'))}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </motion.section>
+
           {/* DEMO VIDEO (Ohneis-style; hidden until /ai/demo.mp4 exists) */}
           {!demoFailed ? (
             <motion.section className="ai-section ai-demo" {...reveal}>
@@ -380,7 +516,8 @@ export const AiLanding = () => {
             <div className="ai-blob ai-blob--lime" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.pricingTitle)}</h2>
             {SCARCITY.foundingLeft > 0 ? (
-              <p className="ai-sub">
+              <p className="ai-scarcity">
+                <Flame size={13} strokeWidth={2.2} aria-hidden="true" />
                 {fill(tx(T.pricingScarcity), { n: SCARCITY.foundingLeft, t: SCARCITY.foundingTotal })}
               </p>
             ) : null}
@@ -418,7 +555,14 @@ export const AiLanding = () => {
                         tx(T.later)
                       )}
                     </p>
-                    <p className="ai-tier__blurb">{tx(tier.blurb)}</p>
+                    <ul className="ai-tier__bullets">
+                      {tier.bullets.map((bullet) => (
+                        <li key={tx(bullet)}>
+                          <Check size={14} strokeWidth={2.4} aria-hidden="true" />
+                          {tx(bullet)}
+                        </li>
+                      ))}
+                    </ul>
                     <a
                       className={`ai-btn ai-btn--block ${tier.featured ? 'ai-btn--invert' : 'ai-btn--outline'}`}
                       href={tier.id === 'test' ? '#ai-test-shoot' : '#ai-kontakt'}

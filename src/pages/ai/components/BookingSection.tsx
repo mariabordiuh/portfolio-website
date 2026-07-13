@@ -24,7 +24,7 @@ const COPY = {
   ),
   emailCta: c('Email us', 'Per E-Mail'),
   formTitle: c('Free test shoot', 'Gratis-Testshooting'),
-  formSub: c('1 product → 2 finished images in 48h.', '1 Produkt → 2 fertige Bilder in 48h.'),
+  formSub: c('1 product → 1 finished image in 48h.', '1 Produkt → 1 fertiges Bild in 48h.'),
   name: c('Name', 'Name'),
   email: c('Work email', 'Geschäftliche E-Mail'),
   product: c('Link to a product photo (or product page)', 'Link zu einem Produktfoto (oder Produktseite)'),
