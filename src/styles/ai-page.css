@@ -540,8 +540,12 @@
 }
 
 .ai-bento__ba {
+  /* aspect-ratio (not min-height) so the tile actually matches the 4:5
+     before/after photos — a bare min-height let the grid row size to the
+     shortest sibling (the 48h stat tile), squashing this to ~3.7:1 and
+     cropping ~80% of the image's height via object-fit:cover. */
+  aspect-ratio: 4 / 5;
   grid-column: span 4;
-  min-height: 200px;
 }
 
 .ai-bento__tile {
@@ -1521,7 +1525,6 @@
 @media (max-width: 60rem) {
   .ai-bento__ba {
     grid-column: span 6;
-    min-height: 220px;
   }
   .ai-bento__tile {
     grid-column: span 3;
