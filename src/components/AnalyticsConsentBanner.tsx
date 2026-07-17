@@ -119,7 +119,15 @@ export const AnalyticsConsentBanner = () => {
         className="relative overflow-hidden rounded-[18px] border border-white/15 bg-white/[0.06] p-4 shadow-[0_14px_40px_rgba(3,6,16,0.3),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-2xl"
         style={{ fontFamily: "'Albert Sans', ui-sans-serif, system-ui, sans-serif" }}
       >
-        <h2 className="text-[0.92rem] font-semibold leading-snug text-[#eef1f8]">
+        {/* Explicit font-family/case here: the site-wide `h1,h2,h3 { font-family:
+            var(--font-display); text-transform: uppercase }` rule in index.css
+            targets this element directly, so it wins over the *inherited*
+            Albert Sans from the wrapper's inline style — inheritance always
+            loses to any rule matching the element itself. */}
+        <h2
+          className="text-[0.92rem] font-semibold normal-case leading-snug text-[#eef1f8]"
+          style={{ fontFamily: "'Albert Sans', ui-sans-serif, system-ui, sans-serif" }}
+        >
           {AI_COPY.body[aiLang]}
         </h2>
         <p className="mt-2.5 text-[12px] leading-relaxed text-[#eef1f8]/[0.62]">
