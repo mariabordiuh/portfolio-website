@@ -215,6 +215,7 @@ export const SHOWCASE_ITEMS: Array<{ id: string; caption: Copy }> = [
   { id: '6', caption: c('Fine jewelry, macro', 'Feinschmuck, Makro') },
   { id: '7', caption: c('Sofa, interior scene', 'Sofa, Interior-Szene') },
   { id: '8', caption: c('Sneakers, catalogue', 'Sneaker, Katalog') },
+  { id: '9', caption: c('Lamp, interior lifestyle', 'Lampe, Interior-Lifestyle') },
 ];
 
 // ------------------------------------------------------------
