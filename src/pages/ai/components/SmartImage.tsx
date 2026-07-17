@@ -6,6 +6,9 @@ type SmartImageProps = {
   className?: string;
   placeholderClassName?: string;
   label?: string;
+  eager?: boolean; // for images that only mount once already requested by the
+  // user (e.g. a popup) — lazy-loading has nothing to defer there and would
+  // just add the browser's own heuristic delay on top of an already-waiting user.
 };
 
 /**
@@ -13,7 +16,7 @@ type SmartImageProps = {
  * the styled ai-placeholder frame so Maria can drop assets in by filename
  * without code changes (see public/ai/README.md).
  */
-export const SmartImage = ({ src, alt, className = '', placeholderClassName = '', label }: SmartImageProps) => {
+export const SmartImage = ({ src, alt, className = '', placeholderClassName = '', label, eager = false }: SmartImageProps) => {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -28,7 +31,7 @@ export const SmartImage = ({ src, alt, className = '', placeholderClassName = ''
     <img
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={eager ? 'eager' : 'lazy'}
       decoding="async"
       className={className}
       onError={() => setFailed(true)}

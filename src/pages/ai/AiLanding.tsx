@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Check, ChevronLeft, ChevronRight, Eye, Flame, Package, Play, Sparkles, Upload, UserPlus } from 'lucide-react';
+import { Fragment, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { ArrowUpRight, Check, ChevronLeft, ChevronRight, Eye, Flame, Package, Play, Sparkles, Upload, UserPlus, X } from 'lucide-react';
 import { JsonLd } from '../../components/JsonLd';
 import { PrefetchLink } from '../../components/PrefetchLink';
 import { Seo, SITE_URL } from '../../components/Seo';
@@ -171,6 +171,41 @@ export const AiLanding = () => {
     rosterInteractedRef.current = true;
     rosterTrackRef.current?.scrollBy({ left: direction * 280, behavior: 'smooth' });
   };
+
+  // Sedcard popup — click a roster card to see more shots of that identity.
+  // pointerStartRef distinguishes a tap from a carousel drag: only opens if
+  // the pointer barely moved between down and up.
+  const [openIdentity, setOpenIdentity] = useState<number | null>(null);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleCardPointerDown = (event: PointerEvent<HTMLElement>) => {
+    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+  };
+  const handleCardPointerUp = (event: PointerEvent<HTMLElement>, index: number) => {
+    const start = pointerStartRef.current;
+    if (start && Math.abs(event.clientX - start.x) < 8 && Math.abs(event.clientY - start.y) < 8) {
+      setOpenIdentity(index);
+    }
+  };
+  const navigateSedcard = (direction: 1 | -1) => {
+    setOpenIdentity((current) => (current === null ? current : (current + direction + ROSTER.length) % ROSTER.length));
+  };
+
+  useEffect(() => {
+    if (openIdentity === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenIdentity(null);
+      if (event.key === 'ArrowLeft') navigateSedcard(-1);
+      if (event.key === 'ArrowRight') navigateSedcard(1);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [openIdentity]);
 
   const reveal = prefersReducedMotion
     ? {}
@@ -415,8 +450,22 @@ export const AiLanding = () => {
               >
                 {[0, 1].map((loop) => (
                   <Fragment key={loop}>
-                    {ROSTER.map((identity) => (
-                      <article key={`${identity.id}-${loop}`} className="ai-roster__card">
+                    {ROSTER.map((identity, index) => (
+                      <div
+                        key={`${identity.id}-${loop}`}
+                        className="ai-roster__card ai-roster__card--clickable"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={tx(c(`See more of ${identity.name}`, `Mehr von ${identity.name} ansehen`))}
+                        onPointerDown={handleCardPointerDown}
+                        onPointerUp={(event) => handleCardPointerUp(event, index)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setOpenIdentity(index);
+                          }
+                        }}
+                      >
                         <div className="ai-roster__portrait">
                           <SmartImage
                             src={`/ai/roster/${identity.id}-portrait.jpg`}
@@ -424,6 +473,9 @@ export const AiLanding = () => {
                             className="ai-roster__portrait-img"
                             placeholderClassName="ai-ph--roster"
                           />
+                          <span className="ai-roster__view" aria-hidden="true">
+                            <Eye size={16} strokeWidth={1.8} />
+                          </span>
                         </div>
                         <div className="ai-roster__proof" aria-hidden="true">
                           <SmartImage
@@ -442,7 +494,7 @@ export const AiLanding = () => {
                         <div className="ai-roster__body">
                           <p className="ai-roster__name">{identity.name}</p>
                         </div>
-                      </article>
+                      </div>
                     ))}
                     <article key={`custom-${loop}`} className="ai-roster__card ai-roster__card--custom">
                       <span className="ai-roster__custom-icon" aria-hidden="true">
@@ -468,6 +520,76 @@ export const AiLanding = () => {
               </button>
             </div>
           </motion.section>
+
+          {/* SEDCARD POPUP — click a roster card to open. Named after the
+              modeling-industry "Sedcard"/comp card: one cover shot + a few
+              campaign shots of the same face on one sheet. Portrait + 3
+              output shots in a 2x2 grid; missing ones show the same
+              placeholder pattern as everywhere else on the page. */}
+          {openIdentity !== null ? (
+            // Backdrop dismiss-on-click; Escape is already handled by the
+            // window keydown listener in the openIdentity effect above.
+            <div
+              className="ai-sedcard-overlay"
+              role="presentation"
+              onClick={() => setOpenIdentity(null)}
+            >
+              {/* onClick here only stops the backdrop-close click from bubbling — not a real control. */}
+              {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+              <div
+                className="ai-sedcard"
+                role="dialog"
+                aria-modal="true"
+                aria-label={ROSTER[openIdentity].name}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  className="ai-sedcard__close"
+                  onClick={() => setOpenIdentity(null)}
+                  aria-label={tx(c('Close', 'Schließen'))}
+                >
+                  <X size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="ai-sedcard__nav ai-sedcard__nav--prev"
+                  onClick={() => navigateSedcard(-1)}
+                  aria-label={tx(c('Previous', 'Zurück'))}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="ai-sedcard__nav ai-sedcard__nav--next"
+                  onClick={() => navigateSedcard(1)}
+                  aria-label={tx(c('Next', 'Weiter'))}
+                >
+                  <ChevronRight size={18} />
+                </button>
+                <div className="ai-sedcard__grid">
+                  <SmartImage
+                    src={`/ai/roster/${ROSTER[openIdentity].id}-portrait.jpg`}
+                    alt={ROSTER[openIdentity].name}
+                    className="ai-sedcard__img"
+                    placeholderClassName="ai-ph--sedcard"
+                    eager
+                  />
+                  {[1, 2, 3].map((n) => (
+                    <SmartImage
+                      key={n}
+                      src={`/ai/roster/${ROSTER[openIdentity].id}-output-${n}.jpg`}
+                      alt=""
+                      className="ai-sedcard__img"
+                      placeholderClassName="ai-ph--sedcard"
+                      eager
+                    />
+                  ))}
+                </div>
+                <p className="ai-sedcard__name">{ROSTER[openIdentity].name}</p>
+              </div>
+            </div>
+          ) : null}
 
           {/* DEMO VIDEO (Ohneis-style; hidden until /ai/demo.mp4 exists) */}
           {!demoFailed ? (

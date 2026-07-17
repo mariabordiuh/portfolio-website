@@ -18,7 +18,7 @@ export const CAL_LINK = '';
 export const CONTACT_EMAIL = 'projects@mariabordiuh.com';
 // WhatsApp Business number in E.164, digits only, no + (e.g. '4915112345678').
 // Leave '' until the WhatsApp Business account exists — the button hides.
-export const WHATSAPP_NUMBER = '';
+export const WHATSAPP_NUMBER = '491622057749';
 
 // ------------------------------------------------------------
 // Scarcity — MUST stay truthful (EU consumer law + basic decency).

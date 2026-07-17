@@ -787,6 +787,9 @@
     display: none; /* swipe/drag covers it on touch; arrows would sit on top of cards at this width */
   }
 }
+.ai-roster__card--clickable {
+  cursor: pointer;
+}
 .ai-roster__portrait {
   aspect-ratio: 1 / 1;
   position: relative;
@@ -796,6 +799,28 @@
   height: 100%;
   object-fit: cover;
   width: 100%;
+}
+.ai-roster__view {
+  align-items: center;
+  background: rgba(11, 16, 38, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  height: 34px;
+  inset: 0;
+  justify-content: center;
+  margin: auto;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.2s ease;
+  width: 34px;
+}
+.ai-roster__card--clickable:hover .ai-roster__view,
+.ai-roster__card--clickable:focus-visible .ai-roster__view {
+  opacity: 1;
 }
 .ai-roster__proof {
   display: grid;
@@ -861,6 +886,90 @@
 }
 .ai-ph--rosterproof {
   aspect-ratio: 1 / 1;
+  background: #1b2547;
+  width: 100%;
+}
+
+/* ---------- sedcard popup ---------- */
+.ai-sedcard-overlay {
+  align-items: center;
+  background: rgba(5, 8, 20, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1.5rem;
+  position: fixed;
+  z-index: 200;
+}
+.ai-sedcard {
+  background: var(--ai-panel);
+  border: 1px solid var(--ai-border-strong);
+  border-radius: var(--ai-radius-card);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  max-width: 26rem;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.ai-sedcard__grid {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: 1fr 1fr;
+}
+.ai-sedcard__img {
+  aspect-ratio: 3 / 4;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+.ai-sedcard__name {
+  color: var(--ai-fg);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 1rem 1.25rem 1.25rem;
+  text-align: center;
+}
+.ai-sedcard__close,
+.ai-sedcard__nav {
+  align-items: center;
+  background: rgba(11, 16, 38, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--ai-border-strong);
+  border-radius: 50%;
+  color: var(--ai-fg);
+  cursor: pointer;
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  position: absolute;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+  width: 36px;
+  z-index: 2;
+}
+.ai-sedcard__close:hover,
+.ai-sedcard__nav:hover {
+  background: rgba(11, 16, 38, 0.9);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.ai-sedcard__close {
+  right: 0.6rem;
+  top: 0.6rem;
+}
+.ai-sedcard__nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ai-sedcard__nav--prev {
+  left: 0.6rem;
+}
+.ai-sedcard__nav--next {
+  right: 0.6rem;
+}
+.ai-ph--sedcard {
+  aspect-ratio: 3 / 4;
   background: #1b2547;
   width: 100%;
 }
