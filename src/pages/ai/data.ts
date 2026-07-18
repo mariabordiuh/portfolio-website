@@ -202,6 +202,18 @@ export const CUSTOM_IDENTITY = {
 };
 
 // ------------------------------------------------------------
+// Before / after pairs — /ai/before-after/{id}-before.jpg, {id}-after.jpg
+// (4:5, SAME crop/framing for both so the drag-reveal actually lines up).
+// Add/remove entries freely; the grid adapts. #1 has real photos; the rest
+// show placeholders until matching files exist.
+// ------------------------------------------------------------
+export const BEFORE_AFTER: Array<{ id: string; label: Copy }> = [
+  { id: '1', label: c('Shop photo → studio shot', 'Ladenfoto → Studioaufnahme') },
+  { id: '2', label: c('Product photo → campaign hero', 'Produktfoto → Kampagnen-Hero') },
+  { id: '3', label: c('Flat-lay → on-model lifestyle', 'Flat-Lay → On-Model-Lifestyle') },
+];
+
+// ------------------------------------------------------------
 // Showcase gallery — /ai/sets/item-{n}.jpg — deliberately mixed:
 // the message is "anything can look premium", not a niche list.
 // Add/remove items freely; the grid adapts.

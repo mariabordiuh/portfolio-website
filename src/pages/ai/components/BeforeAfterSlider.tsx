@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import { SmartImage } from './SmartImage';
 
 type BeforeAfterSliderProps = {
@@ -11,8 +11,8 @@ type BeforeAfterSliderProps = {
 
 export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, afterTag }: BeforeAfterSliderProps) => {
   const [position, setPosition] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef(false);
 
   const updateFromClientX = useCallback((clientX: number) => {
     const frame = frameRef.current;
@@ -23,19 +23,28 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
   }, []);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    draggingRef.current = true;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsDragging(true);
     updateFromClientX(event.clientX);
   };
 
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!draggingRef.current) return;
-    updateFromClientX(event.clientX);
-  };
-
-  const onPointerUp = () => {
-    draggingRef.current = false;
-  };
+  // Window-level listeners (not setPointerCapture on the element) so a real
+  // physical drag keeps tracking even if the cursor drifts outside this
+  // narrow strip — a trackpad/mouse drag on a tall, narrow slider like this
+  // one easily strays a few px past the edge, which silently ends the drag
+  // if move/up are only bound to the element itself.
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (event: globalThis.PointerEvent) => updateFromClientX(event.clientX);
+    const onUp = () => setIsDragging(false);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [isDragging, updateFromClientX]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowLeft') setPosition((current) => Math.max(0, current - 5));
@@ -54,9 +63,6 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
         aria-valuenow={Math.round(position)}
         tabIndex={0}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
         onKeyDown={onKeyDown}
       >
         <div className="ai-ba__layer">

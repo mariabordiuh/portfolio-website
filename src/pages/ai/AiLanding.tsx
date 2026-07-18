@@ -6,6 +6,7 @@ import { PrefetchLink } from '../../components/PrefetchLink';
 import { Seo, SITE_URL } from '../../components/Seo';
 import '../../styles/ai-page.css';
 import {
+  BEFORE_AFTER,
   CUSTOM_IDENTITY,
   FAQ,
   FOOTNOTES,
@@ -52,7 +53,8 @@ const T = {
   ctaCall: c('Book a 15-min call ›', '15-Min-Call buchen ›'),
   heroCaption: c('Hero campaign — Zuri for an activewear brand', 'Hero-Kampagne — Zuri für eine Activewear-Marke'),
   bentoTitle: c('Why it works.', 'Warum es funktioniert.'),
-  baChip: c('Before → after. Drag it yourself.', 'Vorher → Nachher. Ziehen Sie selbst.'),
+  compareTitle: c('Before → after. Drag it yourself.', 'Vorher → Nachher. Ziehen Sie selbst.'),
+  compareSub: c('Three real examples — same photo, drag to compare.', 'Drei echte Beispiele — dasselbe Foto, zum Vergleichen ziehen.'),
   baBefore: c('Your photo', 'Ihr Foto'),
   baAfter: c('Our delivery', 'Unsere Lieferung'),
   motionTile: c('Also in motion: loops for social and shop.', 'Auch in Bewegung: Motion-Loops für Social und Shop.'),
@@ -309,16 +311,6 @@ export const AiLanding = () => {
             <div className="ai-blob ai-blob--teal" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.bentoTitle)}</h2>
             <div className="ai-bento">
-              <div className="ai-bento__ba">
-                <BeforeAfterSlider
-                  beforeSrc="/ai/before-after/1-before.jpg"
-                  afterSrc="/ai/before-after/1-after.jpg"
-                  label={tx(T.baChip)}
-                  beforeTag={tx(T.baBefore)}
-                  afterTag={tx(T.baAfter)}
-                />
-              </div>
-
               <div className="ai-bento__tile ai-bento__tile--dark">
                 <p className="ai-bento__num">
                   <CountUp value={STATS.speed.value} />
@@ -385,6 +377,27 @@ export const AiLanding = () => {
                   <strong>{tx(T.guarantee)}</strong> {tx(T.guaranteeBody)}
                 </p>
               </div>
+            </div>
+          </motion.section>
+
+          {/* COMPARE — 3 before/after examples. #1 has real photos; the rest
+              show placeholders (same graceful-degradation pattern as
+              everywhere else) until matching /ai/before-after/{id}-*.jpg
+              files exist. */}
+          <motion.section className="ai-section" {...reveal}>
+            <h2 className="ai-h2">{tx(T.compareTitle)}</h2>
+            <p className="ai-sub">{tx(T.compareSub)}</p>
+            <div className="ai-compare">
+              {BEFORE_AFTER.map((pair) => (
+                <BeforeAfterSlider
+                  key={pair.id}
+                  beforeSrc={`/ai/before-after/${pair.id}-before.jpg`}
+                  afterSrc={`/ai/before-after/${pair.id}-after.jpg`}
+                  label={tx(pair.label)}
+                  beforeTag={tx(T.baBefore)}
+                  afterTag={tx(T.baAfter)}
+                />
+              ))}
             </div>
           </motion.section>
 
