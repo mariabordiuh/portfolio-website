@@ -34,6 +34,7 @@ export const SmartImage = ({ src, alt, className = '', placeholderClassName = ''
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
       className={className}
+      draggable={false}
       onError={() => setFailed(true)}
     />
   );

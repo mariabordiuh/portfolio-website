@@ -1373,6 +1373,7 @@
 .ai-ba__img {
   height: 100%;
   object-fit: cover;
+  -webkit-user-drag: none;
   width: 100%;
 }
 .ai-ba__frame .ai-placeholder {

@@ -25,6 +25,12 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
   }, []);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    // Belt-and-suspenders alongside draggable={false} on the <img>s: without
+    // this, pressing down directly on a photo (not just the thin handle) can
+    // let the browser's native "drag this image out" gesture take over mid
+    // -press, which silently stops pointermove from firing for the rest of
+    // the interaction — looks exactly like "click works, drag doesn't".
+    event.preventDefault();
     setIsDragging(true);
     updateFromClientX(event.clientX);
   };
