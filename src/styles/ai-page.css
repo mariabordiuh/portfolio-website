@@ -1364,6 +1364,10 @@
   position: absolute;
 }
 .ai-ba__layer--before {
+  /* hints the browser to promote this to its own compositing layer ahead of
+     time — without it, every clip-path change during a drag forces a full
+     repaint of the underlying photo instead of a cheap re-composite. */
+  will-change: clip-path;
   z-index: 1;
 }
 .ai-ba__img {

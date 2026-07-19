@@ -13,6 +13,8 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
   const [position, setPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const latestClientXRef = useRef(0);
 
   const updateFromClientX = useCallback((clientX: number) => {
     const frame = frameRef.current;
@@ -32,9 +34,20 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
   // narrow strip — a trackpad/mouse drag on a tall, narrow slider like this
   // one easily strays a few px past the edge, which silently ends the drag
   // if move/up are only bound to the element itself.
+  // rAF-coalesced: a fast mouse can fire pointermove 100+/sec, each forcing a
+  // clip-path repaint on a full-size photo — updating state straight from
+  // the raw event stream drops frames and feels choppy. Collapsing to one
+  // update per animation frame matches the display's actual refresh rate.
   useEffect(() => {
     if (!isDragging) return;
-    const onMove = (event: globalThis.PointerEvent) => updateFromClientX(event.clientX);
+    const onMove = (event: globalThis.PointerEvent) => {
+      latestClientXRef.current = event.clientX;
+      if (rafIdRef.current !== null) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        updateFromClientX(latestClientXRef.current);
+      });
+    };
     const onUp = () => setIsDragging(false);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -43,6 +56,10 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, [isDragging, updateFromClientX]);
 
