@@ -88,7 +88,7 @@ export const BeforeAfterSlider = ({ beforeSrc, afterSrc, label, beforeTag, after
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
       >
-        <div className="ai-ba__layer">
+        <div className="ai-ba__layer" style={{ clipPath: `inset(0 0 0 ${position}%)` }}>
           <SmartImage src={afterSrc} alt={`${label} — ${afterTag}`} className="ai-ba__img" placeholderClassName="ai-placeholder--ba" />
           <span className="ai-ba__tag ai-ba__tag--after">{afterTag}</span>
         </div>
