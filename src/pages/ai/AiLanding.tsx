@@ -311,7 +311,6 @@ export const AiLanding = () => {
                 className="ai-hero__plate-img"
                 placeholderClassName="ai-ph--hero"
               />
-              <span className="ai-hero__plate-chip">{tx(T.heroCaption)}</span>
             </div>
           </section>
 
@@ -608,18 +607,11 @@ export const AiLanding = () => {
                   <ChevronRight size={18} />
                 </button>
                 <div className="ai-sedcard__grid">
-                  <SmartImage
-                    src={`/ai/roster/${ROSTER[openIdentity].id}-portrait.jpg`}
-                    alt={ROSTER[openIdentity].name}
-                    className="ai-sedcard__img"
-                    placeholderClassName="ai-ph--sedcard"
-                    eager
-                  />
-                  {[1, 2, 3].map((n) => (
+                  {[1, 2, 3, 4].map((n) => (
                     <SmartImage
                       key={n}
                       src={`/ai/roster/${ROSTER[openIdentity].id}-output-${n}.jpg`}
-                      alt=""
+                      alt={n === 1 ? ROSTER[openIdentity].name : ''}
                       className="ai-sedcard__img"
                       placeholderClassName="ai-ph--sedcard"
                       eager

@@ -518,19 +518,6 @@
   width: 100%;
 }
 
-.ai-hero__plate-chip {
-  backdrop-filter: blur(6px);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  bottom: 14px;
-  color: var(--ai-bg);
-  font-size: 0.72rem;
-  font-weight: 500;
-  left: 16px;
-  padding: 0.35rem 0.75rem;
-  position: absolute;
-}
-
 /* ---------- bento ---------- */
 .ai-bento {
   display: grid;
