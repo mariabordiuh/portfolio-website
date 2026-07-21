@@ -53,7 +53,7 @@ const T = {
   ),
   ctaPrimary: c('Get a free test shoot', 'Gratis-Testshooting starten'),
   ctaCall: c('Book a 15-min call ›', '15-Min-Call buchen ›'),
-  heroCaption: c('Hero campaign — Zuri for an activewear brand', 'Hero-Kampagne — Zuri für eine Activewear-Marke'),
+  heroCaption: c('Hero campaign — Aiko for a beauty brand', 'Hero-Kampagne — Aiko für eine Beauty-Marke'),
   bentoTitle: c('Why it works.', 'Warum es funktioniert.'),
   compareTitle: c('Before → after. Drag it yourself.', 'Vorher → Nachher. Ziehen Sie selbst.'),
   compareSub: c('Three real examples — same photo, drag to compare.', 'Drei echte Beispiele — dasselbe Foto, zum Vergleichen ziehen.'),
