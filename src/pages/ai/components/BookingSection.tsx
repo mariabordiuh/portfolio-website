@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Check } from 'lucide-react';
 import { CALENDLY_LINK, CAL_LINK, CONTACT_EMAIL, ROSTER, SIGNOFF, WHATSAPP_NUMBER } from '../data';
 import { c, type Copy, type Lang } from '../i18n';
 
@@ -30,6 +31,12 @@ const COPY = {
   product: c('Link to a product photo (or product page)', 'Link zu einem Produktfoto (oder Produktseite)'),
   identity: c('Preferred model (optional)', 'Bevorzugtes Model (optional)'),
   send: c('Request the free test shoot', 'Gratis-Testshooting anfragen'),
+  sending: c('Sending…', 'Wird gesendet…'),
+  sentTitle: c('Request received!', 'Anfrage eingegangen!'),
+  sentBody: c(
+    'Thanks — your test shoot is in the queue. You’ll hear from us within 48 hours.',
+    'Danke — Ihr Test-Shooting ist in der Warteschlange. Sie hören innerhalb von 48 Stunden von uns.',
+  ),
   privacy: c(
     'Used only to produce and deliver your test shoot. No newsletter, no spam.',
     'Nur zur Erstellung und Lieferung Ihres Test-Shootings. Kein Newsletter, kein Spam.',
@@ -38,21 +45,53 @@ const COPY = {
 
 export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionProps) => {
   const [form, setForm] = useState({ name: '', email: '', product: '', identity: preferredIdentity });
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  // Honeypot: invisible to humans, bots fill it. A filled value gets a fake
+  // success so the bot moves on without a Firestore write.
+  const [trap, setTrap] = useState('');
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const subject =
-      lang === 'de'
-        ? `Gratis-Testshooting — ${form.name || 'Anfrage'}`
-        : `Free test shoot — ${form.name || 'request'}`;
-    const body = [
-      `Name: ${form.name || '-'}`,
-      `Email: ${form.email || '-'}`,
-      `Product photo / page: ${form.product || '-'}`,
-      `Preferred model: ${form.identity || '-'}`,
-      `Language: ${lang}`,
-    ].join('\n');
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    if (status !== 'idle') return;
+    if (trap) {
+      setStatus('sent');
+      return;
+    }
+    setStatus('sending');
+    try {
+      // Loaded on submit only — visitors who never send the form don't pay
+      // for the Firestore bundle.
+      const [{ dbLite }, { addDoc, collection, serverTimestamp }] = await Promise.all([
+        import('../../../firebase-firestore-lite'),
+        import('firebase/firestore/lite'),
+      ]);
+      if (!dbLite) throw new Error('firestore unavailable');
+      await addDoc(collection(dbLite, 'aiLeads'), {
+        name: form.name,
+        email: form.email,
+        product: form.product,
+        identity: form.identity,
+        lang,
+        createdAt: serverTimestamp(),
+      });
+      setStatus('sent');
+    } catch {
+      // Last resort so the lead isn't lost if the write fails (offline,
+      // rules mismatch, adblock): hand off to the visitor's mail client.
+      setStatus('idle');
+      const subject =
+        lang === 'de'
+          ? `Gratis-Testshooting — ${form.name || 'Anfrage'}`
+          : `Free test shoot — ${form.name || 'request'}`;
+      const body = [
+        `Name: ${form.name || '-'}`,
+        `Email: ${form.email || '-'}`,
+        `Product photo / page: ${form.product || '-'}`,
+        `Preferred model: ${form.identity || '-'}`,
+        `Language: ${lang}`,
+      ].join('\n');
+      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
   };
 
   const update = (field: keyof typeof form) => (value: string) =>
@@ -121,6 +160,16 @@ export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionPr
           </div>
 
           <form className="ai-contact__form ai-contact__panel" id="ai-test-shoot" onSubmit={handleSubmit}>
+            {status === 'sent' ? (
+              <div className="ai-contact__sent" role="status">
+                <span className="ai-contact__sent-icon" aria-hidden="true">
+                  <Check size={22} strokeWidth={2.4} />
+                </span>
+                <h3 className="ai-contact__form-title">{tx(COPY.sentTitle)}</h3>
+                <p className="ai-contact__form-sub">{tx(COPY.sentBody)}</p>
+              </div>
+            ) : (
+              <>
             <div className="ai-contact__form-head">
               <h3 className="ai-contact__form-title">{tx(COPY.formTitle)}</h3>
               <p className="ai-contact__form-sub">{tx(COPY.formSub)}</p>
@@ -151,8 +200,12 @@ export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionPr
                 <option value="Custom">Custom</option>
               </select>
             </label>
-            <button type="submit" className="ai-btn ai-btn--invert ai-btn--block">
-              {tx(COPY.send)}
+            <label className="ai-field ai-field--trap" aria-hidden="true">
+              <span>Company</span>
+              <input type="text" tabIndex={-1} autoComplete="off" value={trap} onChange={(event) => setTrap(event.target.value)} />
+            </label>
+            <button type="submit" className="ai-btn ai-btn--invert ai-btn--block" disabled={status === 'sending'}>
+              {status === 'sending' ? tx(COPY.sending) : tx(COPY.send)}
             </button>
             <p className="ai-contact__privacy">{tx(COPY.privacy)}</p>
             {!schedulingUrl ? (
@@ -162,6 +215,8 @@ export const BookingSection = ({ tx, lang, preferredIdentity }: BookingSectionPr
                 </a>
               </p>
             ) : null}
+              </>
+            )}
           </form>
         </div>
 

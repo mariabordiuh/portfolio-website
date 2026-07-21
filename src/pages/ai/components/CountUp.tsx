@@ -25,7 +25,10 @@ export const CountUp = ({ value, durationMs = 1100 }: CountUpProps) => {
   // match array every render was cancelling the animation mid-flight).
   const { prefix, target, suffix } = parse(value);
   const hasNumber = target !== null;
-  const [display, setDisplay] = useState(hasNumber && !reduced ? 0 : target ?? 0);
+  // Starts at the FINAL value, not 0 — crawlers, link previews and anyone
+  // whose JS hasn't run yet must read "900+", never "0+". The animation
+  // resets to 0 only at the moment it actually starts (in view, JS live).
+  const [display, setDisplay] = useState(target ?? 0);
 
   useEffect(() => {
     if (target === null || reduced) return;

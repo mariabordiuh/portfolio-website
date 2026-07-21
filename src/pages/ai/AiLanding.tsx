@@ -6,7 +6,9 @@ import { PrefetchLink } from '../../components/PrefetchLink';
 import { Seo, SITE_URL } from '../../components/Seo';
 import '../../styles/ai-page.css';
 import {
+  ANCHOR,
   BEFORE_AFTER,
+  CASE_TILES,
   CUSTOM_IDENTITY,
   FAQ,
   FOOTNOTES,
@@ -79,6 +81,13 @@ const T = {
   ],
   pricingTitle: c('Which package fits you?', 'Welches Paket passt zu Ihnen?'),
   pricingScarcity: c('{n} of {t} founding rates left.', 'Noch {n} von {t} Founding-Preisen frei.'),
+  // Shown instead of the counter while no spot is taken yet — "10 of 10 left"
+  // would announce zero traction.
+  pricingScarcityIntro: c(
+    'Founding rates for the first {t} direct-booking brands — locked permanently.',
+    'Founding-Preise für die ersten {t} Direktkunden — dauerhaft gesichert.',
+  ),
+  casesTitle: c('Work we can’t show — facts we can.', 'Arbeit, die wir nicht zeigen dürfen — Fakten schon.'),
   from: c('From', 'Ab'),
   later: c('Founding rate', 'Founding-Preis'),
   forStart: c('To get started.', 'Für den Anfang.'),
@@ -420,6 +429,24 @@ export const AiLanding = () => {
             </div>
           </motion.section>
 
+          {/* NDA CASE TILES — anonymized facts standing in for the client
+              names NDAs forbid. Hidden until Maria confirms the facts and
+              fills CASE_TILES in data.ts. */}
+          {CASE_TILES.length > 0 ? (
+            <motion.section className="ai-section" {...reveal}>
+              <h2 className="ai-h2">{tx(T.casesTitle)}</h2>
+              <div className="ai-cases">
+                {CASE_TILES.map((tile) => (
+                  <article key={tile.sector.en} className="ai-case">
+                    <p className="ai-case__sector">{tx(tile.sector)}</p>
+                    <p className="ai-case__fact">{tx(tile.fact)}</p>
+                    <p className="ai-case__detail">{tx(tile.detail)}</p>
+                  </article>
+                ))}
+              </div>
+            </motion.section>
+          ) : null}
+
           {/* ROSTER — proves "consistent models" isn't just a claim: each card
               pairs the identity's portrait with 2 in-campaign shots of the
               same face. Output shots are optional (SmartImage placeholder
@@ -650,10 +677,36 @@ export const AiLanding = () => {
           <motion.section className="ai-section ai-section--glow" id="ai-preise" {...reveal}>
             <div className="ai-blob ai-blob--lime" aria-hidden="true" />
             <h2 className="ai-h2">{tx(T.pricingTitle)}</h2>
+            <div className="ai-anchor" aria-label={tx(ANCHOR.heading)}>
+              <div className="ai-anchor__col">
+                <p className="ai-anchor__label">{tx(ANCHOR.traditional.label)}</p>
+                <ul>
+                  {ANCHOR.traditional.rows.map((row) => (
+                    <li key={row.en}>
+                      <X size={13} strokeWidth={2.4} aria-hidden="true" />
+                      {tx(row)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="ai-anchor__col ai-anchor__col--ai">
+                <p className="ai-anchor__label">{tx(ANCHOR.ai.label)}</p>
+                <ul>
+                  {ANCHOR.ai.rows.map((row) => (
+                    <li key={row.en}>
+                      <Check size={13} strokeWidth={2.6} aria-hidden="true" />
+                      {tx(row)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
             {SCARCITY.foundingLeft > 0 ? (
               <p className="ai-scarcity">
                 <Flame size={13} strokeWidth={2.2} aria-hidden="true" />
-                {fill(tx(T.pricingScarcity), { n: SCARCITY.foundingLeft, t: SCARCITY.foundingTotal })}
+                {SCARCITY.foundingLeft === SCARCITY.foundingTotal
+                  ? fill(tx(T.pricingScarcityIntro), { t: SCARCITY.foundingTotal })
+                  : fill(tx(T.pricingScarcity), { n: SCARCITY.foundingLeft, t: SCARCITY.foundingTotal })}
               </p>
             ) : null}
             <div className="ai-tiers">

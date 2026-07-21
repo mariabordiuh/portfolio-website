@@ -119,6 +119,49 @@ export const TIERS: Tier[] = [
 ];
 
 // ------------------------------------------------------------
+// Price anchor — what the alternative actually costs. Shown above the tiers
+// so "ab 349 €" has a reference point. Ranges must stay defensible: a typical
+// German product shoot with model, studio, photographer and retouching.
+// ------------------------------------------------------------
+export const ANCHOR = {
+  heading: c('For comparison', 'Zum Vergleich'),
+  traditional: {
+    label: c('Traditional product shoot', 'Klassisches Produktshooting'),
+    rows: [
+      c('€1,500–3,700 per shoot', '1.500–3.700 € pro Shooting'),
+      c('4–6 weeks from booking to final files', '4–6 Wochen von Buchung bis zu finalen Daten'),
+      c('Re-shoot means a new budget and a new date', 'Re-Shoot heißt: neues Budget, neuer Termin'),
+    ],
+  },
+  ai: {
+    label: c('Maria Bordiuh AI', 'Maria Bordiuh AI'),
+    rows: [
+      c('From €349 per set', 'Ab 349 € pro Set'),
+      c('48–72 hours to finished images', '48–72 Stunden bis zu fertigen Bildern'),
+      c('Redirects included — fits, or we redo it', 'Nachjustieren inklusive — passt, oder nochmal'),
+    ],
+  },
+};
+
+// ------------------------------------------------------------
+// Anonymized case tiles (NDA-safe proof). The section stays hidden while this
+// array is empty. TODO(Maria): confirm each fact, then move the drafts below
+// into the array — do not publish unconfirmed numbers.
+//
+// Drafts to confirm:
+//   { sector: c('Safety-workwear brand, DACH', 'Arbeitsschutz-Marke, DACH'),
+//     fact: c('Recurring production', 'Laufende Produktion'),
+//     detail: c('40 images per quarter — on-model and product.', '40 Bilder pro Quartal — am Model und als Produkt-Shot.') },
+//   { sector: c('Fashion brand 60+, e-commerce', 'Fashion-Marke 60+, E-Commerce'),
+//     fact: c('Full season campaign', 'Komplette Saison-Kampagne'),
+//     detail: c('One consistent 60+ identity across the whole drop.', 'Eine konsistente 60+-Identität über den gesamten Drop.') },
+//   { sector: c('Marketing agency, white-label', 'Marketingagentur, White-Label'),
+//     fact: c('Ongoing NDA production', 'Laufende NDA-Produktion'),
+//     detail: c('Campaign sets delivered under the agency’s name.', 'Kampagnen-Sets, geliefert unter dem Namen der Agentur.') },
+// ------------------------------------------------------------
+export const CASE_TILES: Array<{ sector: Copy; fact: Copy; detail: Copy }> = [];
+
+// ------------------------------------------------------------
 // Bento stats — the two big numbers. ¹² footnote markers resolve in FOOTNOTES.
 // TODO(Maria): confirm 900+ with a 10-min folder count before launch.
 // ------------------------------------------------------------

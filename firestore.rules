@@ -115,6 +115,18 @@ service cloud.firestore {
              (!('posterImage' in data) || data.posterImage is string);
     }
 
+    // Public lead form on /ai. Create-only, exact keys, bounded sizes,
+    // server timestamp enforced — nothing readable or editable from the client.
+    function isValidAiLead(data) {
+      return data.keys().hasOnly(['name', 'email', 'product', 'identity', 'lang', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.email is string && data.email.size() > 3 && data.email.size() < 320 &&
+             data.product is string && data.product.size() > 0 && data.product.size() < 2000 &&
+             data.identity is string && data.identity.size() < 100 &&
+             data.lang in ['en', 'de'] &&
+             data.createdAt == request.time;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -162,6 +174,12 @@ service cloud.firestore {
 
     match /omrVisits/{visitId} {
       allow read, write: if false;
+    }
+
+    match /aiLeads/{leadId} {
+      allow read: if isAdmin();
+      allow create: if isValidAiLead(request.resource.data);
+      allow update, delete: if false;
     }
 
     match /{document=**} {
