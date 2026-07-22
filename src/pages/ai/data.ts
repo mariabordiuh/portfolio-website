@@ -253,7 +253,7 @@ export const CUSTOM_IDENTITY = {
 export const BEFORE_AFTER: Array<{ id: string; label: Copy }> = [
   { id: '1', label: c('Shop photo → studio shot', 'Ladenfoto → Studioaufnahme') },
   { id: '2', label: c('Product photo → campaign hero', 'Produktfoto → Kampagnen-Hero') },
-  { id: '3', label: c('Flat-lay → on-model lifestyle', 'Flat-Lay → On-Model-Lifestyle') },
+  { id: '3', label: c('Phone photo → food editorial', 'Handyfoto → Food-Editorial') },
 ];
 
 // ------------------------------------------------------------
