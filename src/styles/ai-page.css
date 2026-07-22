@@ -39,10 +39,15 @@
 
   --ai-panel: #101a3e; /* raised navy surface (contact panel uses gradient) */
   --ai-on-panel: rgba(255, 255, 255, 0.7);
+  /* Display serif for marketing headline moments (hero, section titles, big
+     stats, prices, names) — Albert Sans stays for functional/dense UI (nav
+     links, buttons, form fields, FAQ, bullets). The pairing is the single
+     biggest lever for "expensive" over "clean SaaS template". */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --ai-shell: 74rem;
   --ai-pad: clamp(1.1rem, 3vw, 1.75rem);
   --ai-gap: clamp(0.7rem, 1.2vw, 0.85rem);
-  --ai-section: clamp(3rem, 6vw, 4.5rem);
+  --ai-section: clamp(4rem, 8vw, 7rem);
   --ai-radius-card: 18px;
   --ai-radius-btn: 8px;
 
@@ -153,16 +158,21 @@
 }
 
 /* Override the global site heading font (Press Start 2P / Archivo Expanded).
-   /ai is Albert Sans throughout. */
+   /ai is Albert Sans by default, but display-serif moments (hero title,
+   section h2s, contact title) set their own font-family on a single-class
+   selector — same specificity trap as the margin reset above, so h1-h4
+   go through :where() to stay near-zero specificity and let those lose. */
 .ai-page,
-.ai-page h1,
-.ai-page h2,
-.ai-page h3,
-.ai-page h4,
 .ai-page button,
 .ai-page input,
 .ai-page select,
 .ai-page textarea {
+  font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
+}
+:where(.ai-page) h1,
+:where(.ai-page) h2,
+:where(.ai-page) h3,
+:where(.ai-page) h4 {
   font-family: 'Albert Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -216,10 +226,11 @@
 }
 
 .ai-h2 {
-  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
   font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   text-align: center;
   text-wrap: balance;
 }
@@ -245,10 +256,10 @@
    accented badge treatment instead of blending into generic subtext. */
 .ai-scarcity {
   align-items: center;
-  background: rgba(214, 222, 92, 0.12);
-  border: 1px solid rgba(214, 222, 92, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 99px;
-  color: var(--ai-lime);
+  color: var(--ai-fg);
   display: flex;
   font-size: 0.78rem;
   font-weight: 600;
@@ -304,13 +315,16 @@
   box-shadow: 0 6px 30px rgba(214, 222, 92, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
+/* Deliberately quieter than --solid: no border, no fill — sits back so the
+   one lime CTA per view stays the only thing that visually shouts. */
 .ai-page .ai-btn--outline {
   background: transparent;
-  border-color: var(--ai-border-strong);
+  border-color: transparent;
   color: var(--ai-fg);
 }
 .ai-page .ai-btn--outline:hover {
   background: var(--ai-fill);
+  border-color: var(--ai-border-soft);
 }
 
 /* On dark navy panels: lime button also works (dark text on lime). */
@@ -361,8 +375,10 @@
 }
 
 .ai-nav__brand {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  letter-spacing: 0.01em;
 }
 
 .ai-nav__links {
@@ -468,9 +484,10 @@
 }
 
 .ai-hero__title {
-  font-size: clamp(2.1rem, 5.4vw, 2.9rem);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6.4vw, 4.4rem);
   font-weight: 600;
-  letter-spacing: -0.032em;
+  letter-spacing: -0.01em;
   line-height: 1.02;
   margin-top: 0.6rem;
   text-align: center;
@@ -504,18 +521,28 @@
   text-underline-offset: 3px;
 }
 
+/* Full-bleed: breaks out of the padded/centered .ai-hero shell to span the
+   full viewport width, edge to edge — the photography is the luxury here,
+   a rounded contained card was undercutting it. */
 .ai-hero__plate {
-  border-radius: 20px;
-  margin-top: clamp(2rem, 4vw, 2.75rem);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
   overflow: hidden;
   position: relative;
+  width: 100vw;
 }
 
 .ai-hero__plate-img {
   aspect-ratio: 21 / 9;
   display: block;
   object-fit: cover;
+  transform: scale(1);
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
   width: 100%;
+}
+.ai-hero__plate:hover .ai-hero__plate-img {
+  transform: scale(1.035);
 }
 
 /* ---------- bento ---------- */
@@ -559,10 +586,11 @@
 }
 
 .ai-bento__num {
-  font-size: clamp(2rem, 4vw, 2.4rem);
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
   font-variant-numeric: tabular-nums; /* no digit jitter during count-up */
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
@@ -628,10 +656,10 @@
 }
 .ai-facepile__more {
   align-items: center;
-  background: var(--ai-lime);
+  background: var(--ai-fg);
   border: 2px solid var(--ai-bg);
   border-radius: 50%;
-  color: var(--ai-lime-ink);
+  color: var(--ai-bg);
   display: flex;
   font-size: 0.7rem;
   font-weight: 700;
@@ -672,31 +700,55 @@
   flex-shrink: 0;
 }
 
-/* ---------- gallery ---------- */
+/* ---------- gallery — editorial mosaic ---------- */
+/* One big feature (2x2) + one wide banner (2x1), rest square — 4+4+4+1+2+1
+   = 12 cells = exactly 4 cols x 3 rows, so plain (non-dense) auto-flow
+   tiles with zero gaps. Dense packing was tried first but with only 8
+   items the span sizes didn't divide evenly, leaving a visible hole. */
 .ai-gallery {
   display: grid;
   gap: var(--ai-gap);
+  grid-auto-rows: clamp(85px, 13vw, 150px);
   grid-template-columns: repeat(4, 1fr);
-  margin-top: 1.6rem;
+  margin-top: 2rem;
 }
 .ai-gallery__item {
+  border-radius: 14px;
   overflow: hidden;
+  position: relative;
+}
+.ai-gallery__item:nth-child(1) {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.ai-gallery__item:nth-child(7) {
+  grid-column: span 2;
 }
 .ai-gallery__img {
-  aspect-ratio: 3 / 4;
-  border-radius: 14px;
   display: block;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transform: scale(1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   width: 100%;
 }
 .ai-gallery__item:hover .ai-gallery__img {
-  transform: scale(1.02);
+  transform: scale(1.045);
 }
 .ai-gallery__item figcaption {
-  color: var(--ai-fg-subtle);
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+  background: linear-gradient(to top, rgba(4, 6, 16, 0.85), transparent 68%);
+  bottom: 0;
+  color: #fff;
+  font-size: 0.78rem;
+  left: 0;
+  opacity: 0;
+  padding: 1.6rem 0.9rem 0.7rem;
+  position: absolute;
+  right: 0;
+  transition: opacity 0.3s ease;
+}
+.ai-gallery__item:hover figcaption {
+  opacity: 1;
 }
 
 /* ---------- roster carousel (consistency proof) ---------- */
@@ -819,8 +871,9 @@
   padding: 1.1rem 1.2rem 1.3rem;
 }
 .ai-roster__name {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 .ai-roster__title {
   color: var(--ai-accent);
@@ -846,10 +899,10 @@
 }
 .ai-roster__custom-icon {
   align-items: center;
-  background: rgba(214, 222, 92, 0.14);
-  border: 0.5px solid rgba(214, 222, 92, 0.35);
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
-  color: var(--ai-lime);
+  color: var(--ai-fg);
   display: inline-flex;
   height: 42px;
   justify-content: center;
@@ -908,8 +961,9 @@
 }
 .ai-sedcard__name {
   color: var(--ai-fg);
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
   padding: 1rem 1.25rem 1.25rem;
   text-align: center;
 }
@@ -973,14 +1027,11 @@
 /* ---------- steps ---------- */
 .ai-steps {
   display: grid;
-  gap: var(--ai-gap);
+  gap: clamp(1.5rem, 4vw, 3rem);
   grid-template-columns: repeat(3, 1fr);
-  margin-top: 1.6rem;
+  margin-top: 2.4rem;
 }
 .ai-step {
-  background: var(--ai-fill-2);
-  border-radius: var(--ai-radius-card);
-  padding: 1.4rem;
   text-align: center;
 }
 .ai-step__badge {
@@ -1021,8 +1072,8 @@
   padding: 1.1rem 1.25rem;
 }
 .ai-anchor__col--ai {
-  border-color: rgba(214, 222, 92, 0.4);
-  box-shadow: 0 8px 26px rgba(214, 222, 92, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);
 }
 .ai-anchor__label {
   font-size: 0.78rem;
@@ -1032,7 +1083,7 @@
   color: var(--ai-fg-muted);
 }
 .ai-anchor__col--ai .ai-anchor__label {
-  color: var(--ai-lime);
+  color: var(--ai-fg);
 }
 .ai-anchor__col ul {
   display: grid;
@@ -1059,7 +1110,7 @@
   color: var(--ai-fg);
 }
 .ai-anchor__col--ai li svg {
-  color: var(--ai-lime);
+  color: var(--ai-fg);
   opacity: 1;
 }
 
@@ -1124,18 +1175,15 @@
 }
 .ai-tier.is-featured {
   background: rgba(22, 38, 92, 0.55);
-  border: 1px solid rgba(214, 222, 92, 0.4);
-  border-top-color: rgba(214, 222, 92, 0.6);
-  box-shadow: 0 10px 34px rgba(214, 222, 92, 0.12), 0 10px 30px rgba(3, 6, 16, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-top-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22), 0 10px 30px rgba(3, 6, 16, 0.3);
   color: #fff;
 }
 .ai-tier__badge {
-  background: rgba(214, 222, 92, 0.16);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(214, 222, 92, 0.55);
+  background: var(--ai-fg);
   border-radius: 99px;
-  color: var(--ai-lime);
+  color: var(--ai-bg);
   font-size: 0.66rem;
   font-weight: 700;
   left: 50%;
@@ -1145,14 +1193,16 @@
   transform: translateX(-50%);
 }
 .ai-tier__name {
-  font-size: 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 600;
 }
 .ai-tier__price {
-  font-size: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
   margin-top: 0.7rem;
 }
 .ai-tier__price sup {
@@ -1185,7 +1235,7 @@
   line-height: 1.4;
 }
 .ai-tier__bullets svg {
-  color: var(--ai-lime);
+  color: var(--ai-accent);
   flex-shrink: 0;
   margin-top: 0.2rem;
 }
@@ -1273,9 +1323,10 @@
   text-align: center;
 }
 .ai-contact__title {
-  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.6vw, 2.6rem);
   font-weight: 600;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
 }
 .ai-contact__sub {
   color: var(--ai-on-panel);
@@ -1638,6 +1689,11 @@
   }
   .ai-gallery {
     grid-template-columns: repeat(2, 1fr);
+  }
+  /* The wide (2-col) tile would force a mid-grid gap at 2 columns —
+     only the big feature tile survives the narrower breakpoint. */
+  .ai-gallery__item:nth-child(7) {
+    grid-column: span 1;
   }
   .ai-tiers,
   .ai-steps,
