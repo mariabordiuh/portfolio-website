@@ -708,7 +708,10 @@
 .ai-gallery {
   display: grid;
   gap: var(--ai-gap);
-  grid-auto-rows: clamp(85px, 13vw, 150px);
+  /* Rows were far shorter than a column is wide (150px max vs ~290px
+     column), so cover-cropping sliced heads off portrait photos in every
+     1x1 cell. Tall enough now that a single cell is close to square. */
+  grid-auto-rows: clamp(160px, 24vw, 260px);
   grid-template-columns: repeat(4, 1fr);
   margin-top: 2rem;
 }
